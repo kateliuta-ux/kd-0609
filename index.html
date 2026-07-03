@@ -180,10 +180,13 @@
   </div>
 
   <div id="end-screen" class="overlay hidden">
-    <div class="big">ДАЛІ БУДЕ…</div>
+    <div class="big" id="inv-title">ЗАПРОШЕННЯ</div>
     <div class="date">06 · 09 · 2026 — КИЇВ</div>
-    <p>Це прототип. Попереду: заява в Дії —<br>і запрошення саме для тебе.</p>
-    <button class="btn" id="btn-restart">На початок</button>
+    <p id="inv-body"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" id="btn-ics" style="background:var(--gold)">📅 В календар</button>
+      <button class="btn" id="btn-restart">На початок</button>
+    </div>
   </div>
 </div>
 
@@ -216,6 +219,22 @@ const COL = {
   metal:'#8b8898', white:'#f0ede4',
 };
 
+/* ---------------- гості: персональні посилання ----------------
+   ?guest=КОД → ім'я, група часу і версія контенту.
+   ?v=family → цензурна версія без коду.
+   Реальні коди і час/локації Катя дасть пізніше — поки демо. */
+const PARAMS = new URLSearchParams(location.search);
+const GUESTS = {
+  'demo':   {name:'Любий госте', slot:'A', family:false},
+  'family': {name:'Рідні',       slot:'B', family:true},
+};
+const GUEST = GUESTS[(PARAMS.get('guest')||'').toLowerCase()] || null;
+const CENSORED = GUEST ? GUEST.family : PARAMS.get('v')==='family';
+const SLOTS = {
+  A: {what:'Церемонія і банкет', when:'6 вересня 2026 · час уточнюється', where:'Київ · локація уточнюється'},
+  B: {what:'Банкет',             when:'6 вересня 2026 · час уточнюється', where:'Київ · локація уточнюється'},
+};
+
 const CHARS = {
   // Катя — блондинка з каре, Діма — шатен із чубчиком-шторкою (за фото)
   katya:{ name:'КАТЯ', hair:'#cfa96f', top:COL.rose, topD:COL.roseD, cls:'name-katya', style:'bob'    },
@@ -240,7 +259,10 @@ function chatScript(pov){
   ];
   const common = [
     {who:'dima',  emo:'happy', text:'Йоу! Як трєня?)'},
-    {who:'katya', emo:'tired', text:'Йоу) стресово 🥲'},
+    {who:'katya', emo:'tired', text:'Йоу) стресово 🥲\nБоюсь потрапити до важчих суперниць.'},
+    {who:'dima',  emo:'happy', text: CENSORED
+      ? 'Та навіть якщо потрапиш —\nвсеодно всіх покладеш'
+      : 'Та навіть якщо потрапиш —\nвсеодно їх відпиздиш'},
     {who:'dima',  emo:'wow',   text:'А там такий двіж, як в карате-кіді?)'},
     {who:'dima',  emo:'happy', text:'Удачки тобі завтра!'},
     {who:'dima',  emo:'shy',   text:'ой'},
@@ -337,7 +359,9 @@ const game = {
   tetris:null,              // стан тетрісу (Лондон)
   svat:null,                // стан сватання
   prop:null,                // стан освідчення
+  diia:null,                // стан подачі заяви в Дії
   _tapPos:null,             // остання точка тапу по канві (для вибору ходу/пальця)
+  _holdPtr:false,           // палець утримується на канві (для кнопки Дії)
 };
 
 const input = {left:false, right:false, down:false, action:false, actionEdge:false};
@@ -1329,7 +1353,7 @@ function updateProp(){
       p.ringT++;
       if(p.ringT===100){
         p.step='done';
-        startDialog(propOutroScript(game.pov), ()=> setTimeout(finishGame, 700));
+        startDialog(propOutroScript(game.pov), ()=> setPhase('cap7'));
       }
       return;
     }
@@ -1529,6 +1553,130 @@ function drawProp(){
   }
 }
 
+/* ================= Дія: шлюб онлайн ================= */
+const DIIA_STATUSES = ['Перевіряємо, чи це ви…','Дія.Підпис…','Узгоджуємо зірки…','Майже…'];
+function startDiia(){
+  game.diia = {hold:0, sent:false, sentT:0, confetti:[]};
+  setPhase('diia');
+}
+function updateDiia(){
+  const d = game.diia; if(!d) return;
+  if(d.sent){
+    d.sentT++;
+    if(d.sentT===40){
+      for(let i=0;i<40;i++) d.confetti.push({
+        x:Math.random()*W, y:-10-Math.random()*60,
+        v:0.6+Math.random()*1.2, c:['#A8505F','#B58A2E','#3F7C77','#1E4E8A','#f4f0e4'][i%5],
+      });
+    }
+    d.confetti.forEach(q=>{ q.y+=q.v; });
+    if(d.sentT===170) setPhase('cap8');
+    return;
+  }
+  const holding = game.watch || input.action || game._holdPtr || keys[' '] || keys['Enter'];
+  d.hold = holding ? Math.min(100, d.hold+1.1) : Math.max(0, d.hold-2.5);
+  if(d.hold>=100){ d.sent = true; d.sentT = 0; }
+}
+function drawDiia(){
+  const d = game.diia; if(!d) return;
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2a2438'); g.addColorStop(1,'#1c1826');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  // телефон
+  const px=112, py=6, pw=96, ph=168;
+  ctx.fillStyle = COL.ink; ctx.fillRect(px-4,py-4,pw+8,ph+8);
+  ctx.fillStyle = '#f6f5f2'; ctx.fillRect(px,py,pw,ph);
+  ctx.fillStyle = '#1a1a24'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('дія', px+pw/2, py+18);
+  ctx.fillStyle = '#B58A2E'; ctx.fillRect(px+pw/2-10, py+23, 20, 2);
+
+  if(!d.sent){
+    ctx.fillStyle = '#fff'; ctx.fillRect(px+8, py+34, pw-16, 62);
+    ctx.strokeStyle = '#e3e1da'; ctx.strokeRect(px+8, py+34, pw-16, 62);
+    ctx.font='16px sans-serif'; ctx.fillStyle='#1a1a24';
+    ctx.fillText('💍', px+pw/2, py+56);
+    ctx.font='bold 8px monospace';
+    ctx.fillText('Шлюб онлайн', px+pw/2, py+70);
+    ctx.font='7px monospace'; ctx.fillStyle='#777';
+    ctx.fillText('заява про реєстрацію', px+pw/2, py+82);
+    // кнопка з прогресом утримання
+    ctx.fillStyle = '#dcd9d0'; ctx.fillRect(px+10, py+110, pw-20, 22);
+    ctx.fillStyle = '#1E4E8A'; ctx.fillRect(px+10, py+110, (pw-20)*d.hold/100, 22);
+    ctx.fillStyle = d.hold>45 ? '#fff' : '#1a1a24'; ctx.font='bold 8px monospace';
+    ctx.fillText('ПОДАТИ ЗАЯВУ', px+pw/2, py+124);
+    ctx.fillStyle = '#777'; ctx.font='7px monospace';
+    const st = d.hold>5 ? DIIA_STATUSES[Math.min(3, Math.floor(d.hold/28))] : '';
+    ctx.fillText(st, px+pw/2, py+146);
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.fillText(game.watch?'':(isTouch?'утримуй палець на екрані':'утримуй ПРОБІЛ'), W/2, H-6);
+  } else {
+    ctx.fillStyle = '#3F7C77'; ctx.font='26px sans-serif';
+    ctx.fillText('✓', px+pw/2, py+64);
+    ctx.fillStyle = '#1a1a24'; ctx.font='bold 8px monospace';
+    ctx.fillText('Заяву надіслано', px+pw/2, py+84);
+    ctx.font='7px monospace'; ctx.fillStyle='#777';
+    ctx.fillText('16 червня 2026', px+pw/2, py+98);
+    ctx.fillText('найромантичніша кнопка Дії', px+pw/2, py+110);
+    d.confetti.forEach(q=>{ ctx.fillStyle=q.c; ctx.fillRect(q.x, q.y, 3, 3); });
+  }
+}
+
+/* ================= Весілля: фінальна сцена ================= */
+function drawWed(){
+  // золота година
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#f2b06a'); g.addColorStop(.55,'#e8845a'); g.addColorStop(1,'#c96a4e');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,FLOOR_Y);
+  ctx.fillStyle = '#fff3d8';
+  ctx.beginPath(); ctx.arc(70,52,16,0,7); ctx.fill();
+  // силует Києва
+  ctx.fillStyle = 'rgba(90,58,60,.5)';
+  ctx.fillRect(0,96,40,32); ctx.fillRect(50,88,26,40);
+  ctx.fillRect(250,92,34,36); ctx.fillRect(290,84,30,44);
+  ctx.fillRect(230,72,6,56); ctx.fillRect(228,66,10,8);        // дзвіниця
+  // галявина
+  ctx.fillStyle = '#5d8b58'; ctx.fillRect(0,FLOOR_Y,W,H-FLOOR_Y);
+  ctx.fillStyle = '#527c4e';
+  for(let fx=0; fx<W; fx+=18) ctx.fillRect(fx+((fx/18)%2)*4, FLOOR_Y+4, 3, 2);
+  // весільна арка
+  ctx.fillStyle = '#f4f0e4';
+  ctx.fillRect(116,58,6,96); ctx.fillRect(198,58,6,96);
+  ctx.beginPath(); ctx.arc(160,64,46,Math.PI,0); ctx.arc(160,64,38,0,Math.PI,true); ctx.fill();
+  // квіти на арці
+  for(let i=0;i<9;i++){
+    const a = Math.PI + i*(Math.PI/8);
+    const qx = 160+Math.cos(a)*42, qy = 64+Math.sin(a)*42;
+    ctx.fillStyle = i%2 ? COL.rose : '#B58A2E';
+    ctx.fillRect(qx-2, qy-2, 5, 5);
+    ctx.fillStyle = '#3F7C77'; ctx.fillRect(qx+2, qy+2, 2, 2);
+  }
+  // молодята
+  const bob = (game.t>>4)&1;
+  // Катя: біла сукня + фата
+  drawPerson(146, FLOOR_Y+2-bob, 'katya', 0, 1, false, {top:'#f8f5ea', topD:'#ddd8c4'});
+  ctx.fillStyle = '#f8f5ea';                                    // спідниця
+  ctx.fillRect(134, FLOOR_Y+2-bob-16, 24, 16);
+  ctx.fillRect(131, FLOOR_Y+2-bob-8, 30, 8);
+  ctx.fillStyle = 'rgba(248,245,234,.7)';                       // фата
+  ctx.fillRect(136, FLOOR_Y+2-bob-50, 5, 26);
+  // Діма: чорний костюм, кучері
+  drawPerson(176, FLOOR_Y+2-(1-bob), 'dima', 0, -1, false, DIMA_FEB26);
+  ctx.fillStyle = '#f4f0e4'; ctx.fillRect(173, FLOOR_Y-33+(1-bob), 3, 5);  // сорочка
+  // Кітана з бантиком
+  drawKitana(216, FLOOR_Y+2, -1);
+  ctx.fillStyle = COL.rose; ctx.fillRect(219, FLOOR_Y-7, 4, 3);
+  // сердечка летять
+  for(let i=0;i<8;i++){
+    const hx = 40 + (i*37)%240;
+    const hy = FLOOR_Y - ((game.t*0.5 + i*29)%110);
+    ctx.fillStyle = i%2 ? 'rgba(168,80,95,.75)' : 'rgba(244,240,228,.7)';
+    ctx.fillRect(hx,hy,3,3); ctx.fillRect(hx+4,hy,3,3);
+    ctx.fillRect(hx,hy+2,7,3); ctx.fillRect(hx+1,hy+5,5,2);
+  }
+  ctx.fillStyle = '#fff'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
+  ctx.fillText('06 · 09 · 2026', W/2, 26);
+}
+
 /* ---- музика: «Минає день, минає ніч» (Мозговий/Рибчинський), приспів ----
    Реконструкція мелодії по пам'яті — Катя виправить у семплері. */
 let audioCtx = null, musicTimer = null, musicOn = false;
@@ -1684,12 +1832,13 @@ cv.addEventListener('pointerdown', e=>{
   else if(game.phase==='prop' && game.prop && (game.prop.step==='chess'||game.prop.step==='fingers') && !game.dialog){
     game._tapPos = canvasPos(e);
   }
+  else if(game.phase==='diia'){ game._holdPtr = true; }
   else input.actionEdge = true;
 });
 cv.addEventListener('pointermove', e=>{
   if(dragTarget) dragTarget = canvasPos(e);
 });
-addEventListener('pointerup', ()=>{ dragTarget = null; });
+addEventListener('pointerup', ()=>{ dragTarget = null; game._holdPtr = false; });
 
 const isTouch = matchMedia('(pointer:coarse)').matches;
 
@@ -1732,7 +1881,7 @@ function startGame(pov, watch){
   game.npc = {x:430, dir:-1, phase:0};
   game.camX = 0; game.swipeX = 0; game._setDone = false; game._dateDone = false;
   game.battle = null; game.tetris = null; game.svat = null; game.prop = null;
-  game._tapPos = null; dragTarget = null; stopMusic();
+  game.diia = null; game._tapPos = null; game._holdPtr = false; dragTarget = null; stopMusic();
   elTitle.classList.add('hidden');
   elEnd.classList.add('hidden');
   elHud.classList.remove('hidden');
@@ -1743,11 +1892,37 @@ function startGame(pov, watch){
 function finishGame(){
   stopMusic();
   game.state = 'end';
+  // персональне запрошення
+  const title = document.getElementById('inv-title');
+  const body = document.getElementById('inv-body');
+  if(GUEST){
+    const s = SLOTS[GUEST.slot];
+    title.textContent = GUEST.name + '!';
+    body.innerHTML = 'Катя ♥ Діма запрошують тебе на весілля.<br>' +
+      `<b>${s.what}</b><br>${s.when}<br>${s.where}<br><br>` +
+      'Деталі оновляться за цим самим посиланням.';
+  } else {
+    title.textContent = 'ЗАПРОШЕННЯ';
+    body.innerHTML = 'Катя ♥ Діма запрошують на весілля.<br>' +
+      'Час і місце підтягнуться з твого персонального посилання —<br>' +
+      'а поки збережи дату: 6 вересня 2026, Київ.';
+  }
   elEnd.classList.remove('hidden');
   elHud.classList.add('hidden');
   document.getElementById('watch-hint').classList.add('hidden');
   updateHudAndControls();
 }
+document.getElementById('btn-ics').addEventListener('click', ()=>{
+  const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//katya-dima-wedding//UA',
+    'BEGIN:VEVENT','UID:wedding-katya-dima-20260906','DTSTART;VALUE=DATE:20260906',
+    'DTEND;VALUE=DATE:20260907','SUMMARY:Весілля Каті і Діми 🥂','LOCATION:Київ',
+    'DESCRIPTION:Деталі — у грі-запрошенні','END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics], {type:'text/calendar'}));
+  a.download = 'vesillya-katya-dima.ics';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
 
 document.querySelectorAll('#title-screen .btn[data-pov]').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -1891,6 +2066,22 @@ function update(){
     case 'prop':
       updateProp();
       break;
+
+    case 'cap7':
+      if(game.phaseT > 70 || input.actionEdge) startDiia();
+      break;
+
+    case 'diia':
+      updateDiia();
+      break;
+
+    case 'cap8':
+      if(game.phaseT > 70 || input.actionEdge) setPhase('wed');
+      break;
+
+    case 'wed':
+      if(game.phaseT === 230) finishGame();
+      break;
   }
 
   if(input.actionEdge && game.dialog) advanceDialog();
@@ -1986,6 +2177,18 @@ function render(){
       break;
     case 'prop':
       drawProp();
+      break;
+    case 'cap7':
+      drawCaption('16 ЧЕРВНЯ 2026', 'заява. так, у застосунку.');
+      break;
+    case 'diia':
+      drawDiia();
+      break;
+    case 'cap8':
+      drawCaption('6 ВЕРЕСНЯ 2026 · КИЇВ', 'день, заради якого ця гра');
+      break;
+    case 'wed':
+      drawWed();
       break;
   }
 }
