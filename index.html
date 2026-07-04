@@ -37,7 +37,8 @@
   .hidden{display:none !important}
 
   /* ---------- title screen ---------- */
-  #title-screen{gap:4%;background:transparent}
+  #title-screen{gap:4%;background:transparent;pointer-events:none}
+  #title-screen .btn, #title-screen #ach-btn{pointer-events:auto}
   #title-screen h1{
     color:#fff;font-size:clamp(20px,5.2cqw,42px);letter-spacing:2px;
     text-shadow:3px 3px 0 var(--rose), 6px 6px 0 rgba(0,0,0,.6);
@@ -281,6 +282,7 @@ const ACHS = [
   {id:'konami', icon:'🎮', title:'↑↑↓↓←→←→BA',      desc:'згадати старий код'},
   {id:'flappy', icon:'🐈', title:'Котолов',          desc:'покликати Кітану нявканням'},
   {id:'egg',    icon:'🥚', title:'Слідопит',         desc:'знайти приховану пасхалку'},
+  {id:'dvoye',  icon:'📼', title:'Гурт «ДВОЄ»',       desc:'знайти касету на тайтлі'},
 ];
 let achDone = new Set(JSON.parse(localStorage.getItem('wed-ach')||'[]'));
 const achToasts = [];
@@ -667,6 +669,48 @@ drawPortraitInto(offD.getContext('2d'), 'dima', 'normal');
 const offOf = who => who==='katya' ? offK : offD;
 
 /* ================= фон: знімальний майданчик ================= */
+/* ---- касета гурту «ДВОЄ» (пасхалка за фото) ---- */
+function drawCassette(cx, cy, w){
+  const h = w*1.42, x = cx-w/2, y = cy-h/2;
+  // прозорий бокс касети
+  ctx.fillStyle = 'rgba(220,224,228,.85)'; ctx.fillRect(x-4,y-4,w+8,h+8);
+  ctx.fillStyle = '#111'; ctx.fillRect(x-4,y-4,w+8,2); ctx.fillRect(x-4,y+h+2,w+8,2);
+  // тай-дай фон
+  const cols=['#e85aa0','#f4c430','#3F7C77','#1E4E8A','#A8505F','#5aa0e8','#7ac043'];
+  const px=(dx,dy,pw,ph,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx,y+dy,pw,ph);};
+  ctx.fillStyle='#2a2a3a'; ctx.fillRect(x,y,w,h);
+  for(let i=0;i<40;i++){ ctx.fillStyle=cols[i%cols.length];
+    ctx.fillRect(x+((i*13)%w), y+((i*23)%h), w*0.16, w*0.16); }
+  ctx.globalAlpha=0.35; for(let i=0;i<30;i++){ ctx.fillStyle=cols[(i*3)%cols.length];
+    ctx.fillRect(x+((i*29)%w), y+((i*37)%h), w*0.1, w*0.1); } ctx.globalAlpha=1;
+  // ТЕЩА (червоний хром, вгорі-зліва)
+  ctx.fillStyle='#c0102a'; ctx.font='bold '+Math.round(w*0.16)+'px monospace'; ctx.textAlign='left';
+  ctx.fillText('ТЕЩА', x+w*0.06, y+w*0.2);
+  ctx.fillStyle='#ff5a6a'; ctx.fillText('ТЕЩА', x+w*0.055, y+w*0.19);
+  // хмарка-думка з тьощею (вгорі-справа)
+  ctx.fillStyle='#1a1a24'; ctx.beginPath(); ctx.ellipse(x+w*0.82,y+w*0.16,w*0.13,w*0.11,0,0,7); ctx.fill();
+  ctx.fillStyle='#f0e0d0'; px(w*0.79,w*0.10,w*0.06,w*0.12,'#f0e0d0'); // сукня-тьоща
+  ctx.fillStyle='#c98a6a'; px(w*0.80,w*0.07,w*0.04,w*0.03,'#c98a6a'); // голова
+  // двоє у вишиванках
+  const fw=w*0.30;
+  // Катя (блондинка, зліва)
+  px(w*0.10,h*0.42,fw,fw*0.9,'#e8c8a8'); // обличчя
+  px(w*0.07,h*0.38,fw+w*0.05,w*0.10,'#caa96a'); // волосся
+  px(w*0.12,h*0.50,w*0.05,w*0.03,'#1a1a24'); px(w*0.24,h*0.50,w*0.05,w*0.03,'#1a1a24'); // очі
+  // Діма (кучері, справа)
+  px(w*0.52,h*0.46,fw,fw*0.9,'#e0b890');
+  px(w*0.50,h*0.42,fw+w*0.04,w*0.09,'#5a3a26'); px(w*0.52,h*0.40,w*0.05,w*0.05,'#5a3a26'); px(w*0.62,h*0.40,w*0.05,w*0.05,'#5a3a26');
+  px(w*0.55,h*0.54,w*0.05,w*0.03,'#1a1a24'); px(w*0.66,h*0.54,w*0.05,w*0.03,'#1a1a24');
+  // вишиванки (білі з червоно-чорним низом)
+  px(w*0.05,h*0.72,w*0.9,h*0.28,'#eef0ee');
+  for(let i=0;i<8;i++){ px(w*0.1+i*w*0.1, h*0.74, w*0.05,w*0.05, i%2?'#c0102a':'#1a1a24'); }
+  // «Гурт ДВОЄ» (хром, внизу)
+  ctx.fillStyle='#1a1a24'; ctx.font='bold '+Math.round(w*0.13)+'px monospace'; ctx.textAlign='center';
+  ctx.fillText('Гурт «ДВОЄ»', cx+1, y+h*0.97);
+  ctx.fillStyle='#d8f0ff'; ctx.fillText('Гурт «ДВОЄ»', cx, y+h*0.96);
+  ctx.textAlign='left';
+}
+
 function drawBrain(x,y){                                // логотип Штормнадо — рожевий мозок
   ctx.fillStyle='#e8a0b8';
   ctx.fillRect(x+1,y+1,10,6); ctx.fillRect(x,y+2,12,4);
@@ -2179,7 +2223,12 @@ function canvasPos(e){
 }
 cv.addEventListener('pointerdown', e=>{
   e.preventDefault();
-  if(game.state==='title'){ tryEgg(canvasPos(e)); return; }
+  if(game.state==='title'){
+    if(game.cassetteShow){ game.cassetteShow = false; elTitle.classList.remove('hidden'); return; }
+    const pos = canvasPos(e);
+    if(Math.abs(pos.x-44) < 16 && pos.y > FLOOR_Y-20){ game.cassetteShow = true; elTitle.classList.add('hidden'); achUnlock('dvoye'); return; }
+    tryEgg(pos); return;
+  }
   if(game.watch){ if(game.state==='play') tryEgg(canvasPos(e)); return; }  // у перегляді — лише пасхалки
   if(game.phase==='battle' && game.battle && !game.battle.over){ dragTarget = canvasPos(e); }
   else if(game.phase==='tinder'){ game._swipeDrag = canvasPos(e).x; game._swipeReleased = false; }
@@ -2531,6 +2580,21 @@ function render(){
     ctx.fillStyle = COL.rose;
     ctx.fillRect(156,hy,4,4); ctx.fillRect(162,hy,4,4);
     ctx.fillRect(156,hy+3,10,4); ctx.fillRect(158,hy+7,6,3); ctx.fillRect(160,hy+10,2,2);
+    // прихована касета гурту «ДВОЄ» — лежить на підлозі
+    ctx.save(); ctx.translate(44, FLOOR_Y-8); ctx.rotate(-0.18);
+    ctx.fillStyle='#2a2a3a'; ctx.fillRect(-11,-7,22,14);
+    ctx.fillStyle='#c0c4c8'; ctx.fillRect(-9,-5,18,10);
+    ctx.fillStyle='#1a1a24'; ctx.fillRect(-6,-2,5,4); ctx.fillRect(1,-2,5,4);
+    ctx.fillStyle='#e85aa0'; ctx.fillRect(-9,-5,3,10); ctx.fillStyle='#3F7C77'; ctx.fillRect(6,-5,3,10);
+    ctx.restore();
+    // розгорнута обкладинка
+    if(game.cassetteShow){
+      ctx.fillStyle='rgba(8,8,14,.85)'; ctx.fillRect(0,0,W,H);
+      drawCassette(W/2, H/2-10, Math.min(150, W*0.62));
+      ctx.fillStyle='#c9c4b4'; ctx.font='8px monospace'; ctx.textAlign='center';
+      ctx.fillText('«такой себе син», але хіт · тапни, щоб закрити', W/2, H/2+H*0.28);
+      ctx.textAlign='left';
+    }
     return;
   }
   if(game.state==='end'){ return; }
