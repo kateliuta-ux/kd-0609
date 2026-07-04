@@ -37,7 +37,7 @@
   .hidden{display:none !important}
 
   /* ---------- title screen ---------- */
-  #title-screen{gap:4%;background:transparent;pointer-events:none}
+  #title-screen{gap:4%;background:transparent;pointer-events:none;padding-bottom:24cqh}
   #title-screen .btn, #title-screen #ach-btn{pointer-events:auto}
   #title-screen h1{
     color:#fff;font-size:clamp(20px,5.2cqw,42px);letter-spacing:2px;
@@ -243,12 +243,27 @@
 
 const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
-ctx.imageSmoothingEnabled = false;
 
-const W = 320, H = 568;          // портретна канва (9:16), на весь екран телефона
+/* Режим за орієнтацією: телефон (портрет) — вертикальна канва на весь екран,
+   компʼютер (ландшафт) — класична широка 16:9. */
+const PORTRAIT_MODE = matchMedia('(orientation:portrait)').matches;
+const W = 320, H = PORTRAIT_MODE ? 568 : 180;
 const LEVEL_W = 560;
-const FLOOR_Y = 420;             // рівень підлоги — над діалоговим вікном
-const GY = FLOOR_Y - 152;        // зсув «підлого-прив'язаного» декору вниз (стара підлога була 152)
+const FLOOR_Y = PORTRAIT_MODE ? 420 : 152;
+const GY = FLOOR_Y - 152;        // зсув «підлого-прив'язаного» декору (0 у ландшафті)
+cv.width = W; cv.height = H;
+ctx.imageSmoothingEnabled = false;
+{
+  const st = document.getElementById('stage');
+  st.style.aspectRatio = W + ' / ' + H;
+  if(!PORTRAIT_MODE){
+    st.style.height = 'auto';
+    st.style.width = 'min(100vw, ' + (100*W/H) + 'vh)';
+    st.style.maxHeight = '100dvh';
+  }
+}
+// при повороті пристрою перезбираємо розкладку
+addEventListener('orientationchange', ()=> setTimeout(()=> location.reload(), 250));
 
 const COL = {
   ink:'#1a1a24', skin:'#e8b08a', skinSh:'#c98f6c',
@@ -1431,7 +1446,7 @@ function drawHata(){
   }
 
   // РУШНИКИ на стіні
-  const rwy = FLOOR_Y-150;
+  const rwy = Math.max(20, FLOOR_Y-150);
   [150, 190].forEach(rx=>{
     ctx.fillStyle = '#faf6ea'; ctx.fillRect(rx,rwy,18,56);
     ctx.fillStyle = '#b3323c';
@@ -1456,7 +1471,7 @@ function drawHata(){
   ctx.fillStyle = '#3F7C77'; ctx.fillRect(303,FLOOR_Y-18,4,5);
 
   // вікно з рушниковим обрамленням
-  const wy = FLOOR_Y-170;
+  const wy = Math.max(24, FLOOR_Y-170);
   ctx.fillStyle = '#7a5c3e'; ctx.fillRect(116,wy,26,30);
   ctx.fillStyle = '#bfe0e8'; ctx.fillRect(119,wy+3,20,24);
   ctx.fillStyle = '#7a5c3e'; ctx.fillRect(128,wy+3,2,24); ctx.fillRect(119,wy+14,20,2);
@@ -1651,7 +1666,7 @@ function drawCabin(){
   for(let fx=0; fx<W; fx+=36) ctx.fillRect(fx,FLOOR_Y,2,H-FLOOR_Y);
 
   // кругле вікно зі сніговим пейзажем (на стіні над меблями)
-  const wcy = FLOOR_Y-190;
+  const wcy = Math.max(48, FLOOR_Y-190);
   ctx.fillStyle = '#2b2b38';
   ctx.beginPath(); ctx.arc(240,wcy,34,0,7); ctx.fill();
   const sky = ctx.createLinearGradient(0,wcy-30,0,wcy+30);
@@ -1782,7 +1797,7 @@ function drawProp(){
   }
 
   if(p.step==='fingers' || p.step==='done'){
-    const FZ = 170, HY = 84+FZ;                             // опустити панель+долоню до центру
+    const FZ = PORTRAIT_MODE ? 170 : 0, HY = 84+FZ;         // у портреті — до центру, в ландшафті — як було
     ctx.fillStyle = 'rgba(10,10,20,.85)'; ctx.fillRect(24,10+FZ,272,120);
     ctx.fillStyle = COL.gold; ctx.font='bold 10px monospace'; ctx.textAlign='center';
     ctx.fillText(p.finger<0 ? 'НА ЯКИЙ ПАЛЕЦЬ??' : 'ПІДХОДИТЬ!', W/2, 26+FZ);
@@ -2103,13 +2118,15 @@ function updateMontage(){
 function drawMontage(){
   const m = game.montage; if(!m) return;
   ctx.fillStyle = '#14121c'; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle = '#0a0a12'; ctx.fillRect(30,60,260,120);
-  ctx.fillStyle = COL.greenD; ctx.fillRect(34,64,252,112);
+  // «монітор» (відносні координати — працює в обох орієнтаціях)
+  const monY = Math.round(H*0.08), monH = Math.round(H*0.22);
+  ctx.fillStyle = '#0a0a12'; ctx.fillRect(30,monY,260,monH);
+  ctx.fillStyle = COL.greenD; ctx.fillRect(34,monY+4,252,monH-8);
   ctx.fillStyle = '#fff'; ctx.font='bold 10px monospace'; ctx.textAlign='center';
-  ctx.fillText('ШТОРМНАДО · чорновий монтаж', W/2, 120);
+  ctx.fillText('ШТОРМНАДО · чорновий монтаж', W/2, monY+monH*0.5);
   ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font='8px monospace';
-  ctx.fillText('різів: '+m.cuts+'/'+m.need, W/2, 138);
-  const tx=20, tw=W-40, ty=H/2, th=46;
+  ctx.fillText('різів: '+m.cuts+'/'+m.need, W/2, monY+monH*0.78);
+  const tx=20, tw=W-40, ty=Math.round(H*0.55), th=Math.min(46, Math.round(H*0.16));
   ctx.fillStyle = '#2b2b38'; ctx.fillRect(tx,ty,tw,th);
   for(let i=0;i<9;i++){ ctx.fillStyle = i%2?'#3F7C77':'#356e69'; ctx.fillRect(tx+tw*i/9+1,ty+8,tw/9-2,th-16); }
   m.marks.forEach(mk=>{
@@ -2690,9 +2707,13 @@ function render(){
     const bob = (game.t>>4)&1;
     drawPerson(120, FLOOR_Y+2-bob, 'katya', 0, 1, false);
     drawPerson(200, FLOOR_Y+2-(1-bob), 'dima', 0, -1, false);
+    // Кітана більша, щоб було видно, що це кішка
+    ctx.save();
+    ctx.translate(160, FLOOR_Y+2); ctx.scale(1.8,1.8); ctx.translate(-160, -(FLOOR_Y+2));
     drawKitana(160, FLOOR_Y+2, 1);
+    ctx.restore();
     drawEggParticles();
-    const hy = 96 + ((game.t>>3)&3);
+    const hy = FLOOR_Y-56 + ((game.t>>3)&3);
     ctx.fillStyle = COL.rose;
     ctx.fillRect(156,hy,4,4); ctx.fillRect(162,hy,4,4);
     ctx.fillRect(156,hy+3,10,4); ctx.fillRect(158,hy+7,6,3); ctx.fillRect(160,hy+10,2,2);
