@@ -439,10 +439,15 @@ function runOutroScript(pov){
   ];
 }
 function svatIntroScript(pov){
-  return [
+  const lines = [
     {who:null, emo:null, text:'— У вас куниця, у нас мисливець!'},
     {who: pov, emo:'shy', text:'(це про нас)'},
   ];
+  // гра памʼятає твій минулий гарбуз (Undertale-стайл)
+  if(localStorage.getItem('wed-harbuz')){
+    lines.push({who:null, emo:null, text:'(Старости памʼятають минулий гарбуз.\nПильнують.)'});
+  }
+  return lines;
 }
 function svatOutroScript(pov){
   return [
@@ -496,6 +501,10 @@ const game = {
 };
 
 const input = {left:false, right:false, down:false, action:false, actionEdge:false};
+
+/* ---- screen shake (жус як у Celeste) ---- */
+let shakeT = 0, shakeAmp = 0;
+function shake(amp, t){ shakeAmp = Math.max(shakeAmp, amp); shakeT = Math.max(shakeT, t||10); }
 
 /* ---- стрибки і колекційки у сценах-прогулянках ---- */
 function initWalkScene(kind){
@@ -1020,7 +1029,18 @@ function updateBattle(){
   const b = game.battle; if(!b) return;
   if(b.over){
     b.overT++;
-    if(b.overT===110){
+    // вибір як в Undertale: БОРОТИСЬ / ПОЩАДИТИ (обидва ведуть до любові)
+    if(!b.chosen){
+      if(b.choice===undefined) b.choice = 1;
+      if(b.overT < 50) return;                        // спершу велике серце
+      if(game.watch){ if(b.overT>150){ b.choice=1; b.chosen=true; b.resultT=0; } return; }
+      if(keys['ArrowLeft']||input.left) b.choice = 0;
+      if(keys['ArrowRight']||input.right) b.choice = 1;
+      if(input.actionEdge){ input.actionEdge=false; b.chosen=true; b.resultT=0; shake(2,8); }
+      return;
+    }
+    b.resultT++;
+    if(b.resultT===80){
       startDialog(battleOutroScript(game.pov), ()=> setPhase('cap4'));
     }
     return;
@@ -1057,7 +1077,7 @@ function updateBattle(){
     for(const bl of b.bullets){
       const bw = bl.word.length*4.9, bh = 8;
       if(h.x+4 > bl.x-2 && h.x-4 < bl.x+bw && h.y+4 > bl.y-bh && h.y-4 < bl.y+2){
-        b.meter = Math.max(0, b.meter-15); b.invuln = 45; break;
+        b.meter = Math.max(0, b.meter-15); b.invuln = 45; shake(3); break;
       }
     }
   }
@@ -1090,7 +1110,24 @@ function drawBattle(){
     ctx.fillRect(-5,-1,10,4); ctx.fillRect(-3,3,6,3); ctx.fillRect(-1,6,2,2);
     ctx.restore();
     ctx.fillStyle = '#fff'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
-    if(b.overT>50) ctx.fillText('Від цього не ухилишся.', W/2, BOX.y+BOX.h+18);
+    if(b.overT>30) ctx.fillText('Від цього не ухилишся.', W/2, BOX.y-12);
+    // вибір: БОРОТИСЬ / ПОЩАДИТИ
+    if(b.overT>50 && !b.chosen){
+      const oy = BOX.y+BOX.h+16;
+      [['✊ БОРОТИСЬ',0],['💛 ПОЩАДИТИ',1]].forEach(([label,i])=>{
+        const ox = W/2 + (i?14:-146), sel = (b.choice===undefined?1:b.choice)===i;
+        ctx.fillStyle = sel ? COL.rose : '#2b2b38';
+        ctx.fillRect(ox, oy, 132, 20);
+        ctx.fillStyle = '#fff'; ctx.font='bold 9px monospace';
+        ctx.fillText(label, ox+66, oy+13);
+      });
+      ctx.fillStyle='rgba(255,255,255,.5)'; ctx.font='9px monospace';
+      ctx.fillText(game.watch?'':(isTouch?'тапни варіант':'← → і ПРОБІЛ'), W/2, BOX.y+BOX.h+52);
+    }
+    if(b.chosen){
+      ctx.fillStyle = COL.gold; ctx.font='bold 11px monospace';
+      ctx.fillText(b.choice===0 ? '* Неможливо.' : '* Взаємно.', W/2, BOX.y+BOX.h+26);
+    }
     return;
   }
   // кулі-слова
@@ -1399,7 +1436,7 @@ function updateSvat(){
         input.actionEdge = false;
         sl.stopped = true;
         sl.verdict = inRush ? 'рушник' : 'гарбуз';
-        if(sl.verdict==='гарбуз'){ sl.msgT = 80; achUnlock('harbuz'); }  // жарт і ще спроба
+        if(sl.verdict==='гарбуз'){ sl.msgT = 80; achUnlock('harbuz'); shake(3,12); localStorage.setItem('wed-harbuz','1'); }  // жарт і ще спроба
         else { s.step='tied'; s.tiedT=0; }
       }
     }
@@ -1649,7 +1686,7 @@ function updateProp(){
 function confirmChess(){
   const p = game.prop;
   const move = CHESS_MOVES[p.sel];
-  if(game.pov==='katya' && !move.good){ p.wrongT = 70; p._missed = true; return; }
+  if(game.pov==='katya' && !move.good){ p.wrongT = 70; p._missed = true; shake(2); return; }
   p.solved = true;
   if(game.pov==='katya' && !p._missed) achUnlock('mate1');
   startDialog(propChessOutroScript(game.pov), ()=>{ game.prop.step='rummage'; game.prop.meter=0; });
@@ -1858,6 +1895,7 @@ function updateDiia(){
 
   // sent
   d.sentT++;
+  if(d.sentT===30) shake(4,14);            // штамп гримає (Papers, Please)
   if(d.sentT===40){
     for(let i=0;i<40;i++) d.confetti.push({
       x:Math.random()*W, y:-10-Math.random()*60,
@@ -1865,7 +1903,7 @@ function updateDiia(){
     });
   }
   d.confetti.forEach(q=>{ q.y+=q.v; });
-  if(d.sentT===170) setPhase('cap8');
+  if(d.sentT===185) setPhase('cap8');
 }
 function diiaTap(pos){
   const d = game.diia; if(!d || d.step!=='surname') return false;
@@ -1934,6 +1972,18 @@ function drawDiia(){
     ctx.font='9px monospace'; ctx.fillStyle='#777';
     ctx.fillText('16 червня 2026', px+pw/2, py+98);
     ctx.fillText('найромантичніша кнопка Дії', px+pw/2, py+110);
+    // штамп «СХВАЛЕНО» влітає (Papers, Please)
+    if(d.sentT>28){
+      const sc = Math.max(1, 2.2 - (d.sentT-28)*0.15);
+      ctx.save();
+      ctx.translate(px+pw/2, py+136); ctx.rotate(-0.14); ctx.scale(sc,sc);
+      ctx.globalAlpha = Math.min(1, (d.sentT-28)*0.2)*0.9;
+      ctx.strokeStyle='#c0102a'; ctx.lineWidth=2;
+      ctx.strokeRect(-36,-11,72,22);
+      ctx.fillStyle='#c0102a'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
+      ctx.fillText('СХВАЛЕНО', 0, 4);
+      ctx.globalAlpha=1; ctx.restore();
+    }
     d.confetti.forEach(q=>{ ctx.fillStyle=q.c; ctx.fillRect(q.x, q.y, 3, 3); });
   }
 }
@@ -2029,7 +2079,7 @@ function updateRun(){
   if(r.stumbleT>0) r.stumbleT--;
   for(const o of r.obs){
     const d = o.at - r.dist;
-    if(d>-6 && d<8 && r.py > -20 && r.stumbleT===0){ r.stumbleT=18; r.dist = Math.max(0, r.dist-30); break; }
+    if(d>-6 && d<8 && r.py > -20 && r.stumbleT===0){ r.stumbleT=18; r.dist = Math.max(0, r.dist-30); shake(3); break; }
   }
   // збір сердечок
   const heartScreenY = ()=> FLOOR_Y+2+r.py-26;
@@ -2103,7 +2153,7 @@ function startMontage(){
 function montageCut(){
   const m = game.montage; if(!m || !m.started || m.done) return;
   for(const mk of m.marks){
-    if(!mk.cut && Math.abs(mk.at - m.x) < 0.035){ mk.cut = true; m.cuts++; m.flashT = 8;
+    if(!mk.cut && Math.abs(mk.at - m.x) < 0.035){ mk.cut = true; m.cuts++; m.flashT = 8; shake(1.5,6);
       if(m.cuts>=m.need){ m.done = true; m.doneT = 0; } return; }
   }
 }
@@ -2163,7 +2213,7 @@ function bandHit(lane){
   const b = game.band; if(!b || !b.started || b.done) return;
   b.hitFlash[lane] = 8;
   for(const n of b.notes){
-    if(!n.hit && n.lane===lane && Math.abs(n.y - (H-70)) < 22){ n.hit = true; b.hits++;
+    if(!n.hit && n.lane===lane && Math.abs(n.y - (H-70)) < 22){ n.hit = true; b.hits++; shake(1,5);
       ensureAudio(); playNote([330,392,494][lane], audioCtx.currentTime, 0.18, 'square', 0.05);
       if(b.hits>=b.need){ b.done = true; b.doneT = 0; } return; }
   }
@@ -2365,7 +2415,11 @@ cv.addEventListener('pointerdown', e=>{
     tryEgg(pos); return;
   }
   if(game.watch){ if(game.state==='play') tryEgg(canvasPos(e)); return; }  // у перегляді — лише пасхалки
-  if(game.phase==='battle' && game.battle && !game.battle.over){ dragTarget = canvasPos(e); }
+  if(game.phase==='battle' && game.battle && game.battle.over && !game.battle.chosen && game.battle.overT>50){
+    game.battle.choice = canvasPos(e).x < W/2 ? 0 : 1;
+    input.actionEdge = true;
+  }
+  else if(game.phase==='battle' && game.battle && !game.battle.over){ dragTarget = canvasPos(e); }
   else if(game.phase==='tinder'){ game._swipeDrag = canvasPos(e).x; game._swipeReleased = false; }
   else if(game.phase==='prop' && game.prop && (game.prop.step==='chess'||game.prop.step==='fingers') && !game.dialog){
     game._tapPos = canvasPos(e);
@@ -2516,6 +2570,7 @@ document.getElementById('btn-restart').addEventListener('click', ()=>{
   document.getElementById('controls').classList.add('hidden');
   document.getElementById('kbd-hint').classList.add('hidden');
   document.getElementById('pause-btn').classList.add('hidden');
+  updateTitleMeta();
   elTitle.classList.remove('hidden');
 });
 
@@ -2701,7 +2756,15 @@ function update(){
 }
 
 function render(){
-  ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+  // трясіння екрана
+  ctx.setTransform(1,0,0,1,0,0);
+  if(shakeT > 0){
+    shakeT--;
+    const a = shakeAmp * Math.min(1, shakeT/8);
+    ctx.translate(((Math.random()*2-1)*a)|0, ((Math.random()*2-1)*a)|0);
+    if(shakeT===0) shakeAmp = 0;
+  }
+  ctx.fillStyle = '#000'; ctx.fillRect(-8,-8,W+16,H+16);
 
   if(game.state==='title'){
     drawSet(120);
@@ -2927,6 +2990,17 @@ document.getElementById('btn-sampler').addEventListener('click', ()=>{
 });
 
 /* ================= панель досягнень ================= */
+/* тайтл памʼятає, чию історію ти вже пройшов */
+function updateTitleMeta(){
+  const k = localStorage.getItem('wed-done-katya'), d = localStorage.getItem('wed-done-dima');
+  const sub = document.querySelector('#title-screen .sub');
+  if(!sub) return;
+  if(k && d) sub.textContent = 'обидві історії пройдено ♥ · 06.09.2026 · Київ';
+  else if(k) sub.textContent = 'а тепер — очима Діми? · 06.09.2026 · Київ';
+  else if(d) sub.textContent = 'а тепер — очима Каті? · 06.09.2026 · Київ';
+}
+updateTitleMeta();
+
 function updateAchButton(){
   document.getElementById('ach-btn').textContent = '🏆 ' + achDone.size + '/' + ACHS.length;
 }
@@ -3076,7 +3150,7 @@ function updateKitana(){
   const cx=58, cr=7;
   for(const f of k.fences){
     if(f.x < cx+cr && f.x+16 > cx-cr && (k.y-cr < f.top || k.y+cr > f.top+f.gap)){
-      k.vy = -1.5; k.dist = Math.max(0, k.dist-40); k.bumpT = 12; f.x -= 30; break;
+      k.vy = -1.5; k.dist = Math.max(0, k.dist-40); k.bumpT = 12; f.x -= 30; shake(2); break;
     }
   }
   if(k.bumpT>0) k.bumpT--;
