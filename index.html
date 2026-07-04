@@ -20,9 +20,9 @@
   }
   #stage{
     position:relative;
-    width:100%;max-width:960px;
-    aspect-ratio:16/9;
-    max-height:100vh;max-height:100dvh;
+    height:100vh;height:100dvh;
+    aspect-ratio:320/568;
+    max-width:100vw;
     background:#000;
     user-select:none;-webkit-user-select:none;
     container-type:size;
@@ -58,17 +58,17 @@
   /* ---------- dialogue ---------- */
   #dialog{
     position:absolute;left:2%;right:2%;bottom:2%;
-    display:flex;gap:2.5%;align-items:stretch;
+    display:flex;gap:2.5%;align-items:center;
     background:var(--surface);
     border:3px solid var(--ink);
     box-shadow:0 0 0 3px var(--surface), 0 6px 0 rgba(0,0,0,.5);
-    padding:1.6% 2%;
-    min-height:27%;
+    padding:2% 2.5%;
+    min-height:15%;max-height:22%;
     cursor:pointer;
   }
   #portrait-wrap{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px}
   canvas#portrait{
-    width:clamp(48px,13cqw,86px);height:clamp(48px,13cqw,86px);
+    width:clamp(48px,16cqw,72px);height:clamp(48px,16cqw,72px);
     image-rendering:pixelated;border:3px solid var(--ink);background:#cfd6dd;
   }
   #dname{font-weight:bold;font-size:clamp(9px,2cqw,14px);color:var(--ink);letter-spacing:1px;text-transform:uppercase}
@@ -90,41 +90,6 @@
   #pad-left{left:2%} #pad-right{left:calc(2% + clamp(62px,17cqw,94px))}
   #pad-a{right:2%;border-radius:50%;background:rgba(168,80,95,.35);border-color:rgba(168,80,95,.75)}
   #pad-down{right:calc(2% + clamp(62px,17cqw,94px))}
-
-  /* ---------- вертикальний режим (телефон у портреті) ----------
-     Канва зверху, діалог під нею, кнопки внизу — нічого не перекривається. */
-  @media (orientation:portrait){
-    body{align-items:flex-start}
-    #stage{
-      max-width:none;height:100vh;height:var(--app-h,100dvh);max-height:none;
-      aspect-ratio:auto;
-    }
-    canvas#game{
-      inset:auto;position:absolute;top:9%;left:0;
-      width:100%;height:auto;aspect-ratio:16/9;
-    }
-    #dialog{
-      top:calc(9% + 57vw + 10px);bottom:auto;
-      min-height:20%;
-    }
-    #hud{top:2%;left:3%}
-    #watch-hint,#pause-btn{top:2%}
-    #kbd-hint{display:none}
-    .pad{bottom:6%;width:clamp(58px,17vw,90px);height:clamp(58px,17vw,90px)}
-    #pad-left{left:4%} #pad-right{left:calc(4% + clamp(66px,19vw,100px))}
-    #pad-a{right:4%} #pad-down{right:calc(4% + clamp(66px,19vw,100px))}
-    #title-screen h1{font-size:clamp(24px,7.5vw,40px)}
-    #title-screen .sub{font-size:clamp(11px,3.2vw,16px)}
-    .btn{font-size:clamp(13px,4vw,18px)}
-    #title-screen .hint{font-size:clamp(8px,2.4vw,12px);padding:0 6%}
-    .menu{width:min(86%,360px)}
-    #dtext{font-size:clamp(13px,3.8vw,18px)}
-    #dname{font-size:clamp(10px,2.8vw,14px)}
-    canvas#portrait{width:clamp(56px,17vw,86px);height:clamp(56px,17vw,86px)}
-    .s-head{font-size:clamp(12px,3.6vw,17px)} .s-head span{font-size:clamp(9px,2.6vw,12px)}
-    #end-screen .big{font-size:clamp(20px,6vw,32px)}
-    #end-screen p{font-size:clamp(11px,3vw,15px);max-width:92%}
-  }
 
   /* ---------- HUD / hints ---------- */
   #hud{position:absolute;top:2.5%;left:2.5%;color:#fff;font-size:clamp(9px,2cqw,14px);letter-spacing:1px;text-shadow:2px 2px 0 #000}
@@ -179,7 +144,7 @@
 </head>
 <body>
 <div id="stage">
-  <canvas id="game" width="320" height="180"></canvas>
+  <canvas id="game" width="320" height="568"></canvas>
 
 
   <div id="hud" class="hidden"></div>
@@ -271,9 +236,10 @@ const cv = document.getElementById('game');
 const ctx = cv.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-const W = 320, H = 180;
+const W = 320, H = 568;          // портретна канва (9:16), на весь екран телефона
 const LEVEL_W = 560;
-const FLOOR_Y = 152;
+const FLOOR_Y = 420;             // рівень підлоги — над діалоговим вікном
+const GY = FLOOR_Y - 152;        // зсув «підлого-прив'язаного» декору вниз (стара підлога була 152)
 
 const COL = {
   ink:'#1a1a24', skin:'#e8b08a', skinSh:'#c98f6c',
@@ -704,63 +670,63 @@ function drawSet(camX){
     ctx.fillRect(sx,FLOOR_Y+8,40,2); ctx.fillRect(sx+30,FLOOR_Y+14,34,2);
   }
 
-  // хромакей (зелений екран) 360..510
-  const gx = Math.round(360-camX);
+  // хромакей (зелений екран) — стоїть на підлозі
+  const gx = Math.round(360-camX), gTop = FLOOR_Y-200;
   if(gx>-160 && gx<W){
-    ctx.fillStyle = COL.metal; ctx.fillRect(gx-4,36,3,FLOOR_Y-36); ctx.fillRect(gx+151,36,3,FLOOR_Y-36);
+    ctx.fillStyle = COL.metal; ctx.fillRect(gx-4,gTop,3,FLOOR_Y-gTop); ctx.fillRect(gx+151,gTop,3,FLOOR_Y-gTop);
     ctx.fillStyle = COL.ink; ctx.fillRect(gx-8,FLOOR_Y-2,12,4); ctx.fillRect(gx+147,FLOOR_Y-2,12,4);
-    ctx.fillStyle = COL.greenD; ctx.fillRect(gx,40,150,FLOOR_Y-40);
-    ctx.fillStyle = COL.green; ctx.fillRect(gx+4,44,142,FLOOR_Y-48);
+    ctx.fillStyle = COL.greenD; ctx.fillRect(gx,gTop+4,150,FLOOR_Y-gTop-4);
+    ctx.fillStyle = COL.green; ctx.fillRect(gx+4,gTop+8,142,FLOOR_Y-gTop-12);
     // назва шоу + піксельний вихор-«надо»
     ctx.fillStyle = '#fff'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
-    ctx.fillText('ШТОРМНАДО', gx+75, 62);
+    ctx.fillText('ШТОРМНАДО', gx+75, gTop+26);
     ctx.fillStyle = 'rgba(255,255,255,.85)';
-    ctx.fillRect(gx+58,68,34,3); ctx.fillRect(gx+64,73,24,3);
-    ctx.fillRect(gx+70,78,14,3); ctx.fillRect(gx+74,83,7,3);
+    ctx.fillRect(gx+58,gTop+32,34,3); ctx.fillRect(gx+64,gTop+37,24,3);
+    ctx.fillRect(gx+70,gTop+42,14,3); ctx.fillRect(gx+74,gTop+47,7,3);
   }
   // стенд із брифом і таймер шторму (година на ідеї)
   const bx2 = Math.round(150-camX);
   if(bx2>-40 && bx2<W){
-    ctx.fillStyle = COL.metal; ctx.fillRect(bx2+10,86,2,FLOOR_Y-86);
-    ctx.fillStyle = '#f8f8f3'; ctx.fillRect(bx2,60,24,28);
+    ctx.fillStyle = COL.metal; ctx.fillRect(bx2+10,88+GY,2,FLOOR_Y-88-GY);
+    ctx.fillStyle = '#f8f8f3'; ctx.fillRect(bx2,60+GY,24,28);
     ctx.fillStyle = COL.ink; ctx.font='bold 6px monospace'; ctx.textAlign='center';
-    ctx.fillText('БРИФ', bx2+12, 69);
+    ctx.fillText('БРИФ', bx2+12, 69+GY);
     ctx.fillStyle = '#999';
-    ctx.fillRect(bx2+4,73,16,2); ctx.fillRect(bx2+4,78,16,2); ctx.fillRect(bx2+4,83,10,2);
-    ctx.fillStyle = COL.ink; ctx.fillRect(bx2+28,64,30,14);
+    ctx.fillRect(bx2+4,73+GY,16,2); ctx.fillRect(bx2+4,78+GY,16,2); ctx.fillRect(bx2+4,83+GY,10,2);
+    ctx.fillStyle = COL.ink; ctx.fillRect(bx2+28,64+GY,30,14);
     ctx.fillStyle = '#e33'; ctx.font='bold 8px monospace';
-    ctx.fillText('59:59', bx2+43, 74);
+    ctx.fillText('59:59', bx2+43, 74+GY);
   }
   // софтбокс
   const lx = Math.round(300-camX);
   if(lx>-40 && lx<W){
-    ctx.fillStyle = COL.metal; ctx.fillRect(lx+8,70,2,FLOOR_Y-70);
+    ctx.fillStyle = COL.metal; ctx.fillRect(lx+8,70+GY,2,FLOOR_Y-70-GY);
     ctx.fillStyle = COL.ink; ctx.fillRect(lx,FLOOR_Y-2,18,3);
-    ctx.fillStyle = COL.white; ctx.fillRect(lx,50,20,22);
+    ctx.fillStyle = COL.white; ctx.fillRect(lx,50+GY,20,22);
     ctx.fillStyle = 'rgba(255,250,220,.25)';
-    ctx.beginPath(); ctx.moveTo(lx+20,52); ctx.lineTo(lx+62,80); ctx.lineTo(lx+62,120); ctx.lineTo(lx+20,72); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(lx+20,52+GY); ctx.lineTo(lx+62,80+GY); ctx.lineTo(lx+62,120+GY); ctx.lineTo(lx+20,72+GY); ctx.fill();
   }
-  // камера на штативі, дивиться вправо (на хромакей)
+  // камера на штативі (ноги до підлоги)
   const kx = Math.round(210-camX);
   if(kx>-50 && kx<W){
     ctx.fillStyle = COL.ink;
-    ctx.fillRect(kx,84,26,16);                    // корпус
-    ctx.fillRect(kx+26,88,8,8);                   // об'єктив
-    ctx.fillStyle = '#c33'; ctx.fillRect(kx+3,87,3,3);  // REC
+    ctx.fillRect(kx,84+GY,26,16);                 // корпус
+    ctx.fillRect(kx+26,88+GY,8,8);                // об'єктив
+    ctx.fillStyle = '#c33'; ctx.fillRect(kx+3,87+GY,3,3);  // REC
     ctx.fillStyle = COL.metal;
-    ctx.fillRect(kx+11,100,4,20);                 // нога центральна
-    ctx.fillRect(kx+3,100,3,26); ctx.fillRect(kx+20,100,3,26); // ноги
-    ctx.fillStyle = COL.ink; ctx.fillRect(kx+1,126,8,3); ctx.fillRect(kx+18,126,8,3);
+    ctx.fillRect(kx+11,100+GY,4,FLOOR_Y-100-GY-2);
+    ctx.fillRect(kx+3,100+GY,3,FLOOR_Y-100-GY); ctx.fillRect(kx+20,100+GY,3,FLOOR_Y-100-GY);
+    ctx.fillStyle = COL.ink; ctx.fillRect(kx+1,FLOOR_Y-3,8,3); ctx.fillRect(kx+18,FLOOR_Y-3,8,3);
   }
-  // режисерське крісло
+  // режисерське крісло (ніжки до підлоги)
   const dx = Math.round(120-camX);
   if(dx>-40 && dx<W){
-    ctx.fillStyle = COL.rose; ctx.fillRect(dx,96,26,10);       // спинка
+    ctx.fillStyle = COL.rose; ctx.fillRect(dx,96+GY,26,10);    // спинка
     ctx.fillStyle = '#fff'; ctx.font='bold 6px monospace'; ctx.textAlign='center';
-    ctx.fillText('KAASIN', dx+13, 103);
+    ctx.fillText('KAASIN', dx+13, 103+GY);
     ctx.fillStyle = COL.ink;
-    ctx.fillRect(dx+2,106,3,22); ctx.fillRect(dx+21,106,3,22);
-    ctx.fillRect(dx+2,114,22,3);
+    ctx.fillRect(dx+2,106+GY,3,FLOOR_Y-106-GY); ctx.fillRect(dx+21,106+GY,3,FLOOR_Y-106-GY);
+    ctx.fillRect(dx+2,114+GY,22,3);
   }
   // хлопавка біля хромакею
   const cx2 = Math.round(400-camX);
@@ -781,8 +747,8 @@ function drawPhone(){
     ctx.fillStyle = 'rgba(255,230,160,.25)';
     ctx.fillRect(sx, sy, 2, 2);
   }
-  // телефон
-  const px=115, py=8, pw=90, ph=164;
+  // телефон (по центру портретної канви)
+  const pw=90, ph=164, px=(W-pw)>>1, py=(H-ph)>>1;
   ctx.fillStyle = COL.ink; ctx.fillRect(px-4,py-4,pw+8,ph+8);
   ctx.fillStyle = '#fff'; ctx.fillRect(px,py,pw,ph);
   // шапка
@@ -845,94 +811,97 @@ function drawMatch(){
     ctx.fillRect(hx,hy+2,7,3); ctx.fillRect(hx+1,hy+5,5,2); ctx.fillRect(hx+3,hy+7,1,1);
   }
   const bounce = Math.abs(Math.sin(game.phaseT*0.08))*6;
+  const cyc = H>>1;                                   // центр по вертикалі
   ctx.fillStyle = COL.gold; ctx.font='bold 22px monospace'; ctx.textAlign='center';
-  ctx.fillText('ЦЕ МЕТЧ!', W/2, 46-bounce);
+  ctx.fillText('ЦЕ МЕТЧ!', W/2, cyc-90-bounce);
   // портрети
   ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = '#fff';
-  ctx.fillRect(88,64,72,72); ctx.fillRect(160,64,72,72);
-  ctx.drawImage(offK, 92, 68, 64, 64);
-  ctx.drawImage(offD, 164, 68, 64, 64);
+  ctx.fillRect(88,cyc-72,72,72); ctx.fillRect(160,cyc-72,72,72);
+  ctx.drawImage(offK, 92, cyc-68, 64, 64);
+  ctx.drawImage(offD, 164, cyc-68, 64, 64);
   // серце між ними
-  const hy2 = 92 + ((game.t>>3)&3);
+  const hy2 = cyc-44 + ((game.t>>3)&3);
   ctx.fillStyle = COL.rose;
   ctx.fillRect(152,hy2,6,6); ctx.fillRect(162,hy2,6,6);
   ctx.fillRect(152,hy2+4,16,6); ctx.fillRect(155,hy2+10,10,4); ctx.fillRect(158,hy2+14,4,3);
   ctx.fillStyle = '#c9c4b4'; ctx.font='8px monospace';
-  ctx.fillText('11 серпня 2022', W/2, 156);
+  ctx.fillText('11 серпня 2022', W/2, cyc+20);
+  ctx.textAlign='left';
 }
 
 /* ================= Пейзажна алея ================= */
 function drawPeizazhka(camX){
-  // вечірнє небо
-  const g = ctx.createLinearGradient(0,0,0,110);
+  // вечірнє небо (до лінії парапету)
+  const HOR = 110+GY;                                  // горизонт-парапет ближче до підлоги
+  const g = ctx.createLinearGradient(0,0,0,HOR);
   g.addColorStop(0,'#2a2450'); g.addColorStop(.6,'#5a3a68'); g.addColorStop(1,'#c96a4e');
-  ctx.fillStyle = g; ctx.fillRect(0,0,W,110);
-  // місяць
-  ctx.fillStyle = '#f4e8c8'; ctx.fillRect(250,18,14,14);
-  ctx.fillStyle = '#2a2450'; ctx.fillRect(254,18,10,4);
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,HOR);
+  // місяць (високо в небі)
+  ctx.fillStyle = '#f4e8c8'; ctx.fillRect(250,40,14,14);
+  ctx.fillStyle = '#2a2450'; ctx.fillRect(254,40,10,4);
+  // зорі
+  for(let i=0;i<30;i++){
+    const sx=(i*53)%W, sy=(i*71)%(HOR-40);
+    ctx.fillStyle='rgba(255,240,200,.5)'; ctx.fillRect(sx,sy,2,2);
+  }
   // пагорби лівого берега + вогники (паралакс 0.3)
   ctx.fillStyle = '#241d3a';
   for(let hx=0; hx<LEVEL_W+200; hx+=90){
     const sx = Math.round(hx - camX*0.3);
     if(sx<-100||sx>W) continue;
-    ctx.fillRect(sx,86,100,24);
-    ctx.fillRect(sx+18,78,50,10);
-  }
-  for(let i=0;i<26;i++){
-    const sx = Math.round((i*61)%(W+80) - 40 - (camX*0.3)%(W+80));
-    ctx.fillStyle = 'rgba(255,220,140,.7)';
-    ctx.fillRect(((sx%(W+80))+(W+80))%(W+80)-40, 90+(i*13)%16, 2, 2);
+    ctx.fillRect(sx,HOR-24,100,24);
+    ctx.fillRect(sx+18,HOR-32,50,10);
   }
   // парапет із мозаїкою (фішка Пейзажки)
-  ctx.fillStyle = '#4a4456'; ctx.fillRect(0,110,W,14);
+  ctx.fillStyle = '#4a4456'; ctx.fillRect(0,HOR,W,14);
   const mosaicCols = ['#A8505F','#B58A2E','#3F7C77','#1E4E8A','#c9c4b4'];
   for(let mx=0; mx<LEVEL_W; mx+=8){
     const sx = Math.round(mx-camX); if(sx<-8||sx>W) continue;
     ctx.fillStyle = mosaicCols[(mx/8)%5|0];
-    ctx.fillRect(sx+1,112,6,5);
+    ctx.fillRect(sx+1,HOR+2,6,5);
   }
   // бруківка
-  ctx.fillStyle = '#5a5461'; ctx.fillRect(0,124,W,H-124);
+  ctx.fillStyle = '#5a5461'; ctx.fillRect(0,HOR+14,W,H-HOR-14);
   ctx.fillStyle = '#4c4754';
   for(let fx=0; fx<LEVEL_W; fx+=22){
     const sx = Math.round(fx-camX); if(sx<-22||sx>W) continue;
-    ctx.fillRect(sx,124+((fx/22)%2)*14,20,2);
+    ctx.fillRect(sx,HOR+14+((fx/22)%2)*14,20,2);
   }
   // ліхтарі з сяйвом
   for(let lx=80; lx<LEVEL_W; lx+=160){
     const sx = Math.round(lx-camX); if(sx<-20||sx>W+20) continue;
-    ctx.fillStyle = COL.ink; ctx.fillRect(sx,64,3,88);
-    ctx.fillStyle = '#ffe8a0'; ctx.fillRect(sx-3,58,9,8);
+    ctx.fillStyle = COL.ink; ctx.fillRect(sx,FLOOR_Y-88,3,88);
+    ctx.fillStyle = '#ffe8a0'; ctx.fillRect(sx-3,FLOOR_Y-94,9,8);
     ctx.fillStyle = 'rgba(255,232,160,.12)';
-    ctx.beginPath(); ctx.moveTo(sx+1,66); ctx.lineTo(sx-22,152); ctx.lineTo(sx+25,152); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(sx+1,FLOOR_Y-86); ctx.lineTo(sx-22,FLOOR_Y); ctx.lineTo(sx+25,FLOOR_Y); ctx.fill();
   }
-  // мозаїчний кіт (символ Пейзажки)
+  // мозаїчний кіт (символ Пейзажки), сидить на бруківці
   const kx = Math.round(340-camX);
   if(kx>-50 && kx<W){
     ctx.fillStyle = COL.ink;
-    ctx.fillRect(kx,116,40,36);                       // тіло
-    ctx.fillRect(kx+30,100,16,20);                    // голова
-    ctx.fillRect(kx+30,94,5,8); ctx.fillRect(kx+41,94,5,8); // вуха
-    ctx.fillRect(kx-8,120,10,5);                      // хвіст
-    mosaicCols.forEach((col,i)=>{                     // мозаїчні плями
+    ctx.fillRect(kx,FLOOR_Y-36,40,36);                 // тіло
+    ctx.fillRect(kx+30,FLOOR_Y-52,16,20);              // голова
+    ctx.fillRect(kx+30,FLOOR_Y-58,5,8); ctx.fillRect(kx+41,FLOOR_Y-58,5,8); // вуха
+    ctx.fillRect(kx-8,FLOOR_Y-32,10,5);                // хвіст
+    mosaicCols.forEach((col,i)=>{
       ctx.fillStyle = col;
-      ctx.fillRect(kx+4+i*7, 122+(i%3)*8, 5, 5);
+      ctx.fillRect(kx+4+i*7, FLOOR_Y-30+(i%3)*8, 5, 5);
     });
-    ctx.fillStyle = '#fff'; ctx.fillRect(kx+33,104,3,3); ctx.fillRect(kx+40,104,3,3);
+    ctx.fillStyle = '#fff'; ctx.fillRect(kx+33,FLOOR_Y-48,3,3); ctx.fillRect(kx+40,FLOOR_Y-48,3,3);
   }
   // лавка з пивом
   const bx = Math.round(440-camX);
   if(bx>-40 && bx<W){
-    ctx.fillStyle = '#6e4a2e'; ctx.fillRect(bx,130,34,5);
-    ctx.fillStyle = COL.ink; ctx.fillRect(bx+3,135,3,14); ctx.fillRect(bx+28,135,3,14);
-    ctx.fillStyle = '#b58a2e'; ctx.fillRect(bx+10,122,4,8); ctx.fillRect(bx+18,122,4,8); // пиво x2
+    ctx.fillStyle = '#6e4a2e'; ctx.fillRect(bx,130+GY,34,5);
+    ctx.fillStyle = COL.ink; ctx.fillRect(bx+3,135+GY,3,14); ctx.fillRect(bx+28,135+GY,3,14);
+    ctx.fillStyle = '#b58a2e'; ctx.fillRect(bx+10,122+GY,4,8); ctx.fillRect(bx+18,122+GY,4,8); // пиво x2
   }
 }
 
 /* ================= Undertale-поєдинок ================= */
 const BULLET_WORDS = ['СЕРЙОЗНІ СТОСУНКИ','ПЛАНИ НА МАЙБУТНЄ','ЗНАЙОМСТВО З МАМОЮ','СПІЛЬНИЙ ПОБУТ','ВІДПУСТКА РАЗОМ'];
-const BOX = {x:60, y:38, w:200, h:92};
+const BOX = {x:60, y:(H-92)>>1, w:200, h:92};
 
 function startBattle(){
   game.battle = {
@@ -1040,7 +1009,7 @@ function drawBattle(){
 }
 
 /* ================= Лондон-тетріс ================= */
-const TET = {COLS:9, ROWS:13, CELL:7, X:196, Y:32, WIN_LINES:3};
+const TET = {COLS:9, ROWS:13, CELL:16, X:(320-9*16)>>1, Y:200, WIN_LINES:3};
 const TETROMINOES = {
   I:{c:'#4a90d9', r:[[[0,1],[1,1],[2,1],[3,1]], [[2,0],[2,1],[2,2],[2,3]]]},
   O:{c:'#B58A2E', r:[[[1,0],[2,0],[1,1],[2,1]]]},
@@ -1344,53 +1313,57 @@ function drawHata(){
   ctx.fillStyle = '#96744c';
   for(let fx=0; fx<W; fx+=32) ctx.fillRect(fx,FLOOR_Y,2,H-FLOOR_Y);
 
-  // ПІЧ (зліва): білена, з комином і черінню
-  ctx.fillStyle = '#f4efe2'; ctx.fillRect(22,34,74,118);       // корпус
-  ctx.fillStyle = '#f4efe2'; ctx.fillRect(34,17,42,17);        // комин
-  ctx.fillStyle = '#ddd4bd'; ctx.fillRect(22,34,74,4);
-  ctx.fillStyle = COL.ink; ctx.fillRect(38,76,42,30);          // челюсті печі
-  ctx.fillStyle = '#c96a2e'; ctx.fillRect(42,92,34,12);        // жар
-  ctx.fillStyle = '#e8a04e'; ctx.fillRect(46,96,26,6);
-  // народний розпис на печі (квіти як на кахлях)
+  // ПІЧ (зліва): білена, стоїть на долівці (низ = FLOOR_Y)
+  const ph = 150, pTop = FLOOR_Y-ph;                          // висота печі
+  ctx.fillStyle = '#f4efe2'; ctx.fillRect(22,pTop,74,ph);      // корпус
+  ctx.fillStyle = '#f4efe2'; ctx.fillRect(34,pTop-17,42,17);   // комин
+  ctx.fillStyle = '#ddd4bd'; ctx.fillRect(22,pTop,74,4);
+  ctx.fillStyle = COL.ink; ctx.fillRect(38,pTop+42,42,30);     // челюсті печі
+  ctx.fillStyle = '#c96a2e'; ctx.fillRect(42,pTop+58,34,12);   // жар
+  ctx.fillStyle = '#e8a04e'; ctx.fillRect(46,pTop+62,26,6);
+  // народний розпис на печі
   for(let i=0;i<3;i++){
     const px2 = 34+i*20;
-    ctx.fillStyle = '#A8505F'; ctx.fillRect(px2,52,6,6);
-    ctx.fillStyle = '#3F7C77'; ctx.fillRect(px2+2,58,2,6);
-    ctx.fillStyle = '#B58A2E'; ctx.fillRect(px2-2,54,2,2); ctx.fillRect(px2+6,54,2,2);
+    ctx.fillStyle = '#A8505F'; ctx.fillRect(px2,pTop+18,6,6);
+    ctx.fillStyle = '#3F7C77'; ctx.fillRect(px2+2,pTop+24,2,6);
+    ctx.fillStyle = '#B58A2E'; ctx.fillRect(px2-2,pTop+20,2,2); ctx.fillRect(px2+6,pTop+20,2,2);
   }
   // колупана ямка в печі (у грі за Катю)
   if(game.pov==='katya' && s && s.meter>0){
     ctx.fillStyle = '#ddd4bd';
-    ctx.fillRect(58, 92, Math.min(10, 2+s.meter/12), Math.min(8, 2+s.meter/16));
+    ctx.fillRect(58, pTop+58, Math.min(10, 2+s.meter/12), Math.min(8, 2+s.meter/16));
   }
 
-  // РУШНИКИ на стіні (справжня схема: білі з червоним гео-орнаментом)
+  // РУШНИКИ на стіні
+  const rwy = FLOOR_Y-150;
   [150, 190].forEach(rx=>{
-    ctx.fillStyle = '#faf6ea'; ctx.fillRect(rx,24,18,56);
+    ctx.fillStyle = '#faf6ea'; ctx.fillRect(rx,rwy,18,56);
     ctx.fillStyle = '#b3323c';
     for(let ry=0; ry<3; ry++){
-      ctx.fillRect(rx+2, 30+ry*16, 14, 2);
-      for(let k=0;k<3;k++) ctx.fillRect(rx+3+k*5, 34+ry*16, 3, 3);   // ромби
+      ctx.fillRect(rx+2, rwy+6+ry*16, 14, 2);
+      for(let k=0;k<3;k++) ctx.fillRect(rx+3+k*5, rwy+10+ry*16, 3, 3);
     }
   });
 
-  // СТІЛ із хлібом на рушнику
-  ctx.fillStyle = '#8a5a36'; ctx.fillRect(220,108,72,8);
-  ctx.fillStyle = '#6e4426'; ctx.fillRect(226,116,6,36); ctx.fillRect(280,116,6,36);
-  ctx.fillStyle = '#faf6ea'; ctx.fillRect(238,104,36,6);       // рушник під хлібом
-  ctx.fillStyle = '#b3323c'; ctx.fillRect(238,107,36,2);
-  ctx.fillStyle = '#c98a3e'; ctx.fillRect(244,94,24,12);       // хлібина
-  ctx.fillStyle = '#e0a85a'; ctx.fillRect(246,94,20,5);
+  // СТІЛ із хлібом на рушнику (на долівці)
+  const sty = FLOOR_Y-44;
+  ctx.fillStyle = '#8a5a36'; ctx.fillRect(220,sty,72,8);
+  ctx.fillStyle = '#6e4426'; ctx.fillRect(226,sty+8,6,36); ctx.fillRect(280,sty+8,6,36);
+  ctx.fillStyle = '#faf6ea'; ctx.fillRect(238,sty-4,36,6);
+  ctx.fillStyle = '#b3323c'; ctx.fillRect(238,sty-1,36,2);
+  ctx.fillStyle = '#c98a3e'; ctx.fillRect(244,sty-14,24,12);
+  ctx.fillStyle = '#e0a85a'; ctx.fillRect(246,sty-14,20,5);
 
-  // ГАРБУЗ у кутку (чекає свого часу 🌝)
-  ctx.fillStyle = '#d97e2e'; ctx.fillRect(296,138,18,14);
-  ctx.fillStyle = '#b3611c'; ctx.fillRect(299,138,3,14); ctx.fillRect(307,138,3,14);
-  ctx.fillStyle = '#3F7C77'; ctx.fillRect(303,134,4,5);
+  // ГАРБУЗ у кутку
+  ctx.fillStyle = '#d97e2e'; ctx.fillRect(296,FLOOR_Y-14,18,14);
+  ctx.fillStyle = '#b3611c'; ctx.fillRect(299,FLOOR_Y-14,3,14); ctx.fillRect(307,FLOOR_Y-14,3,14);
+  ctx.fillStyle = '#3F7C77'; ctx.fillRect(303,FLOOR_Y-18,4,5);
 
   // вікно з рушниковим обрамленням
-  ctx.fillStyle = '#7a5c3e'; ctx.fillRect(116,36,26,30);
-  ctx.fillStyle = '#bfe0e8'; ctx.fillRect(119,39,20,24);
-  ctx.fillStyle = '#7a5c3e'; ctx.fillRect(128,39,2,24); ctx.fillRect(119,50,20,2);
+  const wy = FLOOR_Y-170;
+  ctx.fillStyle = '#7a5c3e'; ctx.fillRect(116,wy,26,30);
+  ctx.fillStyle = '#bfe0e8'; ctx.fillRect(119,wy+3,20,24);
+  ctx.fillStyle = '#7a5c3e'; ctx.fillRect(128,wy+3,2,24); ctx.fillRect(119,wy+14,20,2);
 }
 function drawSvat(){
   const s = game.svat; if(!s) return;
@@ -1581,26 +1554,27 @@ function drawCabin(){
   ctx.fillStyle = '#a67b48';
   for(let fx=0; fx<W; fx+=36) ctx.fillRect(fx,FLOOR_Y,2,H-FLOOR_Y);
 
-  // кругле вікно зі сніговим пейзажем (як на фото)
+  // кругле вікно зі сніговим пейзажем (на стіні над меблями)
+  const wcy = FLOOR_Y-190;
   ctx.fillStyle = '#2b2b38';
-  ctx.beginPath(); ctx.arc(240,74,34,0,7); ctx.fill();
-  const sky = ctx.createLinearGradient(0,44,0,104);
+  ctx.beginPath(); ctx.arc(240,wcy,34,0,7); ctx.fill();
+  const sky = ctx.createLinearGradient(0,wcy-30,0,wcy+30);
   sky.addColorStop(0,'#dfe8ee'); sky.addColorStop(1,'#f4f6f8');
   ctx.fillStyle = sky;
-  ctx.beginPath(); ctx.arc(240,74,29,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(240,wcy,29,0,7); ctx.fill();
   ctx.save();
-  ctx.beginPath(); ctx.arc(240,74,29,0,7); ctx.clip();
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(206,80,70,30);            // сніг
-  ctx.fillStyle = '#3c3a46'; ctx.fillRect(216,70,16,10); ctx.fillRect(248,74,14,8);  // чорні будиночки вдалині
-  ctx.fillStyle = '#55515f'; ctx.fillRect(222,66,4,4);
+  ctx.beginPath(); ctx.arc(240,wcy,29,0,7); ctx.clip();
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(206,wcy+6,70,30);         // сніг
+  ctx.fillStyle = '#3c3a46'; ctx.fillRect(216,wcy-4,16,10); ctx.fillRect(248,wcy,14,8);
+  ctx.fillStyle = '#55515f'; ctx.fillRect(222,wcy-8,4,4);
   ctx.restore();
 
-  // ванна під вікном (так, у будиночку ванна біля вікна)
+  // ванна біля вікна (стоїть на підлозі)
   ctx.fillStyle = '#f8f8f3';
-  ctx.fillRect(206,116,68,26);
-  ctx.beginPath(); ctx.ellipse(240,116,34,7,0,0,7); ctx.fill();
-  ctx.fillStyle = '#d8d4c4'; ctx.beginPath(); ctx.ellipse(240,116,28,4,0,0,7); ctx.fill();
-  ctx.fillStyle = '#c9c4b4'; ctx.fillRect(210,140,8,10); ctx.fillRect(262,140,8,10); // ніжки
+  ctx.fillRect(206,FLOOR_Y-44,68,26);
+  ctx.beginPath(); ctx.ellipse(240,FLOOR_Y-44,34,7,0,0,7); ctx.fill();
+  ctx.fillStyle = '#d8d4c4'; ctx.beginPath(); ctx.ellipse(240,FLOOR_Y-44,28,4,0,0,7); ctx.fill();
+  ctx.fillStyle = '#c9c4b4'; ctx.fillRect(210,FLOOR_Y-20,8,12); ctx.fillRect(262,FLOOR_Y-20,8,12);
 
   // кульки під стелею (червоні й білі, як на фото)
   [[36,'#c23b3b'],[58,'#f4f0e4'],[80,'#c23b3b'],[120,'#c23b3b'],[142,'#f4f0e4'],[290,'#c23b3b']].forEach(([bx,col],i)=>{
@@ -1611,23 +1585,22 @@ function drawCabin(){
     ctx.beginPath(); ctx.ellipse(bx+sway, 16, 7, 9, 0, 0, 7); ctx.fill();
   });
 
-  // столик зі свічкою і шахівницею
-  ctx.fillStyle = '#6e4a2e'; ctx.fillRect(128,112,58,6);
-  ctx.fillStyle = '#5a3a22'; ctx.fillRect(132,118,5,34); ctx.fillRect(176,118,5,34);
-  // шахівниця на столі
+  // столик зі свічкою і шахівницею (на підлозі)
+  const ty = FLOOR_Y-40;
+  ctx.fillStyle = '#6e4a2e'; ctx.fillRect(128,ty,58,6);
+  ctx.fillStyle = '#5a3a22'; ctx.fillRect(132,ty+6,5,34); ctx.fillRect(176,ty+6,5,34);
   for(let r=0;r<4;r++) for(let c2=0;c2<8;c2++){
     ctx.fillStyle = (r+c2)%2 ? '#7a5c3e' : '#e8dcc0';
-    ctx.fillRect(136+c2*5, 100+r*3, 5, 3);
+    ctx.fillRect(136+c2*5, ty-12+r*3, 5, 3);
   }
-  // свічка
-  ctx.fillStyle = '#f4f0e4'; ctx.fillRect(180,102,4,10);
+  ctx.fillStyle = '#f4f0e4'; ctx.fillRect(180,ty-10,4,10);
   ctx.fillStyle = ((game.t>>3)&1)? '#e8a04e' : '#f4c46a';
-  ctx.fillRect(181, 98+((game.t>>3)&1), 2, 4);
+  ctx.fillRect(181, ty-14+((game.t>>3)&1), 2, 4);
 
   // рюкзак Діми біля стола
-  ctx.fillStyle = '#2e3440'; ctx.fillRect(190,128,16,22);
-  ctx.fillStyle = '#3c4452'; ctx.fillRect(192,132,12,8);
-  ctx.fillStyle = '#55617a'; ctx.fillRect(196,126,6,4);
+  ctx.fillStyle = '#2e3440'; ctx.fillRect(190,FLOOR_Y-24,16,22);
+  ctx.fillStyle = '#3c4452'; ctx.fillRect(192,FLOOR_Y-20,12,8);
+  ctx.fillStyle = '#55617a'; ctx.fillRect(196,FLOOR_Y-26,6,4);
 }
 function drawProp(){
   const p = game.prop; if(!p) return;
@@ -1687,7 +1660,7 @@ function drawProp(){
     const dim = Math.min(0.86, p.boxT/60);
     ctx.fillStyle = `rgba(8,8,16,${dim})`; ctx.fillRect(0,0,W,H);
     const glow = Math.min(1, p.boxT/90);
-    const cx2 = 160, cy = 96;
+    const cx2 = W>>1, cy = H>>1;
     const g = ctx.createRadialGradient(cx2, cy, 2, cx2, cy, 60*glow+8);
     g.addColorStop(0, 'rgba(255,240,200,.9)');
     g.addColorStop(0.4, 'rgba(255,220,160,.25)');
@@ -1713,24 +1686,25 @@ function drawProp(){
   }
 
   if(p.step==='fingers' || p.step==='done'){
-    ctx.fillStyle = 'rgba(10,10,20,.85)'; ctx.fillRect(24,10,272,120);
+    const FZ = 170, HY = 84+FZ;                             // опустити панель+долоню до центру
+    ctx.fillStyle = 'rgba(10,10,20,.85)'; ctx.fillRect(24,10+FZ,272,120);
     ctx.fillStyle = COL.gold; ctx.font='bold 10px monospace'; ctx.textAlign='center';
-    ctx.fillText(p.finger<0 ? 'НА ЯКИЙ ПАЛЕЦЬ??' : 'ПІДХОДИТЬ!', W/2, 26);
+    ctx.fillText(p.finger<0 ? 'НА ЯКИЙ ПАЛЕЦЬ??' : 'ПІДХОДИТЬ!', W/2, 26+FZ);
     if(p.finger<0){
       ctx.fillStyle = '#8a8878'; ctx.font='7px monospace';
-      ctx.fillText('(і яка рука? хтозна. обирай)', W/2, 36);
+      ctx.fillText('(і яка рука? хтозна. обирай)', W/2, 36+FZ);
     }
     // долоня
-    ctx.fillStyle = COL.skin; ctx.fillRect(108,84,110,40);
+    ctx.fillStyle = COL.skin; ctx.fillRect(108,HY,110,40);
     for(let f=0; f<5; f++){
       const fx = 100+f*28, fh = [26,34,40,36,22][f];
       const active = (p.finger<0 ? p.fingerSel : p.finger)===f;
       ctx.fillStyle = active ? '#f4c49a' : COL.skin;
-      ctx.fillRect(fx, 84-fh, 22, fh+4);
-      ctx.fillStyle = COL.skinSh; ctx.fillRect(fx, 84-fh, 22, 2);
+      ctx.fillRect(fx, HY-fh, 22, fh+4);
+      ctx.fillStyle = COL.skinSh; ctx.fillRect(fx, HY-fh, 22, 2);
       if(p.finger===f && p.ringT>10){                       // каблучка!
-        ctx.fillStyle = '#e8d48a'; ctx.fillRect(fx, 84-fh+10, 22, 4);
-        ctx.fillStyle = '#fff'; ctx.fillRect(fx+9, 84-fh+7, 4, 3);
+        ctx.fillStyle = '#e8d48a'; ctx.fillRect(fx, HY-fh+10, 22, 4);
+        ctx.fillStyle = '#fff'; ctx.fillRect(fx+9, HY-fh+7, 4, 3);
       }
     }
     if(p.finger>=0 && p.ringT>40){
@@ -1800,7 +1774,7 @@ function drawDiia(){
   g.addColorStop(0,'#2a2438'); g.addColorStop(1,'#1c1826');
   ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
   // телефон
-  const px=112, py=6, pw=96, ph=168;
+  const pw=96, ph=168, px=(W-pw)>>1, py=(H-ph)>>1;
   ctx.fillStyle = COL.ink; ctx.fillRect(px-4,py-4,pw+8,ph+8);
   ctx.fillStyle = '#f6f5f2'; ctx.fillRect(px,py,pw,ph);
   ctx.fillStyle = '#1a1a24'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
@@ -1860,24 +1834,26 @@ function drawWed(){
   g.addColorStop(0,'#f2b06a'); g.addColorStop(.55,'#e8845a'); g.addColorStop(1,'#c96a4e');
   ctx.fillStyle = g; ctx.fillRect(0,0,W,FLOOR_Y);
   ctx.fillStyle = '#fff3d8';
-  ctx.beginPath(); ctx.arc(70,52,16,0,7); ctx.fill();
-  // силует Києва
+  ctx.beginPath(); ctx.arc(70,70,16,0,7); ctx.fill();          // сонце високо
+  // силует Києва (біля горизонту)
+  const hz = FLOOR_Y;
   ctx.fillStyle = 'rgba(90,58,60,.5)';
-  ctx.fillRect(0,96,40,32); ctx.fillRect(50,88,26,40);
-  ctx.fillRect(250,92,34,36); ctx.fillRect(290,84,30,44);
-  ctx.fillRect(230,72,6,56); ctx.fillRect(228,66,10,8);        // дзвіниця
+  ctx.fillRect(0,hz-56,40,56); ctx.fillRect(50,hz-64,26,64);
+  ctx.fillRect(250,hz-60,34,60); ctx.fillRect(290,hz-68,30,68);
+  ctx.fillRect(230,hz-80,6,80); ctx.fillRect(228,hz-86,10,8);  // дзвіниця
   // галявина
   ctx.fillStyle = '#5d8b58'; ctx.fillRect(0,FLOOR_Y,W,H-FLOOR_Y);
   ctx.fillStyle = '#527c4e';
   for(let fx=0; fx<W; fx+=18) ctx.fillRect(fx+((fx/18)%2)*4, FLOOR_Y+4, 3, 2);
-  // весільна арка
+  // весільна арка (стоїть на галявині)
+  const aTop = FLOOR_Y-96, aArc = FLOOR_Y-90;
   ctx.fillStyle = '#f4f0e4';
-  ctx.fillRect(116,58,6,96); ctx.fillRect(198,58,6,96);
-  ctx.beginPath(); ctx.arc(160,64,46,Math.PI,0); ctx.arc(160,64,38,0,Math.PI,true); ctx.fill();
+  ctx.fillRect(116,aTop,6,96); ctx.fillRect(198,aTop,6,96);
+  ctx.beginPath(); ctx.arc(160,aArc,46,Math.PI,0); ctx.arc(160,aArc,38,0,Math.PI,true); ctx.fill();
   // квіти на арці
   for(let i=0;i<9;i++){
     const a = Math.PI + i*(Math.PI/8);
-    const qx = 160+Math.cos(a)*42, qy = 64+Math.sin(a)*42;
+    const qx = 160+Math.cos(a)*42, qy = aArc+Math.sin(a)*42;
     ctx.fillStyle = i%2 ? COL.rose : '#B58A2E';
     ctx.fillRect(qx-2, qy-2, 5, 5);
     ctx.fillStyle = '#3F7C77'; ctx.fillRect(qx+2, qy+2, 2, 2);
@@ -1966,10 +1942,11 @@ function stopMusic(){
 function drawCaption(line1, line2){
   ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
   ctx.textAlign='center';
-  ctx.fillStyle = COL.gold; ctx.font='bold 13px monospace';
-  ctx.fillText(line1, W/2, 82);
-  ctx.fillStyle = '#d8d4c4'; ctx.font='9px monospace';
-  ctx.fillText(line2, W/2, 102);
+  ctx.fillStyle = COL.gold; ctx.font='bold 14px monospace';
+  ctx.fillText(line1, W/2, H/2-10);
+  ctx.fillStyle = '#d8d4c4'; ctx.font='10px monospace';
+  ctx.fillText(line2, W/2, H/2+12);
+  ctx.textAlign='left';
 }
 
 /* ================= діалогова система ================= */
@@ -2075,7 +2052,7 @@ cv.addEventListener('pointerdown', e=>{
   }
   else if(game.phase==='svat' && game.svat){
     const pos = canvasPos(e);
-    if(Math.abs(pos.x-112) < 18 && pos.y > 118){    // тап по Кітані біля печі
+    if(Math.abs(pos.x-112) < 18 && pos.y > FLOOR_Y-50){  // тап по Кітані біля печі
       game.svat.purrT = 70;
       achUnlock('purr');
     } else input.actionEdge = true;
@@ -2141,7 +2118,8 @@ function startGame(pov, watch){
   initWalkScene('idea');
   game.camX = 0; game.swipeX = 0; game._swipeDrag = null; game._setDone = false; game._dateDone = false;
   game.battle = null; game.tetris = null; game.svat = null; game.prop = null;
-  game.diia = null; game.kitana = null; game.diiaSurname = null; game._tapPos = null; game._holdPtr = false; dragTarget = null; stopMusic();
+  game.diia = null; game.kitana = null; game.diiaSurname = null; game._tapPos = null; game._holdPtr = false; game._swipeDrag = null;
+  dragTarget = null; eggParticles.length = 0; heartRain = false; stopMusic();
   elTitle.classList.add('hidden');
   elEnd.classList.add('hidden');
   elHud.classList.remove('hidden');
