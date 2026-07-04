@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Катя ♥ Діма — гра-запрошення</title>
 <style>
   :root{
@@ -10,7 +10,8 @@
     --bg:#EBEBE3; --surface:#F8F8F3; --ink:#1a1a24;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
+  html,body{height:100%;touch-action:none}
+  #rsvp-input{touch-action:auto}
   body{
     background:var(--ink);
     display:flex;align-items:center;justify-content:center;
@@ -95,7 +96,7 @@
   @media (orientation:portrait){
     body{align-items:flex-start}
     #stage{
-      max-width:none;height:100vh;height:100dvh;max-height:none;
+      max-width:none;height:100vh;height:var(--app-h,100dvh);max-height:none;
       aspect-ratio:auto;
     }
     canvas#game{
@@ -232,7 +233,7 @@
     <div class="s-head" id="rsvp-q">?</div>
     <div class="menu" id="rsvp-opts"></div>
     <input id="rsvp-input" class="hidden" type="text" maxlength="60" placeholder="напиши тут…"
-      style="font-family:inherit;font-size:clamp(11px,2.4cqw,16px);padding:.6em;width:min(70%,340px);
+      style="font-family:inherit;font-size:16px;padding:.6em;width:min(80%,340px);
              background:#f8f8f3;border:3px solid #000;color:#1a1a24">
     <div id="rsvp-dots" style="color:#8a8878;font-size:12px;letter-spacing:4px"></div>
     <pre id="rsvp-summary" class="hidden"
@@ -2318,6 +2319,26 @@ document.getElementById('btn-sampler').addEventListener('click', ()=>{
 });
 
 /* ================= мобільність ================= */
+/* заборона будь-якого зуму: подвійний тап, піінч, жести iOS */
+['gesturestart','gesturechange','gestureend'].forEach(ev=>
+  document.addEventListener(ev, e=> e.preventDefault(), {passive:false}));
+document.addEventListener('dblclick', e=> e.preventDefault(), {passive:false});
+document.addEventListener('touchmove', e=>{ if(e.scale && e.scale!==1) e.preventDefault(); }, {passive:false});
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e=>{
+  const now = Date.now();
+  const interactive = e.target.closest && e.target.closest('input,button');
+  if(now - lastTouchEnd < 350 && !interactive) e.preventDefault();
+  lastTouchEnd = now;
+}, {passive:false});
+
+/* фіксуємо висоту гри, щоб не стрибала від появи/зникнення панелей браузера */
+function lockAppHeight(){
+  document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+}
+lockAppHeight();
+addEventListener('orientationchange', ()=> setTimeout(lockAppHeight, 350));
+
 function tryFullscreen(){
   if(!isTouch) return;
   const el = document.documentElement;
