@@ -5088,7 +5088,9 @@ const FB = {
 /* Список гостей «id;імʼя» — Катя вставить з кнопки «📤 Список гостей для гри».
    Поки порожній — гравцям без персонального коду пропонуємо ввести імʼя вручну,
    а запис у базу пропускаємо. */
-const RSVP_GUEST_LIST = `
+/* Список — резервний (вставлений вручну). Якщо відкрито читання колекції
+   guests у Firebase, гра підтягне АКТУАЛЬНИЙ список сама (loadGuestsLive). */
+let RSVP_GUEST_LIST = `
 g1781813835774;Мама Леся
 g1781813848562;Папа Паша
 g1781813867090;Віка Кукрицька
@@ -5153,6 +5155,28 @@ g1783202872352;Марія R
   const [id, ...rest] = l.split(';');
   return {id:id.trim(), name:rest.join(';').trim()};
 });
+/* Живий список: тягне АКТУАЛЬНИХ гостей із застосунку весілля.
+   Працює, якщо в правилах відкрито читання: match /guests/{doc} { allow read: if true; }
+   Бере поле імені (name/title/…) і, якщо є, слот (slot/group/stream/side) → Софі/Хвильовий. */
+async function loadGuestsLive(){
+  try{
+    const r = await fetch('https://firestore.googleapis.com/v1/projects/wedding-6e47f/databases/(default)/documents/guests?key='+FB.apiKey+'&pageSize=400');
+    if(!r.ok) return;                       // читання закрите — лишаємо резервний список
+    const j = await r.json();
+    const sv = f => f && (f.stringValue || (f.integerValue!=null?String(f.integerValue):null));
+    const live = (j.documents||[]).map(d=>{
+      const id = d.name.split('/').pop();
+      const f = d.fields || {};
+      const name = sv(f.name) || sv(f.title) || sv(f.fullName) || sv(f.displayName) || '';
+      const slotRaw = (sv(f.slot) || sv(f.group) || sv(f.stream) || sv(f.side) || '').toLowerCase();
+      const slot = /хвил|khv|b|веч|17|друг/.test(slotRaw) ? 'B'
+                 : /соф|sofi|a|ден|12|перш/.test(slotRaw) ? 'A' : null;
+      return {id, name, slot};
+    }).filter(g=>g.name);
+    if(live.length) RSVP_GUEST_LIST = live;
+  }catch(e){}
+}
+loadGuestsLive();
 const slugify = s => (s||'').toLowerCase().trim()
   .replace(/[^a-zа-яїієґ0-9]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'x';
 async function sendRsvpToApp(guestId, response, extra){
