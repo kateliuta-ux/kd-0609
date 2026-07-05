@@ -5061,8 +5061,20 @@ function quizFinish(){
 }
 // квіз переїхав усередину гри — іспит старостів на сватанні (SVAT_EXAM)
 
-function loop(){ update(); render(); requestAnimationFrame(loop); }
-loop();
+/* Фіксований крок 60 Гц: логіка не залежить від частоти монітора
+   (на 120/144 Гц раніше все летіло у 2–2.4× швидше). Рендер — щокадровий. */
+const STEP_MS = 1000/60;
+let _lastT = null, _acc = 0;
+function loop(now){
+  if(_lastT === null) _lastT = now;
+  _acc += now - _lastT; _lastT = now;
+  if(_acc > 250) _acc = 250;               // після фонової вкладки не наздоганяємо лавиною
+  let steps = 0;
+  while(_acc >= STEP_MS && steps < 5){ update(); _acc -= STEP_MS; steps++; }
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
