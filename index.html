@@ -3182,55 +3182,43 @@ function stopMusic(){
   if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
 }
 
-/* ---------------- BGM: 8-бітні чиптюн-мелодії (без слів) ----------------
-   Грає власний синтезатор (playNote, square/triangle). Жодних вокалів і
-   жодного стрімінгу — легко для мобільного, і в стилі ретро-гри.
-   [f, тривалість] у секундах; бас — 4 корені акордів на петлю. */
-const MELODY_LOVE = [   // світла, грайлива (тіндер/чат/побачення/заставка/тайтл)
-  [523.25,.3],[659.25,.3],[783.99,.45],[659.25,.3],
-  [698.46,.3],[880.00,.45],[783.99,.5],
-  [659.25,.3],[783.99,.3],[523.25,.55],
-  [587.33,.3],[698.46,.3],[659.25,.6],
-];
-const BASS_LOVE = [130.81,110.00,174.61,196.00];         // C Am F G
-const MELODY_TENDER = [  // ніжна, з тугою (Лондон-розлука, освідчення)
-  [659.25,.5],[587.33,.4],[523.25,.7],
-  [440.00,.4],[523.25,.4],[659.25,.8],
-  [698.46,.5],[659.25,.4],[587.33,.7],
-  [523.25,.4],[493.88,.4],[440.00,1.0],
-];
-const BASS_TENDER = [110.00,87.31,130.81,98.00];         // Am F C G
-const MELODY_SNEAK = [   // пустотлива, скрадлива (операція «Коробочка», Позняки)
-  [440.00,.22],[523.25,.22],[440.00,.22],[659.25,.22],
-  [587.33,.22],[523.25,.44],
-  [440.00,.22],[493.88,.22],[523.25,.22],[659.25,.44],
-  [440.00,.22],[329.63,.44],
-];
-const BASS_SNEAK = [110.00,110.00,146.83,164.81];        // Am Am Dm E
-const CHIPTUNES = {
-  love:   {mel:MELODY_LOVE,   bass:BASS_LOVE},
-  tender: {mel:MELODY_TENDER, bass:BASS_TENDER},
-  sneak:  {mel:MELODY_SNEAK,  bass:BASS_SNEAK},
+/* ---------------- BGM: справжні УКРАЇНОМОВНІ треки Space Spice Boy ----------
+   Чиптюн звучав неупізнавано, тож повертаємо реальну музику — але лише
+   україномовні пісні (жодної російської). Вантажаться ліниво, по одному
+   треку на сцену; на весіллі лишається чиптюн «Горіла сосна». */
+const BGM_TRACKS = {
+  planeta:  'audio/ssb_planeta.m4a',    // «Моя планета»
+  khata:    'audio/ssb_khata.m4a',      // «Над моєю хатою»
+  stezhyna: 'audio/ssb_stezhyna.m4a',   // «Стежина»
 };
-/* фаза → чиптюн; band = тиша (там семплер), wed = власна «Горіла сосна» */
+const bgmEls = {};
+let chipKey = null;                      // тут — ключ поточного треку
+/* фаза → трек; band = свій «Позняки», wed = «Горіла сосна» (чиптюн).
+   Капшни не мапимо — там просто грає далі поточний трек (без ривків). */
 const CHIP_MAP = {
-  sitcom:'love',
-  tinder:'love', swipe:'love', match:'love', chat:'love', date:'love',
-  run:'tender', prop:'tender',
-  secret:'sneak',
+  prolog:'planeta', sitcom:'planeta', set:'planeta', montage:'planeta',
+  tinder:'khata', swipe:'khata', match:'khata', chat:'khata', date:'khata', battle:'khata', run:'khata',
+  svat:'planeta',
+  secret:'stezhyna', prop:'stezhyna', diia:'stezhyna',
 };
-let chipKey = null;
 function chipForPhase(phase){
-  if(phase==='wed') return null;      // на весіллі — «Горіла сосна»
+  if(phase==='wed') return null;
   return CHIP_MAP[phase] || null;
 }
 function playChip(key){
-  if(chipKey === key && musicOn) return;   // той самий трек — не перезапускаємо
-  stopMusic();
-  const c = CHIPTUNES[key]; if(!c){ chipKey = null; return; }
-  chipKey = key; startMusic(c.mel, c.bass);
+  if(chipKey === key) return;            // той самий трек — грає далі без перезапуску
+  stopChip();
+  const src = BGM_TRACKS[key]; if(!src){ chipKey = null; return; }
+  stopMusic();                           // прибрати чиптюн (весільний), якщо грав
+  let el = bgmEls[key];
+  if(!el){ el = new Audio(src); el.loop = true; el.volume = 0.5; bgmEls[key] = el; }
+  el.currentTime = 0; el.play().catch(()=>{});
+  chipKey = key;
 }
-function stopChip(){ chipKey = null; stopMusic(); }
+function stopChip(){
+  if(chipKey && bgmEls[chipKey]) bgmEls[chipKey].pause();
+  chipKey = null;
+}
 
 /* Рівень гурту SPACE SPICE BOY — грає СПРАВЖНІЙ трек SSB (укр. «Позняки»).
    Єдиний стрім у грі; вантажиться тільки на цьому рівні. */
@@ -3328,7 +3316,7 @@ function drawSitcom(){
   ctx.fillStyle = '#0e0c14'; ctx.fillRect(0,0,W,H);
   drawOrnament(16); drawOrnament(H-22);
   const frames = sitcomFrames();
-  const t = game.phaseT, DUR = 55, n = frames.length;
+  const t = game.phaseT, DUR = 80, n = frames.length;
   const idx = Math.min(n, Math.floor(t/DUR));
   if(idx < n){
     const fr = frames[idx], img = fr.img;
@@ -3452,17 +3440,18 @@ function updateDialog(){
   const d = game.dialog; if(!d) return;
   const ln = d.lines[d.idx];
   if(d.shown < ln.text.length){
-    d.shown = Math.min(ln.text.length, d.shown + 2);
-    elText.textContent = ln.text.slice(0, d.shown);
+    d.shown = Math.min(ln.text.length, d.shown + 1.4);   // друк трохи повільніший
+    elText.textContent = ln.text.slice(0, Math.floor(d.shown));
     // South Park: рот циклить фази закритий→пів→відкритий→пів, поки говорить
     if(ln.who) drawPortraitInto(pctx, ln.who, ln.emo, [0,1,2,1][(game.t>>2)&3]);
-    if(d.shown === ln.text.length){
+    if(Math.floor(d.shown) === ln.text.length){
       elArrow.classList.remove('hidden');
       if(ln.who) drawPortraitInto(pctx, ln.who, ln.emo, 0);   // рот закрився
     }
   } else if(game.watch){
     d.waitTimer++;
-    if(d.waitTimer > 45) advanceDialog();
+    // у перегляді тримаємо рядок на екрані ~пропорційно довжині (щоб встигнути прочитати)
+    if(d.waitTimer > Math.max(120, ln.text.length*3.2)) advanceDialog();
   }
 }
 
@@ -3588,9 +3577,10 @@ function setPhase(p){
   game.phase = p; game.phaseT = 0;
   // фонова музика Space Spice Boy за фазою (чиптюн сцени має пріоритет)
   if(p !== 'band') stopBandSong();       // реальний трек SSB — лише на рівні гурту
-  const want = chipForPhase(p);
-  if(want) playChip(want);
-  else if(chipKey) stopChip();
+  // музика грає неперервно; глушимо лише там, де своя музика/мікрофон
+  if(p==='kitana' || p==='band' || p==='wed'){ stopChip(); }
+  else { const want = chipForPhase(p); if(want) playChip(want); }
+  // капшни та інші немапнуті фази — поточний трек грає далі
   updateHudAndControls();
 }
 
@@ -3621,7 +3611,7 @@ function lazyToEnd(){
   game.t = 0; game.dialog = null; game.onDialogEnd = null;
   game.wedLoc = GUEST ? (GUEST.slot==='B' ? 'khv' : 'sofi') : 'sofi';
   game.wedBoth = !GUEST;
-  dragTarget = null; eggParticles.length = 0; heartRain = false; stopMusic(); chipKey = null; stopBandSong();
+  dragTarget = null; eggParticles.length = 0; heartRain = false; stopMusic(); stopChip(); stopBandSong();
   elTitle.classList.add('hidden');
   document.getElementById('watch-pov-menu').classList.add('hidden');
   elEnd.classList.add('hidden');
@@ -3633,7 +3623,7 @@ function lazyToEnd(){
 }
 
 function finishGame(){
-  stopMusic(); chipKey = null; stopBandSong();
+  stopMusic(); stopChip(); stopBandSong();
   game.state = 'end';
   if(!game.watch){
     localStorage.setItem('wed-done-'+game.pov, '1');
@@ -3851,7 +3841,7 @@ document.getElementById('btn-save-inv').addEventListener('click', saveInvitation
 
 /* тайтл-музика: браузер дозволяє звук лише після жесту — вмикаємо з першого дотику */
 document.addEventListener('pointerdown', ()=>{
-  if(game.state==='title' && !musicOn) playChip('love');
+  if(game.state==='title' && !chipKey) playChip('planeta');
 });
 
 /* імʼя гравця: питаємо один раз, гра звертається на імʼя */
@@ -3922,21 +3912,21 @@ function update(){
   switch(game.phase){
 
     case 'prolog':
-      if(game.phaseT > 460 || (!game.watch && input.actionEdge && game.phaseT>20)){
+      if(game.phaseT > 700 || (!game.watch && input.actionEdge && game.phaseT>20)){
         input.actionEdge = false;
         setPhase('sitcom');
       }
       break;
 
     case 'sitcom':
-      if(game.phaseT > sitcomFrames().length*55 + 130 || (!game.watch && input.actionEdge && game.phaseT>10)){
+      if(game.phaseT > sitcomFrames().length*80 + 160 || (!game.watch && input.actionEdge && game.phaseT>10)){
         input.actionEdge = false;
         setPhase('cap1');
       }
       break;
 
     case 'cap1':
-      if(game.phaseT > 70 || input.actionEdge) setPhase('set');
+      if(game.phaseT > 170 || input.actionEdge) setPhase('set');
       break;
 
     case 'set': {
@@ -3968,13 +3958,13 @@ function update(){
     }
 
     case 'capMont':
-      if(game.phaseT > 70 || input.actionEdge) startMontage();
+      if(game.phaseT > 170 || input.actionEdge) startMontage();
       break;
     case 'montage':
       updateMontage();
       break;
     case 'capBand':
-      if(game.phaseT > 70 || input.actionEdge) startBand();
+      if(game.phaseT > 170 || input.actionEdge) startBand();
       break;
     case 'band':
       if(input.actionEdge && !game.dialog){ input.actionEdge=false; }  // тап-обробка нижче в pointerdown
@@ -3982,12 +3972,12 @@ function update(){
       break;
 
     case 'cap2':
-      if(game.phaseT > 70 || input.actionEdge) setPhase('tinder');
+      if(game.phaseT > 170 || input.actionEdge) setPhase('tinder');
       break;
 
     case 'tinder':
       if(game.watch){
-        if(game.phaseT > 90) setPhase('swipe');
+        if(game.phaseT > 150) setPhase('swipe');
       } else if(game._swipeDrag != null){
         // тягнемо картку пальцем — обробляється в pointermove/up
       } else if(input.actionEdge){
@@ -4018,7 +4008,7 @@ function update(){
       break;
 
     case 'cap3':
-      if(game.phaseT > 70 || input.actionEdge) setPhase('date');
+      if(game.phaseT > 170 || input.actionEdge) setPhase('date');
       break;
 
     case 'date': {
@@ -4053,7 +4043,7 @@ function update(){
       break;
 
     case 'cap4':
-      if(game.phaseT > 70 || input.actionEdge) startRun();
+      if(game.phaseT > 170 || input.actionEdge) startRun();
       break;
 
     case 'run':
@@ -4061,7 +4051,7 @@ function update(){
       break;
 
     case 'capK':
-      if(game.phaseT > 70 || input.actionEdge) startKitana();
+      if(game.phaseT > 170 || input.actionEdge) startKitana();
       break;
 
     case 'kitana':
@@ -4070,7 +4060,7 @@ function update(){
       break;
 
     case 'cap5':
-      if(game.phaseT > 70 || input.actionEdge) startSvat();
+      if(game.phaseT > 170 || input.actionEdge) startSvat();
       break;
 
     case 'svat':
@@ -4078,7 +4068,7 @@ function update(){
       break;
 
     case 'capS':
-      if(game.phaseT > 70 || input.actionEdge) startSecret();
+      if(game.phaseT > 170 || input.actionEdge) startSecret();
       break;
 
     case 'secret':
@@ -4086,7 +4076,7 @@ function update(){
       break;
 
     case 'cap6':
-      if(game.phaseT > 70 || input.actionEdge) startProposal();
+      if(game.phaseT > 170 || input.actionEdge) startProposal();
       break;
 
     case 'prop':
@@ -4094,7 +4084,7 @@ function update(){
       break;
 
     case 'cap7':
-      if(game.phaseT > 70 || input.actionEdge) startDiia();
+      if(game.phaseT > 170 || input.actionEdge) startDiia();
       break;
 
     case 'diia':
@@ -4102,7 +4092,7 @@ function update(){
       break;
 
     case 'cap8':
-      if(game.phaseT > 70 || input.actionEdge){
+      if(game.phaseT > 170 || input.actionEdge){
         // фінал за слотом гостя: A → тераса «Бути Софі», B → дворик «Хвильового»;
         // без персонального коду — показуємо обидва по черзі
         game.wedLoc = GUEST ? (GUEST.slot==='B' ? 'khv' : 'sofi') : 'sofi';
