@@ -3160,48 +3160,55 @@ function stopMusic(){
   if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
 }
 
-/* ---------------- BGM: справжні треки Space Spice Boy (з дозволу автора) ----
-   Файли лежать поруч із index.html в audio/. Кожній фазі — свій трек;
-   чиптюни лишаються для бою та весілля («Горіла сосна» — традиційна). */
-const BGM_TRACKS = {
-  syn:      'audio/ssb_syn.m4a',       // «Такой себе син» — тайтл і бенд-рівень
-  planeta:  'audio/ssb_planeta.m4a',   // «Моя планета» — побачення
-  pozniaky: 'audio/ssb_pozniaky.m4a',  // «Позняки» — таємна сцена і Хвильовий
-  balkon:   'audio/ssb_balkon.m4a',    // «На Балконе» — тіндер/чат/Лондон
+/* ---------------- BGM: 8-бітні чиптюн-мелодії (без слів) ----------------
+   Грає власний синтезатор (playNote, square/triangle). Жодних вокалів і
+   жодного стрімінгу — легко для мобільного, і в стилі ретро-гри.
+   [f, тривалість] у секундах; бас — 4 корені акордів на петлю. */
+const MELODY_LOVE = [   // світла, грайлива (тіндер/чат/побачення/заставка/тайтл)
+  [523.25,.3],[659.25,.3],[783.99,.45],[659.25,.3],
+  [698.46,.3],[880.00,.45],[783.99,.5],
+  [659.25,.3],[783.99,.3],[523.25,.55],
+  [587.33,.3],[698.46,.3],[659.25,.6],
+];
+const BASS_LOVE = [130.81,110.00,174.61,196.00];         // C Am F G
+const MELODY_TENDER = [  // ніжна, з тугою (Лондон-розлука, освідчення)
+  [659.25,.5],[587.33,.4],[523.25,.7],
+  [440.00,.4],[523.25,.4],[659.25,.8],
+  [698.46,.5],[659.25,.4],[587.33,.7],
+  [523.25,.4],[493.88,.4],[440.00,1.0],
+];
+const BASS_TENDER = [110.00,87.31,130.81,98.00];         // Am F C G
+const MELODY_SNEAK = [   // пустотлива, скрадлива (операція «Коробочка», Позняки)
+  [440.00,.22],[523.25,.22],[440.00,.22],[659.25,.22],
+  [587.33,.22],[523.25,.44],
+  [440.00,.22],[493.88,.22],[523.25,.22],[659.25,.44],
+  [440.00,.22],[329.63,.44],
+];
+const BASS_SNEAK = [110.00,110.00,146.83,164.81];        // Am Am Dm E
+const CHIPTUNES = {
+  love:   {mel:MELODY_LOVE,   bass:BASS_LOVE},
+  tender: {mel:MELODY_TENDER, bass:BASS_TENDER},
+  sneak:  {mel:MELODY_SNEAK,  bass:BASS_SNEAK},
 };
-const bgmEls = {};
-let bgmKey = null;
-function playBgm(key){
-  if(bgmKey === key) return;
-  stopBgm();
-  const src = BGM_TRACKS[key]; if(!src) return;
-  let el = bgmEls[key];
-  if(!el){
-    el = new Audio(src); el.loop = true; el.volume = 0.55; el.preload = 'auto';
-    bgmEls[key] = el;
-  }
-  el.currentTime = 0;
-  el.play().catch(()=>{});          // до першого жесту браузер може відмовити — ок
-  bgmKey = key;
-}
-function stopBgm(){
-  if(bgmKey && bgmEls[bgmKey]){ bgmEls[bgmKey].pause(); }
-  bgmKey = null;
-}
-/* фаза → трек; null = тиша або чиптюн сцени.
-   band не чіпаємо: там семплер — гравець сам за музику. */
-const BGM_MAP = {
-  sitcom:'syn',                       // заставка продовжує тайтл-трек
-  tinder:'balkon', swipe:'balkon', match:'balkon', chat:'balkon',
-  date:'planeta',
-  run:'balkon',
-  secret:'pozniaky',
-  prop:'planeta',
+/* фаза → чиптюн; band = тиша (там семплер), wed = власна «Горіла сосна» */
+const CHIP_MAP = {
+  sitcom:'love',
+  tinder:'love', swipe:'love', match:'love', chat:'love', date:'love',
+  run:'tender', prop:'tender',
+  secret:'sneak',
 };
-function bgmForPhase(phase){
-  if(game.wedLoc==='khv' && phase==='wed') return null;  // на весіллі — «Горіла сосна»
-  return BGM_MAP[phase] || null;
+let chipKey = null;
+function chipForPhase(phase){
+  if(phase==='wed') return null;      // на весіллі — «Горіла сосна»
+  return CHIP_MAP[phase] || null;
 }
+function playChip(key){
+  if(chipKey === key && musicOn) return;   // той самий трек — не перезапускаємо
+  stopMusic();
+  const c = CHIPTUNES[key]; if(!c){ chipKey = null; return; }
+  chipKey = key; startMusic(c.mel, c.bass);
+}
+function stopChip(){ chipKey = null; stopMusic(); }
 
 /* ================= титри сцен ================= */
 function drawOrnament(cy, x0, x1){
@@ -3496,9 +3503,9 @@ function updateHudAndControls(){
 function setPhase(p){
   game.phase = p; game.phaseT = 0;
   // фонова музика Space Spice Boy за фазою (чиптюн сцени має пріоритет)
-  const want = bgmForPhase(p);
-  if(want) { stopMusic(); playBgm(want); }
-  else if(bgmKey) stopBgm();
+  const want = chipForPhase(p);
+  if(want) playChip(want);
+  else if(chipKey) stopChip();
   updateHudAndControls();
 }
 
@@ -3523,7 +3530,7 @@ function startGame(pov, watch){
 }
 
 function finishGame(){
-  stopMusic(); stopBgm();
+  stopMusic(); chipKey = null;
   game.state = 'end';
   if(!game.watch){
     localStorage.setItem('wed-done-'+game.pov, '1');
@@ -3729,7 +3736,7 @@ document.getElementById('btn-save-inv').addEventListener('click', saveInvitation
 
 /* тайтл-музика: браузер дозволяє звук лише після жесту — вмикаємо з першого дотику */
 document.addEventListener('pointerdown', ()=>{
-  if(game.state==='title' && !bgmKey) playBgm('syn');
+  if(game.state==='title' && !musicOn) playChip('love');
 });
 
 /* імʼя гравця: питаємо один раз, гра звертається на імʼя */
