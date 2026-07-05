@@ -63,9 +63,23 @@
     background:var(--surface);
     border:3px solid var(--ink);
     box-shadow:0 0 0 3px var(--surface), 0 6px 0 rgba(0,0,0,.5);
-    padding:2.6% 3%;
+    padding:3.4% 3% 2.6%;
     min-height:13%;
     cursor:pointer;
+  }
+  /* вишиванковий кант зверху діалогу — традиційний стиль через усю гру */
+  #dialog::before{
+    content:'';position:absolute;left:8px;right:8px;top:3px;height:6px;
+    background:repeating-linear-gradient(90deg,
+      #b3323c 0 3px, transparent 3px 5px, #b3323c 5px 8px,
+      transparent 8px 11px, #221c26 11px 13px, transparent 13px 16px);
+  }
+  #end-screen .date{position:relative;padding-bottom:12px}
+  #end-screen .date::after{
+    content:'';position:absolute;left:10%;right:10%;bottom:0;height:6px;
+    background:repeating-linear-gradient(90deg,
+      #b3323c 0 3px, transparent 3px 5px, #b3323c 5px 8px,
+      transparent 8px 11px, #221c26 11px 13px, transparent 13px 16px);
   }
   #portrait-wrap{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px}
   canvas#portrait{
@@ -211,6 +225,14 @@
     </div>
   </div>
 
+  <div id="name-screen" class="overlay hidden" style="background:rgba(12,12,20,.94);gap:14px">
+    <div class="s-head">Привіт! Як тебе звати?<span>гра звертатиметься до тебе на імʼя</span></div>
+    <input id="name-input" type="text" maxlength="24" placeholder="твоє імʼя"
+      style="font-family:inherit;font-size:16px;padding:.6em;width:min(75%,300px);text-align:center;
+             background:#f8f8f3;border:3px solid #000;color:#1a1a24">
+    <button class="btn katya" id="name-go">ГРАТИ</button>
+  </div>
+
   <div id="quiz-screen" class="overlay hidden" style="background:#14121c;gap:2.4%">
     <div class="s-head" id="quiz-q">?</div>
     <div class="menu" id="quiz-opts"></div>
@@ -330,6 +352,13 @@ function drawAchToasts(){
   });
   for(let i=achToasts.length-1;i>=0;i--) if(achToasts[i].t<=0) achToasts.splice(i,1);
 }
+
+/* ---- фото-голови (South Park style): реальні обличчя з ваших фото ---- */
+const HEAD_K = new Image(); HEAD_K.src = 'data:image/png;base64,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';
+const HEAD_D = new Image(); HEAD_D.src = 'data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAWKADAAQAAAABAAAAYAAAAAD/wgARCABgAFgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAwIEAQUABgcICQoL/8QAwxAAAQMDAgQDBAYEBwYECAZzAQIAAxEEEiEFMRMiEAZBUTIUYXEjB4EgkUIVoVIzsSRiMBbBctFDkjSCCOFTQCVjFzXwk3OiUESyg/EmVDZklHTCYNKEoxhw4idFN2WzVXWklcOF8tNGdoDjR1ZmtAkKGRooKSo4OTpISUpXWFlaZ2hpand4eXqGh4iJipCWl5iZmqClpqeoqaqwtba3uLm6wMTFxsfIycrQ1NXW19jZ2uDk5ebn6Onq8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAABAgADBAUGBwgJCgv/xADDEQACAgEDAwMCAwUCBQIEBIcBAAIRAxASIQQgMUETBTAiMlEUQAYzI2FCFXFSNIFQJJGhQ7EWB2I1U/DRJWDBROFy8ReCYzZwJkVUkiei0ggJChgZGigpKjc4OTpGR0hJSlVWV1hZWmRlZmdoaWpzdHV2d3h5eoCDhIWGh4iJipCTlJWWl5iZmqCjpKWmp6ipqrCys7S1tre4ubrAwsPExcbHyMnK0NPU1dbX2Nna4OLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICAwICAwUDAwMFBgUFBQUGCAYGBgYGCAoICAgICAgKCgoKCgoKCgwMDAwMDA4ODg4ODw8PDw8PDw8PD//bAEMBAgICBAQEBwQEBxALCQsQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEP/aAAwDAQACEQMRAAAB+W29O+w6ulkvFcnRn6H+lZXdPY5H07j6L0LmHEkZN+q8/wCqR0TLyl/PvfN0eQdb67a5XhFx7VYIvzHV+++Hlm3Oew+eKvm3tHmnrJbufQm3Nac/qNp5J2nRn0lBSUFWPlHe13L2UrcQvLfi/avOPX+Pfvz8d0/r+Xc1djzHYLOx5voWmvnnofmmWnMwxcfOd3Gdt7/5F9V4db3fivqXn+j39A5p+k2VnSQWf8U94NuenUxjwPT+xqK+e/ffCfIJvb/Kfj/rvQbDinHWvYMKDky7xYuN42s+69J7T1fG/9oACAEBAAEFAlKr2soETG83WSR0KmhJcYqIVKhWhdvukctibU4aiQtK8zfn3a3INQCGhJLiFGQ+pJgkO42hUppSMrCEKurpSpbi321Uri2Za7iDYCEr2OdAs9mVSba1hdjlBfbpF7vdK297XbSIEdtmradtkE8O0zx7mLO9KZ9slkV7mUw7hbrCJdF7hbc5KFyJfh1ZuFbrYQHdbfAIjo8Q18tAXd2juLmGR7vDJLPeGl1HYyKGw20turdI+Zcx2WsdpCuW3knKriGW6XJYe5uWzjnmmhVHuN4il3DbqhO2m2FuZIpI+UFNMb4z+xNyAWq3QlzR5bnPEhU9v4sETtfFNou3i8RIuDDfKkTzFUTcjnXU9FQS5xzy0ERVcbmZayQeF9wuxF4fkhG3QC03SBPKkKxRAEU11JJcGAoRHdSDHbpAFqPUYS/ECbq2lNzOtXv0Ml0csIr+JyXkCRbLVMNzuU2ttt8c9psZqxq9y2/362XbSQSchUghuA/dUSP9HodzNBZoMUm6SbtKmaW2tlXk/B6PfbELTUOzULqBFzeQld/fECGa8uL6/TAwFzvY9vRZWX//2gAIAQMRAT8BQKadqYuxhDliB5L7g9E5w+RbHw7TTiF4xyyxg/hL7cQOSwiGMOHJVUE4yOHFj8uSBrcHFwDKTT8d1t5NpeqFZLHq4oyIO0MoSEOY0HJ+Db+aS4yQdwcOQZsYkPKAYnjy1KXMy48JMhMvVfKy3kQ8P//aAAgBAhEBPwEhH3fcUzTN3bPHh9xz5xsLkyegTudsmJ9CwzUKL1M41yXIf5hRkryHeZeA3y5Z/cXqzm8Tg4DKdSkHKTwHF52lzR5AiyJfl+kl7NwPL8cZe1tl6J8+U+btj6zPoiLOIIos76fNtPhEx5ZTHoHquqAj7Yel+KjsBn5f/9oACAEBAAY/AuypZjSGPUvlwfRR/D7gXGrEh8uXpkeJ78GixT81fEvT7nS611aoln6ePh8WUq8nqwumkYy/BknWrRQPlfFrUocKvpcy1jRKdPm1D9loy0B0LMoTot9CncE+lHivRTyUn6MhiYUMNasp0T1K/DyaChdKcXy66k6uRYTqo/qdFJoolqifQXy5BUqWkNKscQan7QxrR0r2qo0dOan8XihYr6OBMIqtWj1Pm8o9WJVpqMwfwdaVIOh+YeV0tZJ4BL/iolStPHX0+D5cg1akH2Q0e728as/hWh86vBcYqPMO1RGddR+plNRoX9JDJT4NJxX9qWF46kA/1MKCdWasFn4v0dQ4VJ4pqWZD+Yv6RBUPg0S8tRyHDRqjjjppUVYPanxeTSr17KCB7KC6vqhCPiTRos1TIyj8604uISSJVWqdPi1RH8p7ZpTkGOjEMI9O17cV/dpx+11fSdWi5RUVFDT4PNSiTxDh1Gc0edPlo6jV4rQoF9KVFlZTgPL4tcqz7Llmuh9LfyZDXgl1V2VFwVxSfizGsUUnQuG6i0ksiSfVUauP4cXgvQvLKjqVl5LVQBplkBEIPSnzV8S0oRTlQDEf1tMSPaV398jGqfa+TqAD6j1HozAsUkj9PTyeHt0/F9MVPmwq4Vlj5eQYjhV7Po+YvpS0qWj6aTUnzf8A/8QAMxABAAMAAgICAgIDAQEAAAILAREAITFBUWFxgZGhscHw0RDh8SAwQFBgcICQoLDA0OD/2gAIAQEAAT8hP7NU66vOCj/RR3NwMKe7Il2kj/tOdQdz+J+K7WR4aynMn8WfC/mthtzPNLCMHvf9VPgoAd1vavTJoydinVuQl7LivDq8wjhPd2NXLVi8eF3RUxM1J9Ffk1hvzFYgogeyyQRNHsgS8ip/4fdnLXTen/2xQ80vE3nJGzd5F91kCFUn11UWR63WElu6UxCOk8y1+KVLbXfikkLIXq9XWx4FlKsicjaa/IMecrktNh0/ITYSsQHP+2aQQQqeBQzmbh0eVs5kPqVmkhzLbKhqA77qtNJ2+KdaPVi9LviDU8ER47LywUSvxUzM74ZxsvxZRiOPmyTpyk1SM1CchyzmbNUAr60/qjCilLwK2pDysy2VeOg/xFORDLpS9LgW5qq0DysIhE8+WswnFHgxSed9KKht40H+IoqGrvu/jYCf3ebuJQs1GRPA54pJgnxZttlBsQuHLDjIKSWZAplwONpcrG4XHiR/G2JKJlwajYsv1ekiK3cY+ryTdKF/dEQeR/0URPGgb3Th/ZBf9X00UxNCPBtqGD0Is+6FDuZsqUlEm4OJiyXg6IstlfUXwwc81wQC3Y8czieHwRdJ9fqgonf0AV0T0GuQxATkmei0AeTjw/Fk6r1zeNf5RrPyA0n7XvPZ0dFjCeCE9oPdPdV76PNGdJ7VOH+3l9fxcdRInCcr00TWU/aJ9WDA9mUwPsLvWpuKjnC8/gvRPwdrY9u72HRf/9oADAMBAAIRAxEAABBORtxNxhX0FAFYBinovhOrlceBeOR+oC3t4mf/xAAzEQEBAQADAAECBQUBAQABAQkBABEhMRBBUWEgcfCRgaGx0cHh8TBAUGBwgJCgsMDQ4P/aAAgBAxEBPxAsGETvb9l+WXGwBhF5FiMTWUYS0OzsQ+LkfwgN/NsLufpEDn42EAT+R/m2Rxn3kdRhD0HANxsteEc/OEC4Gfyc/wBtjTf6+eA6D8g/rr/S5oWmJdLD+/8A0kmsj2iFxhgcH5wOhcX/2gAIAQIRAT8QwiP4fg/3+bZWxjDer/CD9YiD+mQCUjnf4tVEZHih+QIgPkP7xhn1ied1tzi+898Ci/L/AHk8g++xOJp/U7/rGwu4ZH6jNdW1OATv9pSTVb+/E1Kz74zB+AX+fi0OpmfDN3Ov6j/slAeSRxSj5Xl/1PZ5c/lf/9oACAEBAAE/EJKVYkHjK/hHI+afYJw5ThvfdAExjCYSOJ8Fk3U8rr+apJYmKskjD3jZLoHFh9J2VaQUc/Kvn6sysRtMe/dU4pIHYoe6EIeQe6NhEPDLCT3RlgRPY31RYMj1zXCHllhXoHqqqp5k5L3BpIcnw0gknMBn1YGZMEHsf01e0kMADEStg45HtfE3PMuaoSPtikpICfbr+2kgGFjsibpiCRIMgU4z5ETgfuntMSPMJZxBx2Rx8RSNSAD4TX2+OgxF+IWUoY5IOZAPMTZGAFSdE46q/wAhBMWWnvCqPRJie/TU/dDbKiSMnX5/NmAPTrgR8zZCT2ssw/RKECl2YRg+O63B3icjA+LsKGgpiVrj7UjIcHz3W5SAPbZHycfVDgqA1hnqrZcV4YMSClJxBQgioLsC8T4pkAAaEB0UmUTwjN1BcS1tANQAfM0RiuAlPPVyebAEeGO6uiJZMI7eIeadyMJASERBmer4DukGPHPPmxF6w6rhFGgeUzOQekrMKNgSugD9tjK13LBdSZx2aWMphTIdNl1EKBHEfdhxIuBIhSg6jLmc0YTYnPIHlT1Tv2ziEjlkLEaDocWVnta+I7lYeUGpxUIjK9iz1dQfuAvQ6nqlmHAEirG+KoFDiW7x6kZAdVhSnJmP4r8oPOE+rtwSr3SyiPnwHUvFWGXtLKZJ/mvTEBR3tzl+qlRgBcFjgHiLJVSKZX9UlPmOICyQKuzERZ0qeXxzdU6G+7jsqzyU3HpuoGSdIcc/BXS63DC9xQTA0es+BLOWShMlZRrMxITFGFqM3ojEcwctcPY/eDnXi8mcWKxhdlFrnFmDZkIw4+DzZkTDPl7/AHYRaI+aHAAy7KT5in5lM1ivGiZnNx+NswSQ4isRI4H9WRG6qkwq++KBsNAvukNTe/qpG1BQMbztZI0rRH6mw+PBWBOtoWH5c+6DgotohTlYwD21toHwZCSQ4EII5tLkEBiMTwR/jY0GOZU/1UbM4HqT6eE90oInwyad99ebB5JsqNEFypnnCtgrJri8K/qh66NJ+1yDBkAJ+IoqQTJzF4b5rC4GDkTl18WDrQuxZAAenEZZdT9YHbwBtA3Y4z9TWJCR8+WlAc0JRVPn+/wosMETOQE5DEqWcRSjKX6yAyyJvM1QWwSmP4X8Uyi3YC4JYBi/HaeXa8VElCU1D9x8WbLR5lxzx/NNAV5w668ARh3f/9k=';
+const headOf = who => who==='katya' ? HEAD_K : who==='dima' ? HEAD_D : null;
+const headReady = img => img && img.complete && img.naturalWidth > 0;
+HEAD_K.onload = HEAD_D.onload = ()=>{ if(typeof refreshOffPortraits==='function') refreshOffPortraits(); };
 
 const CHARS = {
   // Катя — блондинка з каре, Діма — шатен із чубчиком-шторкою (за фото)
@@ -746,45 +775,29 @@ function drawPerson(x, y, who, phase, dir, walking, skin){
   add(7, -20+bob-sw, 4, 4, SK);
   add(7, -25+bob-sw, 4, 1, c.topD, true);          // згин ліктя
 
-  // ГОЛОВА
-  add(-6, -47+bob, 12, 13, SK);
-  add(-6, -36+bob, 12, 1, SKS, true);              // тінь щелепи
-  add(-6, -43+bob, 2, 4, SKS, true);               // вушко (ззаду)
-
-  // ВОЛОССЯ
-  if(c.style==='bob'){
-    const swing = walking ? (ph===0?1:0) : 0;
-    add(-7, -50+bob, 14, 5, c.hair);
-    add(-8, -48+bob+swing, 3, 13, c.hair);         // штора ззаду
-    add(6, -48+bob+swing, 3, 13, c.hair);          // штора спереду
-    add(-8, -37+bob+swing, 3, 2, hairSh, true);    // кінчики темніші
-    add(6, -37+bob+swing, 3, 2, hairSh, true);
-    add(-5, -50+bob, 8, 1, hairHi, true);          // відблиск
-    add(1, -50+bob, 1, 3, hairSh, true);           // проділ
-  } else if(c.style==='curly'){
-    add(-7, -50+bob, 14, 5, c.hair);
-    add(-8, -48+bob, 2, 4, c.hair); add(7, -48+bob, 2, 4, c.hair);
-    add(-6, -52+bob, 3, 2, c.hair); add(-1, -53+bob, 3, 3, c.hair); add(4, -52+bob, 3, 2, c.hair);
-    add(-7, -46+bob, 2, 4, c.hair); add(6, -46+bob, 2, 4, c.hair);
-    add(-4, -52+bob, 2, 1, '#6a5040', true); add(2, -51+bob, 2, 1, '#6a5040', true); // виток кучерів
-  } else {
-    add(-7, -49+bob, 14, 4, c.hair);
-    add(-6, -46+bob, 11, 2, c.hair);               // гривка-шторка
-    add(-7, -46+bob, 2, 6, c.hair);                // скроня
-    add(6, -46+bob, 1, 5, c.hair);
-    add(-6, -44+bob, 11, 1, hairSh, true);         // тінь під гривкою
+  // ГОЛОВА: фото (South Park) або піксельний фолбек
+  const headImg = headOf(who);
+  const photoHead = headReady(headImg);
+  if(!photoHead){
+    add(-6, -47+bob, 12, 13, SK);
+    add(-6, -36+bob, 12, 1, SKS, true);            // тінь щелепи
+    add(-6, -43+bob, 2, 4, SKS, true);             // вушко (ззаду)
+    if(c.style==='bob'){
+      const swing = walking ? (ph===0?1:0) : 0;
+      add(-7, -50+bob, 14, 5, c.hair);
+      add(-8, -48+bob+swing, 3, 13, c.hair);
+      add(6, -48+bob+swing, 3, 13, c.hair);
+      add(-5, -50+bob, 8, 1, hairHi, true);
+    } else {
+      add(-7, -49+bob, 14, 4, c.hair);
+      add(-6, -46+bob, 11, 2, c.hair);
+      add(-7, -46+bob, 2, 6, c.hair);
+      add(6, -46+bob, 1, 5, c.hair);
+    }
+    add(1, -43+bob, 3, 2, '#fbfbf6', true); add(3, -43+bob, 1, 2, o, true);
+    add(-3, -43+bob, 3, 2, '#fbfbf6', true); add(-1, -43+bob, 1, 2, o, true);
+    add(0, -38+bob, 3, 1, '#b3555f', true);
   }
-  if(c.hi){
-    add(-5, -49+bob, 2, 3, c.hi, true); add(0, -50+bob, 2, 3, c.hi, true);
-    add(3, -49+bob, 2, 3, c.hi, true);
-  }
-
-  // ОБЛИЧЧЯ: очі з білками, брови, рот
-  add(1, -43+bob, 3, 2, '#fbfbf6', true); add(3, -43+bob, 1, 2, o, true);
-  add(-3, -43+bob, 3, 2, '#fbfbf6', true); add(-1, -43+bob, 1, 2, o, true);
-  add(1, -45+bob, 3, 1, hairSh, true); add(-3, -45+bob, 3, 1, hairSh, true);  // брови
-  add(0, -38+bob, 3, 1, '#b3555f', true);          // рот
-  add(2, -41+bob, 2, 1, '#f2a68a', true);          // румʼянець
 
   // МАЛЮВАННЯ: контурний прохід (силует +1px), потім кольори
   ctx.save();
@@ -798,6 +811,17 @@ function drawPerson(x, y, who, phase, dir, walking, skin){
   for(const [rx,ry,w,h,col] of R){
     ctx.fillStyle = col;
     ctx.fillRect(Math.round(rx), Math.round(ry), w, h);
+  }
+  // фото-голова поверх тіла (в еліпс-масці, з контуром)
+  if(photoHead){
+    const hw = 17, hh = 19, hx = -8, hy = -53+bob;
+    ctx.imageSmoothingEnabled = false;
+    ctx.save();
+    ctx.beginPath(); ctx.ellipse(hx+hw/2, hy+hh/2, hw/2, hh/2, 0, 0, 7); ctx.clip();
+    ctx.drawImage(headImg, hx, hy, hw, hh);
+    ctx.restore();
+    ctx.strokeStyle = o; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(hx+hw/2, hy+hh/2, hw/2, hh/2, 0, 0, 7); ctx.stroke();
   }
   ctx.restore();
 }
@@ -829,10 +853,32 @@ function drawKitana(x, y, dir){
 }
 
 /* ================= портрети (32x32) ================= */
-function drawPortraitInto(g, who, emo){
-  /* Детальні портрети 48×48: контур, тіні, очі з райдужкою, ніс, губи, вушка.
-     Катя — блондинисте каре, зелено-сірі очі, сережка в носі.
-     Діма — шатен із чубчиком-шторкою, карі очі. */
+function drawPortraitInto(g, who, emo, jaw){
+  /* South Park-режим: фото-голова, щелепа «говорить» (jaw = зсув у px).
+     Фолбек — піксельний портрет нижче, поки фото не завантажилось. */
+  const img = headOf(who);
+  if(headReady(img)){
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = '#cbd3da'; g.fillRect(0,0,48,48);
+    g.fillStyle = '#bcc6cf'; g.fillRect(0,0,48,3); g.fillRect(0,45,48,3);
+    g.fillStyle = CHARS[who].top; g.fillRect(6,40,36,8);      // плечі
+    g.save();
+    g.beginPath(); g.ellipse(24,23,19,22,0,0,7); g.clip();
+    // верх голови (статичний)
+    g.drawImage(img, 0,0, img.width, img.height*0.68, 3,1, 42, 31);
+    // щелепа — South Park flap
+    g.drawImage(img, 0, img.height*0.66, img.width, img.height*0.34, 3, 32+(jaw||0), 42, 16);
+    g.restore();
+    g.strokeStyle = '#221c26'; g.lineWidth = 2;
+    g.beginPath(); g.ellipse(24,23,19,22,0,0,7); g.stroke();
+    const badge = {happy:'✨', wow:'❗', tired:'💤', shy:'❤'}[emo];
+    if(badge){ g.font='10px monospace'; g.textAlign='left'; g.fillText(badge, 37, 12); }
+    return;
+  }
+  drawPortraitPixel(g, who, emo);
+}
+function drawPortraitPixel(g, who, emo){
+  /* Детальні портрети 48×48: контур, тіні, очі з райдужкою, ніс, губи, вушка. */
   const c = CHARS[who];
   const P = (x,y,w,h,col)=>{ g.fillStyle=col; g.fillRect(x,y,w,h); };
   const K = who==='katya';
@@ -948,8 +994,11 @@ pctx.imageSmoothingEnabled = false;
 // офскрін-портрети для тіндер-картки та метчу
 const offK = document.createElement('canvas'); offK.width=offK.height=48;
 const offD = document.createElement('canvas'); offD.width=offD.height=48;
-drawPortraitInto(offK.getContext('2d'), 'katya', 'normal');
-drawPortraitInto(offD.getContext('2d'), 'dima', 'normal');
+function refreshOffPortraits(){
+  drawPortraitInto(offK.getContext('2d'), 'katya', 'normal');
+  drawPortraitInto(offD.getContext('2d'), 'dima', 'normal');
+}
+refreshOffPortraits();
 const offOf = who => who==='katya' ? offK : offD;
 
 /* ================= фон: знімальний майданчик ================= */
@@ -2324,8 +2373,13 @@ const CREDITS = [
   ['', ''],
   ['06 · 09 · 2026', 'КИЇВ'],
   ['', ''],
-  ['ДЯКУЄМО, ЩО ДОГРАВ ♥', ''],
 ];
+function creditsList(){
+  const extra = [];
+  if(typeof playerName!=='undefined' && playerName) extra.push(['ГРАВ(-ЛА)', playerName]);
+  extra.push(['ДЯКУЄМО, ЩО ДОГРАВ ♥', '']);
+  return CREDITS.concat(extra);
+}
 function drawCredits(){
   ctx.fillStyle = '#0c0c14'; ctx.fillRect(0,0,W,H);
   // зорі
@@ -2333,7 +2387,7 @@ function drawCredits(){
     ctx.fillRect((i*53)%W, (i*71)%H, 2, 2); }
   const scroll = game.phaseT*0.9;
   ctx.textAlign='center';
-  CREDITS.forEach(([big, small], i)=>{
+  creditsList().forEach(([big, small], i)=>{
     const y = H + i*26 - scroll;
     if(y<-20||y>H+20) return;
     if(big){ ctx.fillStyle = COL.gold; ctx.font='bold 11px monospace'; ctx.fillText(big, W/2, y); }
@@ -2648,20 +2702,28 @@ const MELODY = [ // «Біда не в тім, що ти мене не люби�
   [B4,.38],[A4,.38],[Gs4,.76],[A4,1.14],
 ];
 const BASSLINE = [110, 146.83, 164.81, 110];       // Am Dm E Am
-function startMusic(){
+/* «Горіла сосна, палала» (народна весільна, суспільне надбання) — для фіналу */
+const MELODY_WED = [
+  [440,.45],[440,.3],[523.25,.45],[523.25,.3],[659.25,.45],[659.25,.3],
+  [587.33,.4],[523.25,.4],[493.88,.8],
+  [523.25,.45],[493.88,.3],[440,.45],[392,.3],[440,1.0],
+];
+const BASS_WED = [110, 87.31, 82.41, 110];         // Am F E Am
+function startMusic(melody, bass){
+  const MEL = melody || MELODY, BAS = bass || BASSLINE;
   try{
     ensureAudio();
     if(musicOn) return;
     musicOn = true;
-    const loopDur = MELODY.reduce((a,[,d])=>a+d,0);
+    const loopDur = MEL.reduce((a,[,d])=>a+d,0);
     let nextT = audioCtx.currentTime + 0.05;
     const schedule = ()=>{
       if(!musicOn) return;
       while(nextT < audioCtx.currentTime + 0.8){
         let tt = nextT;
-        MELODY.forEach(([f,d])=> { playNote(f, tt, d, 'square', 0.04); tt += d; });
+        MEL.forEach(([f,d])=> { playNote(f, tt, d, 'square', 0.04); tt += d; });
         const barLen = loopDur/4;
-        BASSLINE.forEach((bf,i)=>{
+        BAS.forEach((bf,i)=>{
           playNote(bf, nextT+i*barLen, barLen*0.95, 'triangle', 0.055);
           playNote(bf*2, nextT+i*barLen+barLen/2, barLen*0.4, 'triangle', 0.03);
         });
@@ -2678,13 +2740,24 @@ function stopMusic(){
 }
 
 /* ================= титри сцен ================= */
+function drawOrnament(cy){
+  /* вишиванковий ряд: червоно-чорні ромбики (як на рушниках) */
+  for(let x=28; x<W-32; x+=16){
+    ctx.fillStyle = '#b3323c';
+    ctx.fillRect(x+2, cy, 2, 2); ctx.fillRect(x, cy+2, 6, 2); ctx.fillRect(x+2, cy+4, 2, 2);
+    ctx.fillStyle = '#221c26';
+    ctx.fillRect(x+10, cy+2, 2, 2);
+  }
+}
 function drawCaption(line1, line2){
   ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
   ctx.textAlign='center';
+  drawOrnament(H/2-42);
   ctx.fillStyle = COL.gold; ctx.font='bold 14px monospace';
   ctx.fillText(line1, W/2, H/2-10);
   ctx.fillStyle = '#d8d4c4'; ctx.font='10px monospace';
   ctx.fillText(line2, W/2, H/2+12);
+  drawOrnament(H/2+30);
   ctx.textAlign='left';
 }
 
@@ -2739,7 +2812,12 @@ function updateDialog(){
   if(d.shown < ln.text.length){
     d.shown = Math.min(ln.text.length, d.shown + 2);
     elText.textContent = ln.text.slice(0, d.shown);
-    if(d.shown === ln.text.length) elArrow.classList.remove('hidden');
+    // South Park: щелепа плескає, поки персонаж говорить
+    if(ln.who) drawPortraitInto(pctx, ln.who, ln.emo, ((game.t>>2)&1) ? 3 : 0);
+    if(d.shown === ln.text.length){
+      elArrow.classList.remove('hidden');
+      if(ln.who) drawPortraitInto(pctx, ln.who, ln.emo, 0);   // рот закрився
+    }
   } else if(game.watch){
     d.waitTimer++;
     if(d.waitTimer > 45) advanceDialog();
@@ -2908,7 +2986,7 @@ function finishGame(){
       `<b>${s.what}</b><br>${s.when}<br>${s.where}${surn}<br><br>` +
       'Деталі оновляться за цим самим посиланням.';
   } else {
-    title.textContent = 'ЗАПРОШЕННЯ';
+    title.textContent = playerName ? (playerName.toUpperCase() + ', ЦЕ ТОБІ') : 'ЗАПРОШЕННЯ';
     body.innerHTML = verse +
       'Час і місце підтягнуться з твого персонального посилання —<br>' +
       'а поки збережи дату: 6 вересня 2026, Київ.' + surn;
@@ -2931,13 +3009,33 @@ document.getElementById('btn-ics').addEventListener('click', ()=>{
   URL.revokeObjectURL(a.href);
 });
 
+/* імʼя гравця: питаємо один раз, гра звертається на імʼя */
+let playerName = localStorage.getItem('wed-player-name') || '';
+let pendingPov = null;
 document.querySelectorAll('#title-screen .btn[data-pov]').forEach(b=>{
   b.addEventListener('click', ()=>{
     const p = b.dataset.pov;
     tryFullscreen();
+    if(p!=='watch' && !playerName){
+      pendingPov = p;
+      elTitle.classList.add('hidden');
+      document.getElementById('name-screen').classList.remove('hidden');
+      setTimeout(()=> document.getElementById('name-input').focus(), 50);
+      return;
+    }
     startGame(p==='watch' ? 'katya' : p, p==='watch');
   });
 });
+function nameSubmit(){
+  const v = document.getElementById('name-input').value.trim();
+  playerName = v || 'Гість';
+  localStorage.setItem('wed-player-name', playerName);
+  document.getElementById('name-screen').classList.add('hidden');
+  startGame(pendingPov || 'katya', false);
+  pendingPov = null;
+}
+document.getElementById('name-go').addEventListener('click', nameSubmit);
+document.getElementById('name-input').addEventListener('keydown', e=>{ if(e.key==='Enter') nameSubmit(); });
 document.getElementById('btn-restart').addEventListener('click', ()=>{
   game.state = 'title';
   elEnd.classList.add('hidden');
@@ -3127,7 +3225,7 @@ function update(){
       break;
 
     case 'cap8':
-      if(game.phaseT > 70 || input.actionEdge) setPhase('wed');
+      if(game.phaseT > 70 || input.actionEdge){ setPhase('wed'); startMusic(MELODY_WED, BASS_WED); }
       break;
 
     case 'wed':
@@ -3135,7 +3233,7 @@ function update(){
       break;
 
     case 'credits':
-      if(game.phaseT > CREDITS.length*26 + 240 || (!game.watch && input.actionEdge && game.phaseT>60)){
+      if(game.phaseT > creditsList().length*26 + 240 || (!game.watch && input.actionEdge && game.phaseT>60)){
         input.actionEdge = false;
         finishGame();
       }
