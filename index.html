@@ -239,7 +239,7 @@
     <div class="menu">
       <button class="btn katya" data-pov="katya">Грати за Катю</button>
       <button class="btn dima" data-pov="dima">Грати за Діму</button>
-      <button class="btn watch" data-pov="watch">🍿 Просто подивитись</button>
+      <button class="btn watch" data-pov="watch">📖 Історія без ігор (новела)</button>
       <button class="btn" id="btn-lazy" style="background:#55515f">⏩ Одразу до запрошення</button>
       <button class="btn" id="btn-sampler">🎹 Семплер</button>
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px">
@@ -3413,6 +3413,224 @@ function drawProlog(){
   ctx.textAlign = 'left';
 }
 
+/* ================= ВІЗУАЛЬНА НОВЕЛА (історія без ігор) =================
+   Для тих, хто не хоче грати: та сама історія кадрами — детальний фон,
+   крупний фото-портрет того, хто говорить, і текст. */
+function novelData(){
+  const N = t => ({who:null, text:t});
+  return [
+    {bg:0, cap:['КИЇВ · 2021 · ще до війни','зйомка ШТОРМНАДО'], lines:[
+      {who:'katya', emo:'normal', text:'Офіс агенції. Знімаємо ШТОРМНАДО.\nБриф — метаверс для старших.'},
+      {who:'dima',  emo:'happy',  text:'А куди дивитись — в камеру\nчи на режисерку?)'},
+      N('Він не впізнав, що це вона. Та симпатичну\nрежисерку-блондинку — запамʼятав.'),
+    ]},
+    {bg:1, cap:['СЕРПЕНЬ 2022 · вже інше життя','Тіндер'], lines:[
+      N('Між тими зйомками — війна.\nВ обох позаду по пʼять років стосунків.'),
+      N('І от посеред усього цього двоє\nраптом ідуть пити пиво.'),
+      {who:'dima', emo:'happy', text:'Йоу! Як трєня?)'},
+      {who:'katya', emo:'wow',  text:'Стоп. Це ж хлопець зі зйомок 2021-го…'},
+    ]},
+    {bg:2, cap:['ПЕЙЗАЖКА','перше побачення'], lines:[
+      N('Обоє ніби «просто на пиво».'),
+      {who:'dima', emo:'shy', text:'І ще. Тримай.'},
+      {who:'katya', emo:'wow', text:'Андервуд коконат?! Ти ЗАПАМʼЯТАВ?'},
+      N('Пейзажка, пиво, ліхтарів вогні —\nі перший поцілунок, мов у сні.'),
+    ]},
+    {bg:3, cap:['ЖОВТЕНЬ 2022','Київ ↔ Лондон'], lines:[
+      {who:'dima', emo:'shy', text:'Вона за 2500 км. Я був закоханий\nі — чесно — скучав.'},
+      N('11 223 повідомлення за місяць — рекорд.\nВона повернулась раніше строку.'),
+    ]},
+    {bg:4, cap:['ОСІНЬ 2023 · Білогородка','Кітана'], lines:[
+      N('У друга Дана окотилась вуличка.\nКатя побачила найручніше в сторіз.'),
+      {who:'katya', emo:'happy', text:'Це вона.'},
+      N('Приїхали за нею — а вона сама\nстрибнула у вашу коробку. Назавжди. 🐈'),
+    ]},
+    {bg:5, cap:['СВАТАННЯ','(робимо вигляд, що було)'], lines:[
+      N('— У вас куниця, у нас мисливець!'),
+      N('Рушники на сватах — отже, згода.\n(Насправді не було. Але тепер — було.)'),
+    ]},
+    {bg:6, cap:['ЛЮТИЙ 2026 · Позняки','щось задумав'], lines:[
+      N('Позняки — Дімине місце сили.\nТепер це їхній дім на двох.'),
+      {who:'dima', emo:'normal', text:'Головне — щоб вона не побачила.'},
+      {who:'katya', emo:'happy', text:'Я нічого не бачила. Нічогісінько.'},
+    ]},
+    {bg:7, cap:['14.02.2026 · Мінімаліст','освідчення'], lines:[
+      {who:'katya', emo:'happy', text:'Мат. І тримай подарунок —\n«Шахи для дибілів».'},
+      {who:'dima', emo:'shy', text:'Хочу, щоб ти стала… Катериною Лютою.'},
+      {who:'dima', emo:'shy', text:'І попри те, що ти мене часом бісиш —\nхочу з тобою жити.'},
+      {who:'katya', emo:'happy', text:'Так!'},
+    ]},
+    {bg:8, cap:['06.09.2026 · Київ','весілля'], lines:[
+      N('Від свайпу вправо — до весільних дзвонів.'),
+      N('06 · 09 · 2026. Ми вас кличемо. 💛'),
+    ]},
+  ];
+}
+/* детальні фони новели (повний екран, атмосферні) */
+function novelBg(i){
+  const fl = Math.round(H*0.74), lin=(c1,c2)=>{ const g=ctx.createLinearGradient(0,0,0,fl); g.addColorStop(0,c1); g.addColorStop(1,c2); return g; };
+  if(i===0){                                    // офіс ШТОРМНАДО
+    ctx.fillStyle='#ece4d6'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#e0d6c4'; ctx.fillRect(0,fl,W,H-fl);
+    // хромакей із логотипом-мозком
+    ctx.fillStyle='#cfe0d8'; ctx.fillRect(W-120,fl-150,110,150);
+    ctx.strokeStyle='#9ac4b0'; ctx.lineWidth=2; ctx.strokeRect(W-120,fl-150,110,150);
+    ctx.fillStyle='#e85aa0'; ctx.beginPath(); ctx.arc(W-65,fl-100,20,0,7); ctx.stroke(); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='9px monospace'; ctx.textAlign='center'; ctx.fillText('ШТОРМНАДО', W-65, fl-70);
+    // стенд БРИФ + таймер
+    ctx.fillStyle='#f6f0e2'; ctx.fillRect(30,fl-120,70,44); ctx.strokeStyle='#c9bfa8'; ctx.strokeRect(30,fl-120,70,44);
+    ctx.fillStyle='#a8323c'; ctx.font='bold 10px monospace'; ctx.fillText('БРИФ', 65,fl-100); ctx.fillStyle='#4a4636'; ctx.font='8px monospace'; ctx.fillText('59:59', 65,fl-86);
+    // камера на штативі
+    ctx.fillStyle='#2b2b38'; ctx.fillRect(W/2-6,fl-40,26,16); ctx.fillRect(W/2+14,fl-46,10,8);
+    ctx.fillStyle='#1a1a24'; ctx.fillRect(W/2-2,fl-24,3,24); ctx.fillRect(W/2-10,fl,20,3);
+  } else if(i===1){                             // тіндер — сердечка
+    ctx.fillStyle=lin('#241d33','#3a2438'); ctx.fillRect(0,0,W,H);
+    for(let k=0;k<26;k++){ const hx=(k*47)%W, hy=(H-((game.t*0.4+k*53)%H));
+      ctx.fillStyle=k%2?'rgba(168,80,95,.55)':'rgba(181,138,46,.45)';
+      ctx.fillRect(hx,hy,4,4); ctx.fillRect(hx+5,hy,4,4); ctx.fillRect(hx,hy+3,9,4); ctx.fillRect(hx+2,hy+7,5,3); }
+    // телефон-силует зі світінням
+    ctx.fillStyle='rgba(255,120,200,.12)'; ctx.beginPath(); ctx.arc(W/2,H*0.4,70,0,7); ctx.fill();
+    ctx.fillStyle='#12101a'; ctx.fillRect(W/2-26,H*0.4-46,52,92); ctx.fillStyle='#ff6ec7'; ctx.font='30px serif'; ctx.textAlign='center'; ctx.fillText('🔥', W/2, H*0.4+10);
+  } else if(i===2){                             // Пейзажка — захід
+    const g=ctx.createLinearGradient(0,0,0,fl); g.addColorStop(0,'#2a2450'); g.addColorStop(.6,'#5a3a68'); g.addColorStop(1,'#c96a4e');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,fl);
+    ctx.fillStyle='#f4e8c8'; ctx.beginPath(); ctx.arc(W-60,60,14,0,7); ctx.fill();
+    for(let k=0;k<24;k++){ ctx.fillStyle='rgba(255,240,200,.5)'; ctx.fillRect((k*53)%W,(k*71)%(fl-40),2,2); }
+    ctx.fillStyle='#4a4456'; ctx.fillRect(0,fl,W,10);           // парапет
+    const mc=['#A8505F','#B58A2E','#3F7C77','#1E4E8A','#c9c4b4'];
+    for(let mx=0;mx<W;mx+=9){ ctx.fillStyle=mc[(mx/9)%5|0]; ctx.fillRect(mx+1,fl+2,6,5); }
+    ctx.fillStyle='#5a5461'; ctx.fillRect(0,fl+10,W,H-fl-10);
+    for(let lx=60;lx<W;lx+=140){ ctx.fillStyle='#1a1a24'; ctx.fillRect(lx,fl-70,3,70); ctx.fillStyle='#ffe8a0'; ctx.fillRect(lx-3,fl-76,9,8);
+      ctx.fillStyle='rgba(255,232,160,.12)'; ctx.beginPath(); ctx.moveTo(lx+1,fl-68); ctx.lineTo(lx-20,fl); ctx.lineTo(lx+22,fl); ctx.fill(); }
+  } else if(i===3){                             // Київ ↔ Лондон
+    const mid=W/2;
+    let g=ctx.createLinearGradient(0,0,0,fl); g.addColorStop(0,'#1c2440'); g.addColorStop(1,'#4a3a58'); ctx.fillStyle=g; ctx.fillRect(0,0,mid,fl);
+    ctx.fillStyle='#141a30'; ctx.fillRect(20,fl-80,24,80); ctx.fillRect(60,fl-120,8,120); ctx.fillRect(57,fl-130,14,12);
+    ctx.fillStyle='rgba(255,220,140,.8)'; ctx.fillRect(28,fl-64,3,3); ctx.fillRect(64,fl-100,3,3);
+    g=ctx.createLinearGradient(0,0,0,fl); g.addColorStop(0,'#2a2438'); g.addColorStop(1,'#5a4a5e'); ctx.fillStyle=g; ctx.fillRect(mid,0,mid,fl);
+    ctx.fillStyle='#3c3450'; ctx.fillRect(W-64,fl-140,22,140); ctx.fillStyle='#f4e8c8'; ctx.fillRect(W-60,fl-134,12,12);
+    for(let k=0;k<10;k++){ ctx.fillStyle='rgba(160,190,230,.35)'; ctx.fillRect(mid+((k*23+game.t*3)%(mid-8)),(k*40)%fl,1,6); }
+    ctx.fillStyle='#3a3446'; ctx.fillRect(0,fl,W,H-fl);
+    ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='bold 10px monospace'; ctx.textAlign='center'; ctx.fillText('· 2500 км ·', mid, H*0.5);
+  } else if(i===4){                             // Білогородка, осінь
+    ctx.fillStyle=lin('#c9b78a','#e8dcc0'); ctx.fillRect(0,0,W,fl);
+    ctx.fillStyle='#a8935e'; ctx.fillRect(0,fl,W,H-fl);
+    ctx.fillStyle='#8a6b46'; for(let px=8;px<W;px+=46){ ctx.fillRect(px,fl-46,8,46); } ctx.fillRect(0,fl-44,W,3);  // паркан
+    for(let k=0;k<14;k++){ const lx=(k*61+game.t)%(W+20)-10, ly=40+(k*29)%(fl-50); ctx.fillStyle=['#b5652e','#c98a3e','#8a6b2e'][k%3]; ctx.fillRect(lx,ly,3,3); }
+    // хата вдалині
+    ctx.fillStyle='#d8c8a8'; ctx.fillRect(W-90,fl-70,70,70); ctx.fillStyle='#8a5c3e'; ctx.beginPath(); ctx.moveTo(W-96,fl-70); ctx.lineTo(W-55,fl-96); ctx.lineTo(W-14,fl-70); ctx.fill();
+    ctx.fillStyle='#3a4a3c'; ctx.fillRect(W-70,fl-40,16,40);
+  } else if(i===5){                             // сватання — хата зсередини
+    ctx.fillStyle='#d8c8a8'; ctx.fillRect(0,0,W,fl); ctx.fillStyle='#c8b494'; ctx.fillRect(0,fl,W,H-fl);
+    // рушник на стіні
+    ctx.fillStyle='#faf6ea'; ctx.fillRect(W/2-50,30,100,20); ctx.fillStyle='#a8323c'; ctx.fillRect(W/2-50,30,10,20); ctx.fillRect(W/2+40,30,10,20);
+    for(let x=W/2-36;x<W/2+36;x+=8){ ctx.fillStyle='#a8323c'; ctx.fillRect(x,38,3,3); }
+    // стіл із короваєм
+    ctx.fillStyle='#8a5e40'; ctx.fillRect(W/2-60,fl-14,120,14);
+    ctx.fillStyle='#b8783c'; ctx.beginPath(); ctx.ellipse(W/2,fl-22,26,14,0,0,7); ctx.fill();
+    ctx.fillStyle='#e8b877'; ctx.fillRect(W/2-14,fl-34,5,5); ctx.fillRect(W/2-2,fl-36,5,5); ctx.fillRect(W/2+10,fl-34,5,5);
+    ctx.fillStyle='#a8323c'; ctx.fillRect(W/2-2,fl-40,3,3);
+  } else if(i===6){                             // світла квартира Позняки
+    ctx.fillStyle='#ece4d6'; ctx.fillRect(0,0,W,fl); ctx.fillStyle='#f2ebde'; ctx.fillRect(0,0,W,14);
+    ctx.fillStyle='#bcd4e2'; ctx.fillRect(40,fl-140,56,74); ctx.strokeStyle='#cfc4b2'; ctx.lineWidth=2; ctx.strokeRect(40,fl-140,56,74);
+    ctx.fillStyle='#c9b89c'; ctx.fillRect(W/2-40,fl-34,80,34); ctx.fillStyle='#d8c8ac'; ctx.fillRect(W/2-40,fl-46,80,14); ctx.fillStyle='#a8505f'; ctx.fillRect(W/2+22,fl-44,12,10);
+    ctx.fillStyle='#d8bd94'; ctx.fillRect(0,fl,W,H-fl);
+    // сяюча коробочка
+    ctx.fillStyle='rgba(255,240,180,.3)'; ctx.beginPath(); ctx.arc(W-70,fl-20,22,0,7); ctx.fill();
+    ctx.fillStyle='#2e3440'; ctx.fillRect(W-78,fl-26,16,12); ctx.fillStyle='#fff8e0'; ctx.fillRect(W-72,fl-22,4,4);
+  } else if(i===7){                             // Мінімаліст, ніч, сніг
+    ctx.fillStyle=lin('#1a1626','#2a2036'); ctx.fillRect(0,0,W,fl); ctx.fillStyle='#3a2e28'; ctx.fillRect(0,fl,W,H-fl);
+    // кругле вікно зі снігом
+    ctx.fillStyle='#0e1a2a'; ctx.beginPath(); ctx.arc(W/2,H*0.34,44,0,7); ctx.fill();
+    ctx.strokeStyle='#6a5a4a'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(W/2,H*0.34,44,0,7); ctx.stroke();
+    for(let k=0;k<20;k++){ ctx.fillStyle='rgba(255,255,255,.7)'; ctx.fillRect(W/2-40+((k*37+game.t*2)%80),H*0.34-40+((k*53)%80),2,2); }
+    // сяюча коробочка з каблучкою
+    ctx.fillStyle='rgba(255,235,150,.35)'; ctx.beginPath(); ctx.arc(W/2,fl-24,28,0,7); ctx.fill();
+    ctx.fillStyle='#2e3440'; ctx.fillRect(W/2-12,fl-30,24,16); ctx.fillStyle='#fff8e0'; ctx.fillRect(W/2-3,fl-26,6,6);
+  } else {                                      // весілля — золота година
+    const g=ctx.createLinearGradient(0,0,0,fl); g.addColorStop(0,'#9ec8e8'); g.addColorStop(1,'#f2d0a0'); ctx.fillStyle=g; ctx.fillRect(0,0,W,fl);
+    ctx.fillStyle='#fff8dc'; ctx.beginPath(); ctx.arc(60,60,16,0,7); ctx.fill();
+    ctx.fillStyle='#6f9b64'; ctx.fillRect(0,fl,W,H-fl);
+    // весільна арка
+    ctx.fillStyle='#f4f0e4'; ctx.fillRect(W/2-46,fl-90,6,90); ctx.fillRect(W/2+40,fl-90,6,90);
+    ctx.beginPath(); ctx.arc(W/2,fl-84,46,Math.PI,0); ctx.arc(W/2,fl-84,38,0,Math.PI,true); ctx.fill();
+    for(let k=0;k<9;k++){ const a=Math.PI+k*(Math.PI/8); ctx.fillStyle=k%2?'#A8505F':'#B58A2E'; ctx.fillRect(W/2+Math.cos(a)*42-2,fl-84+Math.sin(a)*42-2,5,5); }
+  }
+  // легке затемнення знизу під текст
+  const dg=ctx.createLinearGradient(0,H*0.55,0,H); dg.addColorStop(0,'rgba(10,8,14,0)'); dg.addColorStop(1,'rgba(10,8,14,.72)');
+  ctx.fillStyle=dg; ctx.fillRect(0,H*0.55,W,H*0.45);
+}
+/* крупний фото-портрет того, хто говорить — спирається дном над вікном тексту */
+function drawNovelPortrait(who, jaw, boxY){
+  const fr = headFrames(who); if(!fr) return;
+  const idx = !jaw ? 0 : jaw>=2 ? 2 : 1;
+  const img = (idx===0 && fr[3]) ? fr[3] : fr[idx];
+  if(!headReady(img)) return;
+  const topY = 46, ratio = img.width/img.height;
+  const maxH = PORTRAIT_MODE ? Math.min(boxY-topY-10, H*0.40) : (boxY-topY-6);
+  let ph = maxH, pw = ph*ratio; const maxW = W*0.52;
+  if(pw > maxW){ pw = maxW; ph = pw/ratio; }
+  const px = 14, py = boxY - 6 - ph;
+  ctx.save();
+  ctx.fillStyle = 'rgba(20,16,26,.32)';
+  ctx.beginPath(); ctx.ellipse(px+pw/2, py+ph*0.55, pw*0.6, ph*0.58, 0,0,7); ctx.fill();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, px, py, pw, ph);
+  ctx.restore();
+}
+function startNovel(){
+  tryFullscreen();
+  game.state='novel'; game.pov='katya'; game.watch=true;
+  game.nov = {ch:0, li:0, shown:0, wait:0, chapters:novelData()};
+  stopChip(); playChip('planeta');
+  elTitle.classList.add('hidden');
+  document.getElementById('watch-pov-menu').classList.add('hidden');
+  elHud.classList.add('hidden');
+}
+function updateNovel(){
+  const n = game.nov; if(!n) return;
+  const chap = n.chapters[n.ch]; if(!chap){ finishGame(); return; }
+  const ln = chap.lines[n.li];
+  if(n.shown < ln.text.length){ n.shown = Math.min(ln.text.length, n.shown + 1.2); }
+}
+function novelAdvance(){
+  const n = game.nov; if(!n) return;
+  const chap = n.chapters[n.ch]; if(!chap) return;
+  const ln = chap.lines[n.li];
+  if(n.shown < ln.text.length){ n.shown = ln.text.length; return; }   // домалювати рядок
+  n.li++; n.shown = 0;
+  if(n.li >= chap.lines.length){ n.ch++; n.li = 0; }
+  if(n.ch >= n.chapters.length){ finishGame(); }
+}
+function drawNovel(){
+  const n = game.nov; if(!n){ finishGame(); return; }
+  const chap = n.chapters[n.ch]; if(!chap){ finishGame(); return; }
+  const ln = chap.lines[n.li];
+  novelBg(chap.bg);
+  // капшн зверху
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(10,8,14,.5)'; ctx.fillRect(0,10,W,32);
+  ctx.fillStyle=COL.gold; ctx.font='bold 12px monospace'; ctx.fillText(chap.cap[0], W/2, 26);
+  ctx.fillStyle='#d8d4c4'; ctx.font='9px monospace'; ctx.fillText(chap.cap[1], W/2, 38);
+  // текстове вікно
+  const boxY = H - (PORTRAIT_MODE?132:70), boxH = PORTRAIT_MODE?112:56;
+  // крупний портрет мовця (спирається над вікном)
+  const jaw = (n.shown < ln.text.length) ? [0,1,2,1][(game.t>>2)&3] : 0;
+  if(ln.who) drawNovelPortrait(ln.who, jaw, boxY);
+  ctx.fillStyle='rgba(18,14,22,.82)'; ctx.fillRect(10,boxY,W-20,boxH);
+  ctx.strokeStyle='rgba(181,138,46,.6)'; ctx.lineWidth=1; ctx.strokeRect(10,boxY,W-20,boxH);
+  drawOrnament(boxY-7, 14, W-14);
+  if(ln.who){ ctx.fillStyle = ln.who==='katya'?'#e08aa0':'#7fc0b6'; ctx.font='bold 11px monospace'; ctx.textAlign='left';
+    ctx.fillText(ln.who==='katya'?'КАТЯ':'ДІМА', 22, boxY+18); }
+  ctx.fillStyle = ln.who?'#f4efe4':'#d8d4c4'; ctx.font=(ln.who?'':'italic ')+'11px monospace'; ctx.textAlign='left';
+  const shown = ln.text.slice(0, Math.floor(n.shown));
+  shown.split('\n').forEach((t,i)=> ctx.fillText(t, 22, boxY + (ln.who?34:24) + i*15));
+  // прогрес + підказка
+  ctx.fillStyle='rgba(216,212,196,.5)'; ctx.font='8px monospace'; ctx.textAlign='right';
+  ctx.fillText('тап — далі  ·  '+(n.ch+1)+'/'+n.chapters.length, W-16, H-6);
+  ctx.textAlign='left';
+}
+
 /* Сітком-заставка: полароїди з реальних фото у 8-біт, потім титр */
 function sitcomFrames(){
   // базові 5 + спільні фото гостей (кожне з підписом)
@@ -3568,6 +3786,7 @@ addEventListener('keydown', e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
   if(e.repeat) return;
   keys[e.key] = true;
+  if(game.state==='novel'){ if(e.key===' '||e.key==='Enter'||e.key==='ArrowRight') novelAdvance(); return; }
   if(e.key===' '||e.key==='Enter'||e.key==='z'||e.key==='Z') input.actionEdge = true;
   if(game.phase==='band'){ const l={a:0,s:1,d:2}[e.key.toLowerCase()]; if(l!==undefined) bandHit(l); }
   if(e.key==='ArrowUp' && game.phase==='tetris') input.actionEdge = true;   // поворот фігури
@@ -3598,6 +3817,7 @@ function canvasPos(e){
 }
 cv.addEventListener('pointerdown', e=>{
   e.preventDefault();
+  if(game.state==='novel'){ novelAdvance(); return; }
   if(game.state==='title'){
     if(game.cassetteShow){ game.cassetteShow = false; elTitle.classList.remove('hidden'); return; }
     const pos = canvasPos(e);
@@ -4082,9 +4302,8 @@ document.querySelectorAll('#title-screen .btn[data-pov]').forEach(b=>{
     const p = b.dataset.pov;
     tryFullscreen();
     if(p==='watch'){
-      // спершу — чию історію дивитись
-      document.querySelector('#title-screen .menu').classList.add('hidden');
-      document.getElementById('watch-pov-menu').classList.remove('hidden');
+      // візуальна новела — та сама історія, без ігор
+      startNovel();
       return;
     }
     if(!playerName){
@@ -4135,6 +4354,7 @@ document.getElementById('btn-restart').addEventListener('click', ()=>{
 /* ================= головний цикл ================= */
 function update(){
   game.t++; game.phaseT++;
+  if(game.state==='novel'){ updateNovel(); return; }
   if(game.state!=='play') return;
 
   const p = game.player, npc = game.npc;
@@ -4396,6 +4616,7 @@ function render(){
     return;
   }
   if(game.state==='end'){ return; }
+  if(game.state==='novel'){ drawNovel(); return; }
 
   switch(game.phase){
     case 'prolog':
