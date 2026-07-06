@@ -1572,22 +1572,18 @@ function drawPeizazhka(camX){
   // заграва міста над горизонтом — дизер, а не плавно
   ctx.fillStyle = 'rgba(232,140,96,.5)';
   for(let yy=0; yy<40; yy++){ const step = Math.max(2, 12-(yy>>2)); for(let xx=((yy)&1); xx<W; xx+=step) ctx.fillRect(xx, HOR-40+yy, 1, 1); }
-  // далекий силует міста (глибший паралакс)
-  ctx.fillStyle = '#1c1730';
-  for(let hx=0; hx<LEVEL_W+300; hx+=58){ const sx=Math.round(hx-camX*0.18); if(sx<-60||sx>W) continue;
-    const bh = 14+((hx/58)%4)*7; ctx.fillRect(sx, HOR-bh, 42, bh); }
-  // ближчі пагорби лівого берега + вікна, що світяться (паралакс 0.3)
-  for(let hx=0; hx<LEVEL_W+200; hx+=90){
-    const sx = Math.round(hx - camX*0.3);
-    if(sx<-100||sx>W) continue;
-    ctx.fillStyle = '#241d3a';
-    ctx.fillRect(sx,HOR-24,100,24);
-    ctx.fillRect(sx+18,HOR-32,50,10);
-    for(let wy=HOR-21; wy<HOR-3; wy+=5) for(let wx=sx+4; wx<sx+96; wx+=7){
-      ctx.fillStyle = (((wx+wy)>>2)&1) ? '#ffd27a' : 'rgba(255,210,122,.22)';
-      ctx.fillRect(wx, wy, 2, 3);
-    }
+  // далекий лівий берег через Дніпро — низький рідкий силует (не щільне місто)
+  ctx.fillStyle = '#241d3a'; ctx.fillRect(0, HOR-9, W, 9);          // рівна смуга берега
+  ctx.fillStyle = '#1e1832';
+  for(let hx=0; hx<LEVEL_W+300; hx+=118){                           // поодинокі висотки
+    const sx = Math.round(hx - camX*0.2); if(sx<-30||sx>W) continue;
+    const bh = 10 + ((hx/118)%3)*9;
+    ctx.fillRect(sx, HOR-bh, 16, bh);
+    ctx.fillStyle = '#ffd27a'; ctx.fillRect(sx+6, HOR-bh+4, 2, 2);  // один вогник у вікні
+    ctx.fillStyle = '#1e1832';
   }
+  // рідкі теплі вогники вздовж берега
+  for(let i=6; i<W; i+=24){ const sx=Math.round(i-camX*0.2); ctx.fillStyle='rgba(255,214,130,.8)'; ctx.fillRect(((sx%W)+W)%W, HOR-4, 2, 2); }
   // парапет із мозаїкою (фішка Пейзажки)
   ctx.fillStyle = '#4a4456'; ctx.fillRect(0,HOR,W,14);
   const mosaicCols = ['#A8505F','#B58A2E','#3F7C77','#1E4E8A','#c9c4b4'];
