@@ -714,7 +714,7 @@ function chatScript(pov){
 const GUEST_CAMEOS = {
   date: [
     { match:/пінаєвськ|маріч/, lines:[
-      {who:null, text:'А перед цим Катя була в ТЕБЕ, Марічко,\nна дні народження — пиво почалося ще там!'} ]},
+      {who:null, text:'А перед цим Катя — в тебе, Марічко, на святі:\nти з Вовою там, а пиво вже й почалося!'} ]},
   ],
   london: [
     { match:/кукрицьк|вікус/, lines:[
@@ -743,6 +743,36 @@ const GUEST_CAMEOS = {
       {who:null, text:'А ти, Даринко, з Сашею-Масянею —\nу Хвильовому гуляння аж до рання!'} ]},
     { match:/рябухін/, lines:[
       {who:null, text:'А ти, Юлю Рябухіна, з Артемом —\nу Хвильовому! Хай гуляється всім нам!'} ]},
+    { match:/плешаков/, lines:[
+      {who:null, text:'А ти, Катю Плешакова, — у Хвильовому,\nде до рання гуляння загуляло!'} ]},
+    { match:/казанець|альон/, lines:[
+      {who:null, text:'А ти, Альоно Казанець, — у Хвильовому,\nде пісня йде по колу, по дворочку!'} ]},
+    { match:/кандауров|інна к/, lines:[
+      {who:null, text:'А ти, Інно з Богданом, — у Хвильовому,\nхай гірко буде тільки молодятам!'} ]},
+    { match:/тімур/, lines:[
+      {who:null, text:'А ти, Тімуре з Яною, — у Хвильовому,\nде друзі до світання не вгавали!'} ]},
+    { match:/дядя саша|дядьк.* саш/, lines:[
+      {who:null, text:'А ти, дядьку Сашо, — рідна кров, у Софі,\nпід дзвіницею старою, за столом!'} ]},
+    { match:/брат саша|брат.* саш/, lines:[
+      {who:null, text:'А ви ж, брате Сашо з Борею, — у Софі,\nрідня зібралась, як за рушничком!'} ]},
+    { match:/дідор/, lines:[
+      {who:null, text:'А ти, Анічко Дідоро, — дружка вірная,\nаж з Праги їдеш, де тебе гостила я!'} ]},
+    { match:/матвійчук/, lines:[
+      {who:null, text:'А ти, Катю Матвійчук, — однокурсниця:\nстрілись раптом — і на весілля кличу!'} ]},
+    { match:/галич|женя г/, lines:[
+      {who:null, text:'А ти, Женю Галич, — Вікин друг, співак\nз «Оторвальда»! Ми ж на концерт ходили!'} ]},
+    { match:/бранашк|влад бран/, lines:[
+      {who:null, text:'А ти, Владе Бранашко, — з Мексики вернувся,\nв караоке «смаженого кабанчика» ревнув!'} ]},
+  ],
+  tinder: [
+    { match:/^леся$|^леся |леся$/, lines:[
+      {who:null, text:'А ти ж, Лесю, — з татамі подруга моя,\nі Діму знала: світ, він, ой, тісний!'} ]},
+    { match:/запорожець|настя зап/, lines:[
+      {who:null, text:'А ти, Насте Запорожець, — з джиу-джитсу,\nразом кидали через стегно на килим!'} ]},
+    { match:/аліса/, lines:[
+      {who:null, text:'А ти, Алісо, — теж моя з татамі,\nде я до перших змагань готувалась!'} ]},
+    { match:/крестенк|білоруск|ансі/, lines:[
+      {who:null, text:'А ти ж, Насте, — Діму знаєш: грав у вас,\nа кліп його мені твій колишній показав\n(він же й мій колишній). Ото сплелися нитки!'} ]},
   ],
 };
 function guestCameo(sceneKey){
@@ -4047,6 +4077,7 @@ function novelData(){
       N('А серед того всього, ой леле,\nдвоє на пиво крокують веселі.'),
       {who:'dima', emo:'happy', text:'Йоу! Як трєня?)'},
       {who:'katya', emo:'wow',  text:'Стоп. Це ж хлопець зі зйомок 2021-го…'},
+      ...guestCameo('tinder'),
     ]},
     {bg:2, cap:['ПЕЙЗАЖКА','перше побачення'], lines:[
       N('Ой ішли обоє ніби «просто пива»,\nа доля вже вінок їм тихо вила.'),
@@ -4515,9 +4546,12 @@ function drawNovel(){
   drawOrnament(boxY-7, 14, W-14);
   if(ln.who){ ctx.fillStyle = ln.who==='katya'?'#e08aa0':'#7fc0b6'; ctx.font='bold 11px monospace'; ctx.textAlign='left';
     ctx.fillText(ln.who==='katya'?'КАТЯ':'ДІМА', 22, boxY+18); }
-  ctx.fillStyle = ln.who?'#f4efe4':'#d8d4c4'; ctx.font=(ln.who?'':'italic ')+'11px monospace'; ctx.textAlign='left';
+  // репліки-цитати — monospace; вірші наратора — окремий «нараторський» шрифт (Georgia italic)
+  ctx.fillStyle = ln.who ? '#f4efe4' : '#efe6d2';
+  ctx.font = ln.who ? '11px monospace' : 'italic 13px Georgia, "Times New Roman", serif';
+  ctx.textAlign='left';
   const shown = ln.text.slice(0, Math.floor(n.shown));
-  shown.split('\n').forEach((t,i)=> ctx.fillText(t, 22, boxY + (ln.who?34:24) + i*15));
+  shown.split('\n').forEach((t,i)=> ctx.fillText(t, 22, boxY + (ln.who?34:22) + i*(ln.who?15:16)));
   // прогрес + підказка
   ctx.fillStyle='rgba(216,212,196,.5)'; ctx.font='8px monospace'; ctx.textAlign='right';
   ctx.fillText('тап — далі  ·  '+(n.ch+1)+'/'+n.chapters.length, W-16, H-6);
