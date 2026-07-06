@@ -37,7 +37,7 @@
   .hidden{display:none !important}
 
   /* ---------- title screen ---------- */
-  #title-screen{gap:2.2%;background:transparent;pointer-events:none;padding:2.5% 0 13cqh;justify-content:center}
+  #title-screen{gap:2.2%;background:transparent;pointer-events:none;padding:2.5% 0 19cqh;justify-content:center}
   #title-screen .btn, #title-screen #ach-btn{pointer-events:auto}
   #title-screen h1{
     font-family:"Snell Roundhand","Savoye LET","Segoe Script","Bradley Hand","Brush Script MT",cursive;
@@ -176,9 +176,10 @@
     text-shadow:1px 2px 0 rgba(255,255,255,.8)}
   #end-screen .date{color:#b58a2e;font-family:Georgia,serif;font-size:clamp(13px,3cqw,22px);letter-spacing:2px}
   #end-screen p{color:#5a4a52;font-family:Georgia,serif;font-size:clamp(10px,2.1cqw,15px);max-width:82%;line-height:1.6}
-  #end-screen .btn{background:#fff8f1;color:#8a5766;text-transform:none;border-radius:9px;
+  #end-screen .btn{background:#fff8f1!important;color:#8a5766!important;text-transform:none;border-radius:9px;font-weight:bold;
     box-shadow:0 3px 0 rgba(150,110,120,.3), 0 0 0 2px #ecd3c4}
   #end-screen .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(150,110,120,.3), 0 0 0 2px #ecd3c4}
+  #end-screen #btn-rsvp{background:#e8a7b6!important;color:#5a2838!important;box-shadow:0 3px 0 rgba(150,80,100,.35),0 0 0 2px #d98ea0}
 
   /* ===== кічове запрошення «для тьоті у Viber» ===== */
   #viber-invite{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
@@ -271,7 +272,7 @@
         <button class="btn small" id="btn-selfie" style="background:var(--sage)">📸 Додай себе</button>
         <button class="btn small" id="btn-memory" style="background:var(--terra)">🖼 Фото з нами</button>
       </div>
-      <button class="btn small" id="btn-viber-title" style="background:#7a2f8a">🌹 Запрошення «для тьоті» 🕊</button>
+      <button class="btn small" id="btn-viber-title" style="background:#c9a24d;color:#4a3410">Гарне запрошення</button>
     </div>
     <div class="menu hidden" id="play-pov-menu">
       <div class="sub" style="margin-bottom:2px">З чиєї ви сторони?</div>
@@ -333,7 +334,7 @@
       <button class="btn" id="btn-save-inv" style="background:var(--terra)">💾 Зберегти запрошення</button>
       <button class="btn" id="btn-ics" style="background:var(--gold)">📅 В календар</button>
       <button class="btn" id="btn-stream" style="background:#2f6f8a">📺 Дивитись трансляцію</button>
-      <button class="btn" id="btn-viber" style="background:#7a2f8a">🌹 Версія «для тьоті» 🕊</button>
+      <button class="btn" id="btn-viber">Гарне запрошення</button>
       <button class="btn" id="btn-restart">На початок</button>
     </div>
   </div>
@@ -4411,7 +4412,7 @@ function finishGame(){
     title.textContent = playerName ? (playerName.toUpperCase() + ', ТЕБЕ КЛИЧУТЬ') : 'ЗАПРОСИНИ';
     body.innerHTML = zaprosyny +
       '6 вересня 2026 · Київ<br>' +
-      '<span style="opacity:.8">точний час і місце — у твоєму посиланні</span>' + surn + more;
+      '<span style="opacity:.8">місце й час підтвердимо особисто ближче до дати</span>' + surn + more;
   }
   elEnd.classList.remove('hidden');
   elHud.classList.add('hidden');
@@ -4574,9 +4575,9 @@ function buildInvitationCard(){
   } else {
     g.fillStyle = '#4a4636'; g.font = '26px Georgia, serif';
     g.fillText('6 вересня 2026 · Київ', 360, y); y += 40;
-    g.fillStyle = '#bcb7a8'; g.font = 'italic 22px Georgia, serif';
-    g.fillText('точний час і місце — у твоєму', 360, y); y += 30;
-    g.fillText('персональному запрошенні', 360, y); y += 46;
+    g.fillStyle = '#8a8272'; g.font = 'italic 22px Georgia, serif';
+    g.fillText('місце й час підтвердимо', 360, y); y += 30;
+    g.fillText('особисто ближче до дати', 360, y); y += 46;
   }
   // прізвище після весілля
   if(d.surname){
