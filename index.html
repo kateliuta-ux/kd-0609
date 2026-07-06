@@ -2519,6 +2519,18 @@ function drawHata(){
   ctx.fillStyle = '#7a5c3e'; ctx.fillRect(116,wy,26,30);
   ctx.fillStyle = '#bfe0e8'; ctx.fillRect(119,wy+3,20,24);
   ctx.fillStyle = '#7a5c3e'; ctx.fillRect(128,wy+3,2,24); ctx.fillRect(119,wy+14,20,2);
+
+  // ── деталі та атмосфера (Sega): сяйво печі, в'язка кукурудзи, калина, відсвіт ──
+  ctx.fillStyle='rgba(255,180,90,.10)'; ctx.beginPath(); ctx.arc(59,pTop+64,40,0,7); ctx.fill();   // тепло з печі
+  ctx.fillStyle='rgba(255,200,110,.12)'; ctx.beginPath(); ctx.arc(59,pTop+64,22,0,7); ctx.fill();
+  // в'язка кукурудзи на стіні (традиційно сушать)
+  ctx.strokeStyle='#8a6a3a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(104,16); ctx.lineTo(104,20); ctx.stroke();
+  for(let k=0;k<5;k++){ ctx.fillStyle=k%2?'#e8c24a':'#d9a83a'; ctx.fillRect(104-3+(k%2?1:-1),20+k*6,7,7);
+    ctx.fillStyle='#b58a2e'; ctx.fillRect(104-3+(k%2?1:-1),20+k*6,7,1); }
+  // гілка калини над рушником (червоні ягоди)
+  ctx.strokeStyle='#5a7c3a'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(159,rwy-7); ctx.lineTo(181,rwy-4); ctx.stroke();
+  for(let k=0;k<7;k++){ ctx.fillStyle='#c0202a'; ctx.fillRect(160+k*3, rwy-5+((k%2)*2), 2,2); }
+  ctx.fillStyle='rgba(255,190,110,.05)'; ctx.fillRect(0,0,130,FLOOR_Y);                               // відсвіт від печі
 }
 function drawSvat(){
   const s = game.svat; if(!s) return;
@@ -2808,6 +2820,28 @@ function drawCabin(){
   ctx.fillStyle = '#2e3440'; ctx.fillRect(190,FLOOR_Y-24,16,22);
   ctx.fillStyle = '#3c4452'; ctx.fillRect(192,FLOOR_Y-20,12,8);
   ctx.fillStyle = '#55617a'; ctx.fillRect(196,FLOOR_Y-26,6,4);
+
+  // ── атмосфера (Sega): гірлянда, сяйво свічки, пара з ванни, теплий вінєт ──
+  // гірлянда-вогники під стелею з теплим сяйвом
+  ctx.strokeStyle='rgba(120,90,50,.4)'; ctx.lineWidth=1; ctx.beginPath();
+  for(let i=0;i<=W;i+=20){ const gy=7+Math.sin(i*0.3)*3; if(i===0)ctx.moveTo(i,gy); else ctx.lineTo(i,gy); } ctx.stroke();
+  for(let i=0;i<W;i+=20){
+    const gy=7+Math.sin(i*0.3)*3, sway=Math.sin(game.t*0.03+i)*1.2;
+    ctx.fillStyle='rgba(255,224,150,.12)'; ctx.beginPath(); ctx.arc(i+sway,gy+2,6,0,7); ctx.fill();
+    ctx.fillStyle=(((i>>2)+(game.t>>4))&3)?'#ffd27a':'#fff2c0'; ctx.fillRect(Math.round(i+sway)-1,gy+1,2,2);
+  }
+  // сяйво свічки на столику
+  const cgx=181, cgy=FLOOR_Y-54;
+  ctx.fillStyle='rgba(255,206,120,.10)'; ctx.beginPath(); ctx.arc(cgx,cgy,26,0,7); ctx.fill();
+  ctx.fillStyle='rgba(255,222,150,.12)'; ctx.beginPath(); ctx.arc(cgx,cgy,14,0,7); ctx.fill();
+  // пара з ванни
+  ctx.fillStyle='rgba(255,255,255,.13)';
+  for(let s=0;s<3;s++){ const sx=228+s*12;
+    for(let k=0;k<10;k++){ const yy=(FLOOR_Y-48)-k*4-Math.round((game.t*0.5+s*20)%40); const xx=sx+Math.round(Math.sin(k*0.7+game.t*0.05+s)*4); if(yy>wcy+20) ctx.fillRect(xx,yy,2,2); } }
+  // теплий вінтажний вінєт
+  const vg=ctx.createRadialGradient(W/2,FLOOR_Y-30,40,W/2,FLOOR_Y-30,W*0.72);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(40,24,12,.22)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
 }
 function drawProp(){
   const p = game.prop; if(!p) return;
@@ -3656,6 +3690,21 @@ function drawBand(){
   const b = game.band; if(!b) return;
   const g = ctx.createLinearGradient(0,0,0,H);
   g.addColorStop(0,'#1a1030'); g.addColorStop(1,'#2a1840'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // ── концертна сцена (Broforce-драма): прожектори, колонки, юрба ──
+  const bcols=['rgba(168,80,95,','rgba(181,138,46,','rgba(63,124,119,'];
+  for(let i=0;i<3;i++){
+    const ang=Math.sin(game.t*0.02+i*2)*0.5;
+    ctx.save(); ctx.translate((i+0.5)*W/3, -4); ctx.rotate(ang);
+    ctx.fillStyle=bcols[i]+'.10)'; ctx.beginPath(); ctx.moveTo(-3,0); ctx.lineTo(-42,H*0.72); ctx.lineTo(42,H*0.72); ctx.lineTo(3,0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=bcols[i]+'.9)'; ctx.fillRect(-4,-4,8,6);
+    ctx.restore();
+  }
+  [6, W-30].forEach(sx=>{ ctx.fillStyle='#141018'; ctx.fillRect(sx,0,24,42);         // колонки-стеки
+    for(let r=0;r<3;r++){ ctx.fillStyle='#2a2436'; ctx.beginPath(); ctx.arc(sx+12,9+r*13,5,0,7); ctx.fill(); } });
+  ctx.fillStyle='#0d0a16';                                                           // силует юрби внизу
+  for(let cx2=4;cx2<W;cx2+=13){ const bob=Math.round(Math.sin(game.t*0.1+cx2)*2);
+    ctx.beginPath(); ctx.arc(cx2,H+2+bob,6,Math.PI,0); ctx.fill();
+    if((cx2/13|0)%3===0) ctx.fillRect(cx2-1,H-13+bob,2,10); }                        // подекуди підняті руки
   const lanes=[W/2-70, W/2, W/2+70], LW=54;
   lanes.forEach((lx,i)=>{
     ctx.fillStyle = b.hitFlash[i]>0 ? 'rgba(200,240,50,.3)' : 'rgba(255,255,255,.05)';
