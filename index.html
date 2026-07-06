@@ -38,7 +38,7 @@
 
   /* ---------- title screen ---------- */
   #title-screen{gap:2.2%;background:transparent;pointer-events:none;padding:2.5% 0 19cqh;justify-content:center}
-  #title-screen .btn, #title-screen #ach-btn{pointer-events:auto}
+  #title-screen .btn, #title-screen #ach-btn, #title-screen #rating-btn{pointer-events:auto}
   #title-screen h1{
     font-family:"Snell Roundhand","Savoye LET","Segoe Script","Bradley Hand","Brush Script MT",cursive;
     color:#b0596f;font-size:clamp(38px,10cqw,72px);letter-spacing:1px;font-weight:600;font-style:italic;
@@ -5338,6 +5338,10 @@ function smpDeserialize(code){
 }
 // літерал, бо FB оголошено нижче по файлу (інакше TDZ кладе весь скрипт)
 const FS_BASE = 'https://firestore.googleapis.com/v1/projects/wedding-6e47f/databases/(default)/documents/';
+const FB = {
+  apiKey: 'AIzaSyAtHp8tsubQ_v4iSi2zkfCZTgKKMjm2VGA',
+  projectId: 'wedding-6e47f',
+};   // конфіг Firebase — має бути до перших load*()
 async function saveTrack(author, pattern){
   if(TEST_MODE) return true;               // тест: не лишаємо мелодій у плейлисті
   try{
@@ -5974,10 +5978,6 @@ function tryFullscreen(){
    (проєкт wedding-6e47f) через REST — без SDK, гра лишається одним файлом.
    Застосунок Каті слухає колекцію і сам оновлює статус гостя.
    ВАЖЛИВО: Катя має додати правило allow create для /rsvps у Firebase Console. */
-const FB = {
-  apiKey: 'AIzaSyAtHp8tsubQ_v4iSi2zkfCZTgKKMjm2VGA',
-  projectId: 'wedding-6e47f',
-};
 /* Список гостей «id;імʼя» — Катя вставить з кнопки «📤 Список гостей для гри».
    Поки порожній — гравцям без персонального коду пропонуємо ввести імʼя вручну,
    а запис у базу пропускаємо. */
