@@ -3274,6 +3274,14 @@ function drawWedSofi(){
   ctx.fillStyle = g; ctx.fillRect(0,0,W,FLOOR_Y);
   ctx.fillStyle = '#fff8dc';
   ctx.beginPath(); ctx.arc(56,54,15,0,7); ctx.fill();            // сонце
+  ctx.fillStyle='rgba(255,248,200,.14)'; ctx.beginPath(); ctx.arc(56,54,26,0,7); ctx.fill();  // сяйво
+  // голуби над Софією
+  for(let d=0;d<3;d++){ const dx=Math.round((40+d*120+game.t*0.6)%(W+40))-20, dy=28+d*12+Math.round(Math.sin(game.t*0.05+d)*4);
+    const wing=((game.t>>3)&1)?4:1; ctx.strokeStyle='#f4f0e4'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(dx-5,dy+wing); ctx.lineTo(dx,dy); ctx.lineTo(dx+5,dy+wing); ctx.stroke(); }
+  // пелюстки, що падають
+  for(let i=0;i<8;i++){ const px2=Math.round((i*43+game.t*0.4)%W), py2=Math.round((i*67+game.t*1.1)%FLOOR_Y);
+    ctx.fillStyle=i%2?'rgba(232,138,160,.7)':'rgba(255,255,255,.6)'; ctx.fillRect(px2,py2,3,2); }
   // дзвіниця Софії Київської: біла, яруси, зелена баня, золотий верх
   // (у ландшафті екран нижчий — стискаємо по вертикалі, щоб влізла з хрестом)
   const bx = 246, bw = 44, hz = FLOOR_Y, ts = PORTRAIT_MODE ? 1 : 0.72;
@@ -3362,6 +3370,10 @@ function drawWedKhv(){
   ctx.beginPath(); ctx.arc(272,40,9,0,7); ctx.fill();
   ctx.fillStyle = 'rgba(244,232,200,.8)';
   [[30,26],[80,44],[130,20],[190,52],[236,30]].forEach(([sx,sy])=>ctx.fillRect(sx,sy,2,2));
+  ctx.fillStyle='rgba(244,232,200,.14)'; ctx.beginPath(); ctx.arc(272,40,16,0,7); ctx.fill();  // сяйво місяця
+  // конфеті/пелюстки, що падають (вечірка)
+  for(let i=0;i<10;i++){ const px2=Math.round((i*37+game.t*0.5)%W), py2=Math.round((i*59+game.t*1.2)%FLOOR_Y);
+    ctx.fillStyle=['rgba(255,214,138,.7)','rgba(232,138,160,.7)','rgba(120,196,178,.6)'][i%3]; ctx.fillRect(px2,py2,3,2); }
   // цегляні стіни дворика (обабіч)
   const brick = (x0,w0,h0)=>{
     ctx.fillStyle = '#6e3f36'; ctx.fillRect(x0, FLOOR_Y-h0, w0, h0);
