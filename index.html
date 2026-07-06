@@ -6557,6 +6557,11 @@ async function sendRsvpToApp(guestId, response, extra){
       if(extra.plusOneOf)     fields.plusOneOf     = {stringValue: extra.plusOneOf};
       if(extra.plusOneOfName) fields.plusOneOfName = {stringValue: extra.plusOneOfName};
     }
+    // сам себе вписав (немає в списку) → на підтвердження Катею
+    if(extra && extra.pending){
+      fields.pending  = {booleanValue: true};
+      fields.selfName = {stringValue: extra.selfName};
+    }
     const r = await fetch(url, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({fields}),
@@ -6567,6 +6572,7 @@ async function sendRsvpToApp(guestId, response, extra){
 function rsvpGuestId(){
   if(GUEST && GUEST.id) return GUEST.id;
   if(rsvp.pickedGuest) return rsvp.pickedGuest.id;
+  if(rsvp.pending) return 'self-' + slugify(rsvp.pending.name);   // сам себе вписав → на апрув
   // невідомий +1: стабільний псевдо-id (не чіпає статус господаря запрошення)
   if(rsvp.plusOne) return 'plus1-' + slugify(rsvp.plusOne.name);
   // спроба знайти за імʼям гравця
@@ -6597,7 +6603,7 @@ const elRsvpSummary = document.getElementById('rsvp-summary');
 
 function rsvpShow(){
   // «хто ти?» зі списку гостей (коли список є, а персонального коду нема)
-  const needIdentify = rsvp.idx===0 && !rsvp.pickedGuest && !rsvp.plusOne && !(GUEST && GUEST.id) && RSVP_GUEST_LIST.length;
+  const needIdentify = rsvp.idx===0 && !rsvp.pickedGuest && !rsvp.plusOne && !rsvp.pending && !(GUEST && GUEST.id) && RSVP_GUEST_LIST.length;
   if(needIdentify){
     // ПРИВАТНІСТЬ: жодного списку інших гостей. Просто представся — введи ім'я,
     // підказки випадають лише під те, що ти набираєш; далі — анкета.
@@ -6612,7 +6618,8 @@ function rsvpShow(){
       const nm = elRsvpInput.value.trim(); if(!nm) return;
       const exact = RSVP_GUEST_LIST.find(g=> g.name.toLowerCase() === nm.toLowerCase());
       if(exact) return pick(exact);
-      rsvp.plusOne = {name:nm, hostId:null, hostName:null};    // немає в списку — просто гість/+1
+      rsvp.pending = {name:nm};                                 // немає в списку → своє ім'я на підтвердження
+      rsvp.plusOne = null; rsvp.pickedGuest = null;
       localStorage.setItem('wed-player-name', nm);
       elRsvpInput.classList.add('hidden'); elRsvpInput.oninput=null; rsvpShow();
     };
@@ -6633,6 +6640,11 @@ function rsvpShow(){
     elRsvpInput.onkeydown = e => { if(e.key==='Enter') submitTyped(); };
     renderSug();
     return;
+  }
+  // не питаємо про +1 тих, чий +1 уже вписаний у списку — авто-відповідь
+  if(rsvp.idx===1 && rsvp.pickedGuest && rsvp.pickedGuest.plus1){
+    rsvp.answers[1] = 'Я + ' + rsvp.pickedGuest.plus1;
+    rsvp.idx = 2;
   }
   const item = RSVP_QUESTIONS[rsvp.idx];
   elRsvpSummary.classList.add('hidden');
@@ -6660,6 +6672,8 @@ function rsvpShow(){
       b.textContent = opt;
       b.addEventListener('click', ()=>{
         rsvp.answers.push(opt);
+        // «Ніяк» на першому питанні → далі не питаємо, одразу фініш
+        if(rsvp.idx===0 && opt.indexOf('Ніяк')===0){ rsvp.idx = RSVP_QUESTIONS.length; rsvpShow(); return; }
         rsvp.idx++; rsvpShow();
       });
       elRsvpOpts.appendChild(b);
@@ -6667,18 +6681,24 @@ function rsvpShow(){
   }
 }
 function rsvpText(){
-  const who = rsvp.plusOne
+  const who = rsvp.pending
+    ? rsvp.pending.name + ' (немає в списку — на підтвердження)'
+    : rsvp.plusOne
     ? rsvp.plusOne.name + ' (+1 до ' + rsvp.plusOne.hostName + ')'
     : (rsvp.pickedGuest ? rsvp.pickedGuest.name : (PARAMS.get('guest') || 'без коду'));
   return 'Відповіді на весільне запрошення (' + who + '):\n' +
     RSVP_QUESTIONS.map((it,i)=> (i+1)+') '+it.q+' — '+rsvp.answers[i]).join('\n');
 }
 function rsvpFinish(){
-  elRsvpQ.textContent = 'Дякуємо! Надішли нам відповіді:';
+  elRsvpQ.textContent = rsvp.pending
+    ? 'Дякуємо! Тебе не було в списку — ми підтвердимо вручну 💛 Надішли відповіді:'
+    : 'Дякуємо! Надішли нам відповіді:';
   elRsvpDots.textContent = '';
   // тихо пишемо yes/no у застосунок весілля (якщо знаємо, хто це)
   const gid = rsvpGuestId();
-  const extra = rsvp.plusOne
+  const extra = rsvp.pending
+    ? {selfName: rsvp.pending.name, pending: true}
+    : rsvp.plusOne
     ? {plusOneName: rsvp.plusOne.name, plusOneOf: rsvp.plusOne.hostId, plusOneOfName: rsvp.plusOne.hostName}
     : null;
   if(gid && !rsvp.sent){
@@ -6710,7 +6730,7 @@ function rsvpFinish(){
 function openRsvp(){
   rsvp.idx = 0; rsvp.answers = []; rsvp.sent = false;
   rsvp.pickedGuest = myGuest || null;        // гість обраний ще на старті — не питаємо «хто ти» вдруге
-  rsvp.plusOne = null; rsvp.plusMode = null; rsvp._plusHost = null;
+  rsvp.plusOne = null; rsvp.plusMode = null; rsvp._plusHost = null; rsvp.pending = null;
   elEnd.classList.add('hidden');
   elRsvp.classList.remove('hidden');
   rsvpShow();
