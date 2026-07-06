@@ -511,13 +511,16 @@ function achUnlock(id){
   updateAchButton();
 }
 function drawAchToasts(){
+  // тости нижче зони підписів фаз (щоб не перекривати верхній текст гри)
+  const base = PORTRAIT_MODE ? 52 : 44;
   achToasts.forEach((tt,i)=>{
     tt.t--;
-    const y = 6 + i*16 - (tt.t>150 ? (tt.t-150)*2 : 0);
-    ctx.fillStyle = 'rgba(0,0,0,.75)';
-    ctx.fillRect(W/2-70, y, 140, 13);
+    const y = base + i*16 - Math.min(18, tt.t>158 ? (tt.t-158)*1.4 : 0);
+    ctx.fillStyle = 'rgba(0,0,0,.8)';
+    ctx.fillRect(W/2-72, y, 144, 13);
+    ctx.strokeStyle = 'rgba(181,138,46,.7)'; ctx.lineWidth=1; ctx.strokeRect(W/2-72, y, 144, 13);
     ctx.fillStyle = COL.gold; ctx.font='bold 8px monospace'; ctx.textAlign='center';
-    ctx.fillText('🏆 '+tt.text, W/2, y+10);
+    ctx.fillText('🏆 '+tt.text, W/2, y+9);
     ctx.textAlign='left';
   });
   for(let i=achToasts.length-1;i>=0;i--) if(achToasts[i].t<=0) achToasts.splice(i,1);
