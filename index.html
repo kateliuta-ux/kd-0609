@@ -4449,10 +4449,11 @@ function novelMangaFx(emo, px, py, size){
 }
 function startNovel(){
   tryFullscreen();
-  game.state='novel'; game.pov='katya'; game.watch=true;
+  game.state='novel'; game.pov='katya'; game.watch=true; game.paused=false;
   game.nov = {ch:0, li:0, shown:0, wait:0, chapters:novelData()};
   stopChip(); playChip('planeta');
   elTitle.classList.add('hidden');
+  document.getElementById('pause-btn').classList.remove('hidden');   // вихід у меню з історії
   document.getElementById('watch-pov-menu').classList.add('hidden');
   elHud.classList.add('hidden');
 }
@@ -4655,6 +4656,27 @@ function drawNovelBgGB(i, boxY){
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(_gbNovBg[i], 0, 0);
 }
+// GB-версія голови гостя (кешується на об'єкті зображення)
+function gbGuestHead(img){
+  if(!img || !img.complete || !img.naturalWidth) return null;
+  if(!img._gbHead){ try{ img._gbHead = toGameBoy(img, 48); }catch(_){ return null; } }
+  return img._gbHead;
+}
+// ряд гостей угорі сцени новели (для розділів святкування)
+function drawNovelGuests(boxY){
+  const gs = GUEST_FACES.filter(g=>g.img).slice(0, 6);
+  const n = gs.length; if(!n) return;
+  const y = 62, r = 10;
+  for(let i=0;i<n;i++){
+    const gb = gbGuestHead(gs[i].img); if(!gb) continue;
+    const x = n===1 ? W/2 : 26 + i*((W-52)/(n-1));
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.clip();
+    ctx.imageSmoothingEnabled=false; ctx.drawImage(gb, x-r, y-r, r*2, r*2); ctx.restore();
+    ctx.strokeStyle='#0d1a18'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.stroke();
+  }
+  ctx.fillStyle='rgba(150,196,178,.8)'; ctx.font='7px monospace'; ctx.textAlign='center';
+  ctx.fillText('· гості святкують з вами ·', W/2, y+20);
+}
 function drawNovel(){
   const n = game.nov; if(!n){ finishGame(); return; }
   const chap = n.chapters[n.ch]; if(!chap){ finishGame(); return; }
@@ -4664,6 +4686,7 @@ function drawNovel(){
   // GB-панель: фон у бірюзовому монохромі + GB-бюсти зверху
   drawNovelBgGB(chap.bg, boxY);
   ctx.fillStyle='rgba(10,8,14,.3)'; ctx.fillRect(0,0,W,boxY);
+  if(chap.bg===8 || chap.bg===5) drawNovelGuests(boxY);   // весілля / сватання — гості з вами
   const bob = talking?((game.t>>3)&1):0;
   if(ln.who){
     const s = PORTRAIT_MODE?72:40, cx = ln.who==='katya'?W*0.34:W*0.66;
@@ -4965,7 +4988,7 @@ function updateHudAndControls(){
   // під час діалогу кнопки ховаються, щоб не перекривати вікно
   document.getElementById('controls').classList.toggle('hidden', game.watch || !isTouch || !padPhase || !!game.dialog);
   document.getElementById('pad-down').classList.toggle('hidden', game.phase!=='tetris');
-  document.getElementById('pause-btn').classList.toggle('hidden', game.watch || game.state!=='play' || game.paused);
+  document.getElementById('pause-btn').classList.toggle('hidden', game.paused || (game.state!=='play' && game.state!=='novel'));
   document.getElementById('kbd-hint').classList.toggle('hidden', game.watch || isTouch || !walkPhase);
 }
 
@@ -5492,7 +5515,7 @@ document.getElementById('btn-restart').addEventListener('click', ()=>{
 
 /* ================= пауза / вихід у меню ================= */
 function openPause(){
-  if(game.state!=='play' || game.watch) return;
+  if(game.state!=='play' && game.state!=='novel') return;   // працює і в грі, і в історії
   game.paused = true;
   document.getElementById('pause-menu').classList.remove('hidden');
   try{ stopMusic(); }catch(_){}
