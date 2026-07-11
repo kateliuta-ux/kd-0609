@@ -761,6 +761,12 @@ const GUEST_CAMEOS = {
       {who:null, text:'А ти, Катю Матвійчук, — однокурсниця:\nстрілись раптом — і у Хвильовому з нами!'} ]},
     { match:/костя|костянтин|давід|георгій|ліка/, lines:[
       {who:null, text:'А ти, братику Костю, — аж з Лондона, та в Софі!\nз Вікою, з Давідом, Георгієм і Лікою —\nмала білява зграйка, ціле кубелечко!'} ]},
+    { match:/чубах|лана ч/, lines:[
+      {who:null, text:'А ти ж, Лано Чубахо, — з бенду, з рідного, —\nу Хвильовому нам заграй, як за старих часів!'} ]},
+    { match:/бікер|байкер/, lines:[
+      {who:null, text:'А ви ж, байкери, — на конях залізних\nприкотили в Хвильовий, аж гуде дворок!'} ]},
+    { match:/бабус/, lines:[
+      {who:null, text:'А ти, бабусю, — рідна, в Софі, за столом,\nблагослови онуків під дзвіницею!'} ]},
     { match:/галич|женя г/, lines:[
       {who:null, text:'А ти, Женю Галич, — Вікин друг, співак\nз «Оторвальда»! Ми ж на концерт ходили!'} ]},
     { match:/бранашк|влад бран/, lines:[
@@ -778,19 +784,28 @@ const GUEST_CAMEOS = {
   ],
 };
 function guestCameo(sceneKey){
-  const pn = (localStorage.getItem('wed-player-name')||'').toLowerCase();
+  const raw = localStorage.getItem('wed-player-name') || '';
+  const pn = raw.toLowerCase();
   for(const c of (GUEST_CAMEOS[sceneKey]||[])){ if(c.match.test(pn)) return c.lines; }
+  // авто-камео на весіллі: КОЖЕН гість дістає персональний рядок за своїм залом
+  if(sceneKey==='wed' && pn.trim()){
+    const nm = raw.trim().split(/\s+/)[0];
+    const cap = nm.charAt(0).toUpperCase() + nm.slice(1);
+    return (guestVenue()==='sofi')
+      ? [{who:null, text:'А ти, '+cap+', — з нами у «Бути Софі»,\nпід дзвіницею, за весільним столом!'}]
+      : [{who:null, text:'А ти, '+cap+', — з нами у Хвильовому,\nгуляння наше аж до самого рання!'}];
+  }
   return [];
 }
-// ── мапа гість→локація за іменем: хто у Хвильовому, хто в Софі (для фіналу) ──
+// ── мапа гість→локація за іменем: родичі/сусіди → Софі (день), решта → Хвильовий (вечір) ──
 const GUEST_VENUE = [
-  { v:'khv',  match:/кімельфельд|приймак|большаков|\bліда\b|лідус|дарин|рябухін|плешаков|казанець|альон|кандауров|тімур|матвійчук/ },
-  { v:'sofi', match:/шаблія|луїз|яра|дядя саша|дядьк.* саш|брат саша|брат.* саш|костя|костянтин|давід|георгій|ліка/ },
+  { v:'sofi', match:/шаблія|луїз|яра|дядя саша|дядьк|брат саша|брат.* саш|костя|костянтин|давід|георгій|ліка|бабус|тітк|тьот|хрещен|сусід/ },
 ];
 function guestVenue(){
-  const pn = (localStorage.getItem('wed-player-name')||'').toLowerCase();
+  const pn = (localStorage.getItem('wed-player-name')||'').toLowerCase().trim();
+  if(!pn) return null;                       // без імені — показуємо обидва зали по черзі
   for(const g of GUEST_VENUE){ if(g.match.test(pn)) return g.v; }
-  return null;
+  return 'khv';                              // названий гість без Софі-мітки → вечірка у Хвильовому
 }
 function dateScript(pov){
   // обоє щойно з довгих стосунків — ішли ніби «просто на пиво» (без обіцянок)
