@@ -5982,20 +5982,16 @@ async function openSelfie(){
   document.getElementById('selfie-screen').classList.remove('hidden');
   const st = document.getElementById('selfie-status');
   const snapBtn = document.getElementById('selfie-snap');
-  // вже надсилав раніше — одне фото на гостя
-  if(localStorage.getItem('wed-selfie-sent')){
-    st.textContent = 'ти вже додав своє фото в гру 💛 (одне на гостя)';
-    snapBtn.disabled = true;
-    document.getElementById('selfie-send').disabled = true;
-    return;
-  }
+  // камера відкривається ЗАВЖДИ (обмеження «одне фото на гостя» — на сервері).
   snapBtn.disabled = false;
   document.getElementById('selfie-send').disabled = true;
   const already = !!localStorage.getItem('wed-selfie-sent');
   st.textContent = 'вмикаю камеру…';
   try{
     selfieStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user', width:{ideal:640}}});
-    document.getElementById('selfie-video').srcObject = selfieStream;
+    const vv = document.getElementById('selfie-video');
+    vv.srcObject = selfieStream;
+    try{ await vv.play(); }catch(_){}                 // iOS Safari часто потребує явного play()
     st.textContent = already ? 'ти вже додавав фото — можеш переклацати (лишиться перше)'
                              : 'обличчя в овал, дивись у камеру — і «КЛАЦ»';
   }catch(e){
@@ -6048,7 +6044,7 @@ function renderSelfieShot(){
 }
 document.getElementById('selfie-snap').addEventListener('click', ()=>{
   const v = document.getElementById('selfie-video');
-  if(!v.videoWidth){ return; }
+  if(!v.videoWidth){ document.getElementById('selfie-status').textContent = 'камера ще вмикається… секунду і тисни «КЛАЦ»'; return; }
   const c = document.createElement('canvas'); c.width = c.height = 320;
   const g = c.getContext('2d');
   // квадратний центр-кроп + дзеркало (щоб збігалося з тим, що бачив гість)
