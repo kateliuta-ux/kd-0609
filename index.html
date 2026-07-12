@@ -4891,25 +4891,25 @@ function drawNovelFx(i, boxY){
     const cyc=(t%160)/160;
     const tilt = cyc<0.15 ? Math.sin(cyc/0.15*Math.PI)*0.35 : 0;
     [[W/2-22,1],[W/2+22,-1]].forEach(([bx,s])=>{
-      ctx.save(); ctx.translate(bx, 150); ctx.rotate(tilt*s);
+      ctx.save(); ctx.translate(bx, boxY-160); ctx.rotate(tilt*s);
       ctx.fillStyle=GBC[1]; ctx.fillRect(-7,-14,14,28); ctx.fillStyle=GBC[2]; ctx.fillRect(-7,-14,14,5);
       ctx.restore();
     });
-    if(tilt>0.3){ ctx.fillStyle=GBC[3]; ctx.font='7px monospace'; ctx.textAlign='center'; ctx.fillText('дзінь!', W/2, 122); }
-    for(let k=0;k<4;k++){ const hy=(200-((t*0.7+k*45)%110)), hx=W/2+((k%2)?18:-18)+Math.sin((t+k*30)*0.05)*8;
+    if(tilt>0.3){ ctx.fillStyle=GBC[3]; ctx.font='7px monospace'; ctx.textAlign='center'; ctx.fillText('дзінь!', W/2, boxY-190); }
+    for(let k=0;k<4;k++){ const hy=(boxY-120-((t*0.7+k*45)%110)), hx=W/2+((k%2)?18:-18)+Math.sin((t+k*30)*0.05)*8;
       ctx.fillStyle=k%2?GBC[2]:GBC[3];
       ctx.fillRect(hx-2,hy-2,2,2); ctx.fillRect(hx+1,hy-2,2,2); ctx.fillRect(hx-2,hy,5,2); ctx.fillRect(hx-1,hy+2,3,1); }
   } else if(i===3){                           // КИЇВ↔ЛОНДОН: повідомлення літають дугою туди-сюди
     for(let k=0;k<3;k++){
       const ph=((t*0.9+k*70)%210)/210, ltr = (k%2)===0;
       const x = ltr ? 30+ph*(W-60) : W-30-ph*(W-60);
-      const y = 120 - Math.sin(ph*Math.PI)*46;
+      const y = boxY*0.45 - Math.sin(ph*Math.PI)*46;
       ctx.fillStyle=GBC[0]; ctx.fillRect(x-9,y-6,18,12);
       ctx.fillStyle=ltr?GBC[2]:GBC[3]; ctx.fillRect(x-8,y-5,16,10);
       ctx.fillStyle=GBC[0]; ctx.fillRect(x-5,y-2,10,1); ctx.fillRect(x-5,y+1,7,1);
     }
   } else if(i===4){                           // КІТАНА: кошеня перебігає сцену, хвіст, «няв»
-    const ph=((t*1.1)%260)/260, kx=-20+ph*(W+40), ky=176;
+    const ph=((t*1.1)%260)/260, kx=-20+ph*(W+40), ky=boxY-26;
     const run=(t>>3)&1;
     ctx.fillStyle=GBC[1];
     ctx.fillRect(kx-8,ky-6,16,7);                                  // тіло
@@ -4925,14 +4925,14 @@ function drawNovelFx(i, boxY){
       ctx.fillRect(64+Math.sin((t+k*50)*0.06)*5, 130-sy, 4, 4); }
     const cyc=(t%300)/300;
     if(cyc>0.62){ const gph=(cyc-0.62)/0.38, gx=W+16-gph*(W*0.55);
-      ctx.save(); ctx.translate(gx, 196); ctx.rotate(-gph*7);
+      ctx.save(); ctx.translate(gx, boxY-18); ctx.rotate(-gph*7);
       ctx.fillStyle=GBC[1]; ctx.beginPath(); ctx.arc(0,0,9,0,7); ctx.fill();
       ctx.fillStyle=GBC[0]; ctx.fillRect(-1,-12,3,4);
       ctx.restore();
-      ctx.fillStyle=GBC[3]; ctx.font='6px monospace'; ctx.textAlign='center'; ctx.fillText('(не сьогодні)', W*0.7, 176);
+      ctx.fillStyle=GBC[3]; ctx.font='6px monospace'; ctx.textAlign='center'; ctx.fillText('(не сьогодні)', W*0.7, boxY-44);
     }
   } else if(i===6){                           // ПОЗНЯКИ: коробочка світиться й підстрибує, лапа тягнеться
-    const bx=W*0.72, by=150, hop=((t%120)<12)?-3:0;
+    const bx=W*0.72, by=boxY-130, hop=((t%120)<12)?-3:0;
     ctx.fillStyle='rgba(226,242,226,'+(0.25+0.2*Math.sin(t*0.1))+')';
     ctx.beginPath(); ctx.arc(bx+5, by+hop, 16, 0, 7); ctx.fill();
     ctx.fillStyle=GBC[0]; ctx.fillRect(bx-2,by-2+hop,14,12);
@@ -4943,7 +4943,7 @@ function drawNovelFx(i, boxY){
   } else if(i===7){                           // ОСВІДЧЕННЯ: сніг + промені від каблучки
     for(let k=0;k<10;k++){ const sx2=(k*37+t*0.4)%W, sy2=(k*53+t*0.9)%(boxY-20);
       ctx.fillStyle='rgba(226,242,226,.7)'; ctx.fillRect(sx2,sy2,2,2); }
-    const rx=W/2, ry=136, tw=(t%90)/90;
+    const rx=W/2, ry=boxY*0.4, tw=(t%90)/90;
     if(tw<0.5){ const a=Math.sin(tw*2*Math.PI);
       ctx.strokeStyle='rgba(226,242,226,'+(0.5*a)+')'; ctx.lineWidth=1.5;
       for(let k=0;k<4;k++){ const ang=k*Math.PI/4 + t*0.02;
