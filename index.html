@@ -793,26 +793,26 @@ function setScript(pov){
     {who:'katya', emo:'tired',  text:'Той, у білому поло. В камеру. Дубль три!'},
     {who:'dima',  emo:'happy',  text:'А куди дивитись — в камеру\nчи на режисерку?)'},
     {who:'katya', emo:'shy',    text:'(в камеру, Дімо.)'},
-    {who:null,    emo:null,     text:'(Той сезон так і не вийшов у ефір.\nАле це вже потім.)'},
+    {who:null,    emo:null,     text:'(Той сезон так і не вийшов у ефір, —\nале то потім. Поки в кадрі — мир.)'},
   ];
   return [
-    {who:null,   emo:null,   text:'Офіс агенції. Був якийсь бриф про метаверс.\nУ парі зі мною стратег Макс.'},
+    {who:null,   emo:null,   text:'Офіс агенції, бриф, метаверс, аврал, —\nзвичайний день. (Він ще не знав фінал.)'},
     {who:'guy',  emo:'normal',text:'Ну що, штормимо? Година пішла.'},
     {who:'dima', emo:'happy', text:'А куди дивитись — в камеру\nчи на режисерку?)'},
-    {who:null,   emo:null,   text:'Імені не спитав. Та симпатичну\nрежисерку-блондинку — запамʼятав.'},
+    {who:null,   emo:null,   text:'Імені не спитав. Але лишилась\nрежисерка-блондинка — й не забулась.'},
   ];
 }
 function chatScript(pov){
   // між 2021 і 2022 — вирва: війна, і в обох позаду по пʼять років стосунків
   const war = [
-    {who:null, emo:null, text:'Між тими зйомками і цим свайпом —\nвійна. Все, що було, лишилось «до».'},
-    {who:null, emo:null, text:'І от посеред усього цього —\nодин свайп управо.'},
+    {who:null, emo:null, text:'Між зйомками і свайпом — прірва: то війна.\nВсе, що було «до», — сховала темна стіна.'},
+    {who:null, emo:null, text:'І от посеред всього цього огрому —\nодин свайп управо. Дорога додому.'},
   ];
   const intro = pov==='katya' ? [
-    {who:null, emo:null, text:'(Стоп. Це ж той хлопець зі зйомок…\n— подумала. І нічого не написала.)'},
+    {who:null, emo:null, text:'(Стоп. Це ж хлопець зі зйомок — упізнала.\nПодумала. І нічого не написала.)'},
   ] : [
     {who:'dima',  emo:'happy', text:'О, симпатична! Точно ніде не бачив)'},
-    {who:null,    emo:null,    text:'(Насправді не згадав. Але майже.)'},
+    {who:null,    emo:null,    text:'(Насправді не згадав. Але, буває,\nсерце знає те, що памʼять не тримає.)'},
   ];
   // ── СПРАВЖНЯ перша переписка (Tinder → Telegram), 10–11 серпня 2022 ──
   const common = [
@@ -826,7 +826,7 @@ function chatScript(pov){
     {who:'dima', emo:'wow',    text:'А шо за тренування? Зальчик?'},
     {who:'katya',emo:'happy',  text:'Джиу-джитсу. Майже боксік)\nтільки ми душимо, а не бʼємо'},
     {who:'dima', emo:'happy',  text:'О, туди ж мій друг ходить —\nЯрослав Соколовський'},
-    {who:null,   emo:null,     text:'Далі — вже телеграм.\nІ якось зайшло про пиво:'},
+    {who:null,   emo:null,     text:'Далі — вже телеграм, без зупинки.\nІ якось мова зайшла про напитки:'},
     {who:'katya',emo:'happy',  text:'дуже люблю кокосове темне,\nв Хвильовому наливають'},
     {who:'dima', emo:'normal', text:'Андервуд коконат'},
     {who:'katya',emo:'happy',  text:'але взагалі справа в кокосі.\nлюблю кокос'},
@@ -836,7 +836,7 @@ function chatScript(pov){
     {who:'dima', emo:'happy',  text:'То може нарешті побачимось?)'},
   ];
   const outro = pov==='katya' ? [
-    {who:null, emo:null, text:'Так почалась найдовша переписка\nв історії цього чату.'},
+    {who:null, emo:null, text:'Так почалась найдовша з переписок:\nсто двадцять пʼять тисяч записок.'},
   ] : [
     {who:null, emo:null, text:'11 серпня 2022. (Бачив. Дубль три.)'},
   ];
@@ -845,17 +845,14 @@ function chatScript(pov){
 // ── КАМЕО ГОСТЕЙ: персональні вставки в сюжет (бачить лише той гість у своїй версії) ──
 // Додавати легко: {match:/регекс імені/, lines:[...репліки]} у потрібну сцену.
 const GUEST_CAMEOS = {
-  date: [
-    { match:/пінаєвськ|маріч/, lines:[
-      {who:null, text:'А перед цим Катя — в тебе, Марічко, на святі:\nти з Вовою там, а пиво вже й почалося!'} ]},
-  ],
+  date: [],
   london: [
     { match:/кукрицьк|вікус/, lines:[
-      {who:null, text:'А в Лондоні, Вікусю, — під одним дахом,\nу добрих спонсорів жили ми, наче рідні!'} ]},
+      {who:null, text:'А в Лондоні, Вікусю, — під одним ми дахом\nжили у спонсорів — і не було нам страху!'} ]},
   ],
   kitana: [
     { match:/\bдан\b|данил|даня/, lines:[
-      {who:null, text:'А то ж у Дановім дворі ту кицю знайшли:\nвін нагледів — а ми додому й забрали.'} ]},
+      {who:null, text:'А то ж у Дановім дворі знайшли ту кицю:\nвін нагледів — ми забрали чарівницю!'} ]},
   ],
   poznyaky: [
     { match:/сміл|аліна см/, lines:[
@@ -864,71 +861,71 @@ const GUEST_CAMEOS = {
   wed: [
     // ── весільна партія: дружки (Катині) та бояри (Дімині) — стоять із молодятами ──
     { match:/дідор/, lines:[
-      {who:null, text:'А ти, Анічко Дідоро, — дружка головная,\nаж з Праги — та зі мною попід вінець стаєш!'} ]},
+      {who:null, text:'А ти, Анічко Дідоро, — дружка перша, знана:\nаж з Праги прилетіла — на весілля зрана!'} ]},
     { match:/пінаєвськ|маріч/, lines:[
-      {who:null, text:'А ти, Марічко, — дружка моя мила,\nзі мною поруч, як колись на татамі!'} ]},
+      {who:null, text:'А ти, Марічко, — дружка моя мила:\nяк на татамі поруч — так під вінцем сила!'} ]},
     { match:/кукрицьк|вікус/, lines:[
-      {who:null, text:'А ти, Вікусю, — дружка, з Лондона мені рідна,\nзі мною під вінцем, як під одним колись дахом!'} ]},
+      {who:null, text:'А ти, Вікусю, — дружка, з Лондона рідненька:\nжили під дахом одним — тепер під вінцем близенько!'} ]},
     { match:/шаблія|луїз|яра|яруся/, lines:[
-      {who:null, text:'А ти, Луїзо, — дружка, з Антоном і Ярусею,\nбілявенькою, — зі мною в цей світлий день!'} ]},
+      {who:null, text:'А ти, Луїзо, — дружка мила, згідна:\nз Антоном і Ярусею — уся родина рідна!'} ]},
     { match:/плахотн/, lines:[
-      {who:null, text:'А ти, Плахотній, — Дімин боярин, друже,\nа я ж з тобою в таборі дитячім гуляла:\nсвіт, ой, тісний — аж вийшло, що ти — Дімин!'} ]},
+      {who:null, text:'А ти, Плахотній, — Дімин боярин, друже:\nз дитячого табору світ тісний, аж дуже!'} ]},
     { match:/соколовськ|ярік|ярик/, lines:[
-      {who:null, text:'А ти, Ярику, з Мариною, — Дімин боярин,\nстоїш за нього, мов за брата рідного!'} ]},
+      {who:null, text:'А ти, Ярику з Мариною, — Дімин боярин, брат:\nстоїш за нього твердо — і кожен цьому рад!'} ]},
     { match:/олег бур|бурий/, lines:[
-      {who:null, text:'А ти, Олеже Бурий, — Дімин боярин теж,\nпід вінцем поруч, за друга, як за брата!'} ]},
+      {who:null, text:'А ти, Олеже Бурий, — теж боярин славний:\nпід вінцем за друга станеш — звичай давній!'} ]},
     { match:/олег смір|сміря/, lines:[
-      {who:null, text:'А ти, Олеже Сміря, — боярин Дімин,\nу цей врочистий день — плече в плече!'} ]},
+      {who:null, text:'А ти, Олеже Сміря, — боярин Дімин вірний:\nплече в плече у день оцей безмірний!'} ]},
     { match:/кімельфельд/, lines:[
-      {who:null, text:'А ти, Анічко, з нами — у Хвильовому,\nде пиво пінне й пісня загуляла!'} ]},
+      {who:null, text:'А ти, Анічко, з нами — у Хвильовому:\nде пиво пінне ллється по-святковому!'} ]},
     { match:/приймак/, lines:[
-      {who:null, text:'А ти, Юлечко Приймак, — у Хвильовому,\nде під ранок танці й досі не вгавали!'} ]},
+      {who:null, text:'А ти, Юлечко Приймак, — у Хвильовому:\nтанцюємо до ранку по-новому!'} ]},
     { match:/большаков/, lines:[
       {who:null, text:'А ти, Катрусю Большакова, — з нами\nу Хвильовому, за весільними столами!'} ]},
     { match:/\bліда\b|лідус/, lines:[
-      {who:null, text:'А ти, Лідусю, — теж у Хвильовому,\nде «гірко!» аж лунає по дворові!'} ]},
+      {who:null, text:'А ти, Лідусю, — теж у Хвильовому:\nде «гірко!» аж лунає по цілому дому!'} ]},
     { match:/дарин/, lines:[
-      {who:null, text:'А ти, Даринко, з Сашею-Масянею —\nу Хвильовому гуляння аж до рання!'} ]},
+      {who:null, text:'А ти, Даринко, — з Сашею-Масянею в парі:\nгуляєм у Хвильовому при місячнім ліхтарі!'} ]},
     { match:/рябухін/, lines:[
-      {who:null, text:'А ти, Юлю Рябухіна, з Артемом —\nу Хвильовому! Хай гуляється всім нам!'} ]},
+      {who:null, text:'А ти, Юлю Рябухіна, — з Артемом, у нас:\nу Хвильовому гуляння — саме час!'} ]},
     { match:/плешаков/, lines:[
-      {who:null, text:'А ти, Катю Плешакова, — у Хвильовому,\nде до рання гуляння загуляло!'} ]},
+      {who:null, text:'А ти, Катю Плешакова, — у Хвильовому:\nгуляння тут до рання по-домовому!'} ]},
     { match:/казанець|альон/, lines:[
-      {who:null, text:'А ти, Альоно Казанець, — у Хвильовому,\nде пісня йде по колу, по дворочку!'} ]},
+      {who:null, text:'А ти, Альоно Казанець, — у Хвильовому:\nде пісня йде по колу вечоровому!'} ]},
     { match:/кандауров|інна к/, lines:[
-      {who:null, text:'А ти, Інно з Богданом, — у Хвильовому,\nхай гірко буде тільки молодятам!'} ]},
+      {who:null, text:'А ти, Інно з Богданом, — з нами у дворі:\nхай гірко — молодятам, солодко — порі!'} ]},
     { match:/тімур/, lines:[
-      {who:null, text:'А ти, Тімуре з Яною, — у Хвильовому,\nде друзі до світання не вгавали!'} ]},
+      {who:null, text:'А ти, Тімуре з Яною, — у Хвильовому:\nгуляєм до світанку по-бойовому!'} ]},
     { match:/дядя саша|дядьк.* саш/, lines:[
-      {who:null, text:'А ти, дядьку Сашо, — рідна кров, у Софі,\nпід дзвіницею старою, за столом!'} ]},
+      {who:null, text:'А ти, дядьку Сашо, — рідна кров, у Софі:\nза столом під дзвіницею — у першій строфі!'} ]},
     { match:/брат саша|брат.* саш/, lines:[
-      {who:null, text:'А ви ж, брате Сашо з Борею, — у Софі,\nрідня зібралась, як за рушничком!'} ]},
+      {who:null, text:'А ви ж, брате Сашо з Борею, — у Софі раді:\nрідня зібралась, як на святковім параді!'} ]},
     { match:/дідор/, lines:[
-      {who:null, text:'А ти, Анічко Дідоро, — дружка вірная,\nаж з Праги їдеш, де тебе гостила я!'} ]},
+      {who:null, text:'А ти, Анічко Дідоро, — дружка вірная:\nаж з Праги прилетіла — до мене, рідная!'} ]},
     { match:/матвійчук/, lines:[
-      {who:null, text:'А ти, Катю Матвійчук, — однокурсниця:\nстрілись раптом — і у Хвильовому з нами!'} ]},
+      {who:null, text:'А ти, Катю Матвійчук, — однокурсниця моя:\nстрілись раптом — й у Хвильовім гуля сімʼя!'} ]},
     { match:/костя|костянтин|давід|георгій|ліка/, lines:[
-      {who:null, text:'А ти, братику Костю, — аж з Лондона, та в Софі!\nз Вікою, з Давідом, Георгієм і Лікою —\nмала білява зграйка, ціле кубелечко!'} ]},
+      {who:null, text:'А ти, братику Костю, — аж з Лондона, до нас:\nз Вікою, Давідом, Георгієм, Лікою — ураз!'} ]},
     { match:/чубах|лана ч/, lines:[
-      {who:null, text:'А ти ж, Лано Чубахо, — з бенду, з рідного, —\nу Хвильовому нам заграй, як за старих часів!'} ]},
+      {who:null, text:'А ти ж, Лано Чубахо, — з бенду, з рідного двору:\nзаграй нам у Хвильовому, як у стару пору!'} ]},
     { match:/бікер|байкер/, lines:[
-      {who:null, text:'А ви ж, байкери, — на конях залізних\nприкотили в Хвильовий, аж гуде дворок!'} ]},
+      {who:null, text:'А ви ж, байкери, — на конях на залізних:\nприкотили в Хвильовий з усіх усюд різних!'} ]},
     { match:/бабус/, lines:[
-      {who:null, text:'А ти, бабусю, — рідна, в Софі, за столом,\nблагослови онуків під дзвіницею!'} ]},
+      {who:null, text:'А ти, бабусю рідна, — в Софі за столом:\nблагослови онуків хлібом і теплом!'} ]},
     { match:/галич|женя г/, lines:[
-      {who:null, text:'А ти, Женю Галич, — Вікин друг, співак\nз «Оторвальда»! Ми ж на концерт ходили!'} ]},
+      {who:null, text:'А ти, Женю Галич, — Вікин друг, співаче:\nз «Оторвальда» голос — хай весілля скаче!'} ]},
     { match:/бранашк|влад бран/, lines:[
-      {who:null, text:'А ти, Владе Бранашко, — з Мексики вернувся,\nв караоке «смаженого кабанчика» ревнув!'} ]},
+      {who:null, text:'А ти, Владе Бранашко, — вернувся з Мексики:\nревнеш «кабанчика» — здригнуться всі столики!'} ]},
   ],
   tinder: [
     { match:/^леся$|^леся |леся$/, lines:[
-      {who:null, text:'А ти ж, Лесю, — з татамі подруга моя,\nі Діму знала: світ, він, ой, тісний!'} ]},
+      {who:null, text:'А ти ж, Лесю, — подруга з татамі, з бою:\nі Діму знала — світ тісний, не скрою!'} ]},
     { match:/запорожець|настя зап/, lines:[
-      {who:null, text:'А ти, Насте Запорожець, — з джиу-джитсу,\nразом кидали через стегно на килим!'} ]},
+      {who:null, text:'А ти, Насте Запорожець, — з джиу-джитсу теж:\nчерез стегно кидали — тепер танцюєш все ж!'} ]},
     { match:/аліса/, lines:[
-      {who:null, text:'А ти, Алісо, — теж моя з татамі,\nде я до перших змагань готувалась!'} ]},
+      {who:null, text:'А ти, Алісо, — з татамі подруга завзята:\nготувались до змагань — тепер гуляєм свято!'} ]},
     { match:/крестенк|білоруск|ансі/, lines:[
-      {who:null, text:'А ти ж, Насте, — Діму знаєш: грав у вас,\nа кліп його мені твій колишній показав\n(він же й мій колишній). Ото сплелися нитки!'} ]},
+      {who:null, text:'А ти ж, Насте, — Діму знаєш ще з тих пір:\nсплелися нитки долі — тісний світ, повір!'} ]},
   ],
 };
 function guestCameo(sceneKey){
@@ -944,8 +941,8 @@ function guestCameo(sceneKey){
     const nm = raw.trim().split(/\s+/)[0];
     const cap = nm.charAt(0).toUpperCase() + nm.slice(1);
     return (guestVenue()==='sofi')
-      ? [{who:null, text:'А ти, '+cap+', — з нами у «Бути Софі»,\nпід дзвіницею, за весільним столом!'}]
-      : [{who:null, text:'А ти, '+cap+', — з нами у Хвильовому,\nгуляння наше аж до самого рання!'}];
+      ? [{who:null, text:'А ти, '+cap+', — з нами у «Бути Софі» зрання:\nпід дзвіницею стіл — і святкування!'}]
+      : [{who:null, text:'А ти, '+cap+', — з нами у Хвильовім дворі:\nгуляння наше — аж до самої зорі!'}];
   }
   return [];
 }
@@ -961,15 +958,15 @@ function guestVenue(){
 }
 function picnicScript(pov){
   if(pov==='katya') return [
-    {who:null,    emo:null,   text:'Субота. Пікнік у парку —\nдень народження Марічки. Всі свої.'},
-    {who:null,    emo:null,   text:'«За Марічку!» — келишки дзенькають\nвдруге… і втретє.'},
+    {who:null,    emo:null,   text:'Субота. Пікнік у зеленім парку:\nМарічці — рік новий, і всім по чарку!'},
+    {who:null,    emo:null,   text:'«За Марічку!» — келишки дзвенять, —\nі вдруге, й втретє: хто ж їх буде рахувать!'},
     {who:'katya', emo:'shy',  text:'Так. Мені пора. В мене…\nпобачення. НЕ ДИВІТЬСЯ ТАК!'},
-    {who:null,    emo:null,   text:'І Катя — трошки весела —\nпішла з пікніка просто на Пейзажку.'},
+    {who:null,    emo:null,   text:'І Катя — трошки весела, легенька —\nна перше побачення пішла хутенько.'},
   ];
   return [
-    {who:null,    emo:null,   text:'Тим часом у Каті — пікнік:\nдень народження Марічки.'},
+    {who:null,    emo:null,   text:'Тим часом у Каті — пікнік, гуляння:\nв Марічки день народження зрання.'},
     {who:'dima',  emo:'shy',  text:'(а я вже йду на Пейзажку.\nЗ пивом. З тим самим.)'},
-    {who:null,    emo:null,   text:'Вона прийде з пікніка трошки весела.\nНайкращий настрій для першого побачення.'},
+    {who:null,    emo:null,   text:'Вона прийде весела із гостини —\nнайкращий настрій для такої днини.'},
   ];
 }
 function startPicnic(){
@@ -1071,19 +1068,19 @@ function drawPicnic(){
   }
   // верхня стрічка-титр (НЕ drawCaption — та малює повноекранну картку)
   ctx.fillStyle='rgba(10,8,14,.66)'; ctx.fillRect(0,14+TITLE_Y,W,26);
-  ctx.fillStyle='#f4cf5e'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+  ctx.fillStyle='#f4cf5e'; ctx.textAlign='center'; fitText('ДЕНЬ НАРОДЖЕННЯ МАРІЧКИ · пікнік', W-16, 9, true);
   ctx.fillText('ДЕНЬ НАРОДЖЕННЯ МАРІЧКИ · пікнік', W/2, 25+TITLE_Y);
-  ctx.fillStyle='#e8e2d0'; ctx.font='8px monospace';
+  ctx.fillStyle='#e8e2d0'; fitText('субота перед першим побаченням', W-16, 8, false);
   ctx.fillText('субота перед першим побаченням', W/2, 35+TITLE_Y);
   ctx.textAlign='left';
 }
 function dateScript(pov){
   // обоє щойно з довгих стосунків — ішли ніби «просто на пиво» (без обіцянок)
   const first = pov==='katya' ? [
-    {who:null,    emo:null,  text:'Обоє щойно з довгих стосунків.\nТож — ніби просто пиво на Пейзажці.'},
+    {who:null,    emo:null,  text:'Обоє щойно вийшли з стосунків довгих, —\nтож «просто пиво». Без обіцянок жодних.'},
     {who:'katya', emo:'happy',text:'Нічого такого. Правда ж?'},
   ] : [
-    {who:null,    emo:null,  text:'Обоє щойно з довгих стосунків.\nТож — ніби просто пиво на Пейзажці.'},
+    {who:null,    emo:null,  text:'Обоє щойно вийшли з стосунків довгих, —\nтож «просто пиво». Без обіцянок жодних.'},
     {who:'dima',  emo:'happy',text:'Абсолютно. Просто пиво.'},
   ];
   // кокосове Андервуд: спитав у чаті — приніс на побачення (реальна історія)
@@ -1091,7 +1088,7 @@ function dateScript(pov){
     {who:'katya', emo:'wow', text:'Андервуд коконат?! Я ж один раз згадала…'},
     {who:null,    emo:null,  text:'Запамʼятав із чату слово те —\nі в серденько поклав, як зерно золоте.'},
   ] : [
-    {who:null,    emo:null,  text:'Він запамʼятав: вона любить\nкокосове темне. З «Хвильового».'},
+    {who:null,    emo:null,  text:'Він запамʼятав те слово, ту дрібничку:\nкокосове темне. З Хвильового. Звичку.'},
     {who:'dima',  emo:'shy', text:'Тадам. Тримай.'},
     {who:'katya', emo:'wow', text:'Андервуд коконат?! Ти ЗАПАМʼЯТАВ?'},
   ];
@@ -1136,9 +1133,9 @@ function pingIntroScript(pov){
 }
 function pingOutroScript(pov){
   return pov==='katya' ? [
-    {who:null, emo:null, text:'11 223 повідомлення за місяць — рекорд чату.\nКвиток додому куплено раніше строку.'},
+    {who:null, emo:null, text:'Одинадцять тисяч листів — за місяць лік.\nКвиток додому — раніш: серцю невтерпік.'},
   ] : [
-    {who:null, emo:null, text:'11 223 повідомлення. Вона повернулась\nна місяць раніше. (Кажуть, не через чат. Через нас.)'},
+    {who:null, emo:null, text:'Одинадцять тисяч тих листів злетіло, —\nй вона на місяць раніше прилетіла.'},
   ];
 }
 function svatIntroScript(pov){
@@ -1146,12 +1143,12 @@ function svatIntroScript(pov){
     {who:null, emo:null, text:'— У вас куниця, у нас мисливець!'},
     {who: pov, emo:'shy', text:'(це про нас)'},
   ];
-  lines.push({who:null, emo:null, text:'За традицією гарбуз означає «ні».\nГоловне — не переплутати.'});
+  lines.push({who:null, emo:null, text:'За звичаєм гарбуз — то «ні», відмова.\nГоловне — не переплутати ні слова.'});
   return lines;
 }
 function svatOutroScript(pov){
   return [
-    {who:null, emo:null, text:'Рушники на сватах — отже, згода!\nТепер за звичаєм — можна й до вінця.'},
+    {who:null, emo:null, text:'Рушники подали — згода, не інак:\nдорога до вінця відкрита. Так!'},
   ];
 }
 function propChessOutroScript(pov){
@@ -1165,8 +1162,8 @@ function propChessOutroScript(pov){
 }
 function propBoxScript(pov){
   const voice = pov==='katya'
-    ? {who:null, emo:null, text:'Ти знала ще зранку.\nАле серце все одно гупає.'}
-    : {who:null, emo:null, text:'Вона все знає. Байдуже —\nвперед.'};
+    ? {who:null, emo:null, text:'Ти знала ще зранку. Та серце — овва! —\nгупає так, що аж чути слова.'}
+    : {who:null, emo:null, text:'Вона все знає — думає, що ні.\nБайдуже: вперед, у ці зимові дні.'};
   return [
     voice,
     {who:'dima', emo:'shy', text:'Хочу, щоб ти стала… Катериною Лютою.'},
@@ -1183,11 +1180,11 @@ function propOutroScript(pov){
 /* дзеркальні таємниці: кожен ПОВ бачить сцену, якої не бачить інший */
 function secretIntroScript(pov){
   return pov==='dima' ? [
-    {who:null,  emo:null,  text:'Позняки — Дімине місце сили.\nТут він виріс. Тепер це їхній дім на двох.'},
+    {who:null,  emo:null,  text:'Позняки — Дімине місце сили:\nтут виріс він, тут вдвох і осіли.'},
     {who:null,  emo:null,  text:'ТАЄМНА ОПЕРАЦІЯ «КОРОБОЧКА».\nЗа тиждень до будиночків.'},
     {who:null,  emo:null,  text:'Тримай А, щоб ховати коробочку,\nколи Катя дивиться!'},
   ] : [
-    {who:null,   emo:null,  text:'Позняки. Катю сюди все життя\nзакидала доля — тепер вона тут живе.'},
+    {who:null,   emo:null,  text:'Позняки. Катю сюди все життя\nдоля закидала — й привела до пуття.'},
     {who:'katya',emo:'normal',text:'Доля явно щось знала.'},
     {who:null,   emo:null,  text:'ТИМ ЧАСОМ, ЗА ТИЖДЕНЬ ДО БУДИНОЧКІВ.\nДіма щось задумав.'},
     {who:'katya',emo:'normal',text:'Він ховає щось у рюкзаку. Вже третій день.'},
@@ -1200,7 +1197,7 @@ function secretOutroScript(pov){
     {who:null,   emo:null,   text:'(Здається, обійшлось. Здається.)'},
   ] : [
     {who:'katya', emo:'shy', text:'Нічого не бачила. Нічогісінько.'},
-    {who:null,    emo:null,  text:'Він і не здогадується,\nщо ти вже все знаєш. 😏'},
+    {who:null,    emo:null,  text:'Він і не здогадується, бідний,\nщо ти все знаєш. Вигляд зроби гідний 😏'},
   ];
 }
 function startSecret(){
@@ -1296,14 +1293,16 @@ function drawSecret(){
   // шкала
   const label = me==='dima' ? 'ПІДОЗРА КАТІ' : 'ТВОЯ ЦІКАВІСТЬ';
   ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(60,10+TITLE_Y,200,26);
-  ctx.fillStyle = '#fff'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+  ctx.fillStyle = '#fff'; ctx.textAlign='center'; fitText(label, 192, 9, true);
   ctx.fillText(label, W/2, 21+TITLE_Y);
   ctx.fillStyle = '#333'; ctx.fillRect(80,25+TITLE_Y,160,7);
   ctx.fillStyle = s.meter>65 ? '#c0392b' : COL.gold;
   ctx.fillRect(80,25+TITLE_Y,160*Math.min(1,s.meter/100),7);
   if(s.failT>0){
-    ctx.fillStyle = '#f4c46a'; ctx.font='bold 9px monospace';
-    ctx.fillText(me==='dima' ? '«Що це в тебе?» — «НІЧОГО!»' : '«Ти чого дивишся?» — «Я? Нікуди!»', W/2, 50+TITLE_Y);
+    const ft = me==='dima' ? '«Що це в тебе?» — «НІЧОГО!»' : '«Ти чого дивишся?» — «Я? Нікуди!»';
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(W/2-96, 41+TITLE_Y, 192, 15);
+    ctx.fillStyle = '#f4c46a'; fitText(ft, 184, 9, true);
+    ctx.fillText(ft, W/2, 52+TITLE_Y);
   }
   // прогрес часу
   ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(80,H-16,160,4);
@@ -2172,9 +2171,9 @@ function drawKiss(){
     ctx.strokeStyle = 'rgba(143,208,122,.4)';
     ctx.beginPath(); ctx.arc(hcx, hcy+3, 0.26*56, 0, 7); ctx.stroke();     // зелена зона
     ctx.fillStyle='rgba(10,8,14,.66)'; ctx.fillRect(W/2-104, 12+TITLE_Y, 208, 26);
-    ctx.fillStyle='#f4cf5e'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+    ctx.fillStyle='#f4cf5e'; ctx.textAlign='center'; fitText('ПЕРШИЙ ПОЦІЛУНОК: спіймай момент!', 196, 9, true);
     ctx.fillText('ПЕРШИЙ ПОЦІЛУНОК: спіймай момент!', W/2, 23+TITLE_Y);
-    ctx.fillStyle='#e8e2d0'; ctx.font='8px monospace';
+    ctx.fillStyle='#e8e2d0'; fitText('тапни, коли кільце зійдеться на серці', 196, 8, false);
     ctx.fillText('тапни, коли кільце зійдеться на серці', W/2, 33+TITLE_Y);
     if(k.msgT>0){ ctx.fillStyle='rgba(10,8,14,.7)'; ctx.fillRect(W/2-80, hcy-40, 160, 16);
       ctx.fillStyle='#e0959f'; ctx.font='8px monospace'; ctx.fillText(k.msg, W/2, hcy-29); }
@@ -2389,9 +2388,10 @@ function drawBeer(){
   const sub = b.okT>0 ? 'Так! Кокосове темне — Андервуд коконат 🥥'
     : b.wrong>0 ? MISS[(b.wrong-1)%MISS.length] : 'тапни банку з її улюбленим — і подаруй 🍺';
   ctx.fillStyle='rgba(10,8,14,.66)'; ctx.fillRect(0,16+TITLE_Y-HUD_Y,W,32);
-  ctx.fillStyle='#f4cf5e'; ctx.font='bold 10px monospace'; ctx.textAlign='center';
-  ctx.fillText(game.pov==='dima' ? 'Пригадай, яке пиво любить Катя!' : 'Чи запамʼятав Діма твоє пиво?', W/2, 30+TITLE_Y-HUD_Y);
-  ctx.fillStyle = b.okT>0?'#8fd07a':(b.wrong>0?'#e0959f':'#e8e2d0'); ctx.font='8px monospace'; ctx.fillText(sub, W/2, 42+TITLE_Y-HUD_Y);
+  const bqt = game.pov==='dima' ? 'Пригадай, яке пиво любить Катя!' : 'Чи запамʼятав Діма твоє пиво?';
+  ctx.fillStyle='#f4cf5e'; ctx.textAlign='center'; fitText(bqt, W-14, 10, true);
+  ctx.fillText(bqt, W/2, 30+TITLE_Y-HUD_Y);
+  ctx.fillStyle = b.okT>0?'#8fd07a':(b.wrong>0?'#e0959f':'#e8e2d0'); fitText(sub, W-14, 8, false); ctx.fillText(sub, W/2, 42+TITLE_Y-HUD_Y);
   ctx.textAlign='left';
 }
 
@@ -2499,9 +2499,10 @@ function drawVykup(){
   ctx.fillStyle='rgba(26,18,10,.85)'; ctx.fillRect(14,16,W-28,34);
   ctx.strokeStyle='#c8a050'; ctx.lineWidth=1; ctx.strokeRect(14.5,16.5,W-29,33);
   ctx.fillStyle='#f4cf5e'; ctx.font='bold 10px monospace'; ctx.fillText('· ВИКУП НАРЕЧЕНОЇ ·', W/2, 30);
-  ctx.fillStyle='#f4e8c8'; ctx.font='8px monospace';
-  if(v.done){ ctx.fillText('ВИКУП СПЛАЧЕНО! Стрічку знято, дружки пропускають ✔', W/2, 44); }
-  else{ ctx.fillText(VYKUP_ROUNDS[v.round].q, W/2, 44);
+  ctx.fillStyle='#f4e8c8';
+  if(v.done){ fitText('ВИКУП СПЛАЧЕНО! Стрічку знято, дружки пропускають ✔', W-36, 8, false);
+    ctx.fillText('ВИКУП СПЛАЧЕНО! Стрічку знято, дружки пропускають ✔', W/2, 44); }
+  else{ fitText(VYKUP_ROUNDS[v.round].q, W-36, 8, false); ctx.fillText(VYKUP_ROUNDS[v.round].q, W/2, 44);
     ctx.fillStyle='rgba(244,232,200,.55)'; ctx.font='7px monospace';
     ctx.fillText('раунд '+(v.round+1)+' з '+VYKUP_ROUNDS.length+' · обери хід. Помилка — штраф із казни!', W/2, 55); }
   // ── КАЗНА ВИКУПУ (ресурсна смуга Героїв 3) ──
@@ -2523,7 +2524,7 @@ function drawVykup(){
   if(v.noteT>0){
     ctx.fillStyle='rgba(26,18,10,.88)'; ctx.fillRect(18, H*0.34, W-36, 26);
     ctx.strokeStyle='#c8a050'; ctx.strokeRect(18.5, H*0.34+0.5, W-37, 25);
-    ctx.fillStyle='#f4e8c8'; ctx.font='8px monospace'; ctx.fillText(v.note, W/2, H*0.34+16);
+    ctx.fillStyle='#f4e8c8'; fitText(v.note, W-44, 8, false); ctx.fillText(v.note, W/2, H*0.34+16);
   } else {
     VYKUP_ROUNDS[v.round].opts.forEach((m,i)=>{
       const b=chessBtn(i), on=i===v.sel;
@@ -3327,7 +3328,7 @@ function drawSvat(){
     // шкала і підказка
     const label = me==='katya' ? 'КОЛУПАЙ ПІЧ!' : 'ТРИМАЙ ХЛІБ РІВНО!';
     ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(60,8+TITLE_Y,200,30);
-    ctx.fillStyle = '#fff'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+    ctx.fillStyle = '#fff'; ctx.textAlign='center'; fitText(label, 192, 9, true);
     ctx.fillText(label, W/2, 19+TITLE_Y);
     ctx.fillStyle = '#333'; ctx.fillRect(80,24+TITLE_Y,160,8);
     ctx.fillStyle = me==='katya' ? COL.rose : COL.sage;
@@ -3718,9 +3719,9 @@ function drawProp(){
     const label = game.pov==='dima' ? 'ЗНАЙДИ КОРОБОЧКУ В РЮКЗАКУ!' : 'РОБИ ЗДИВОВАНЕ ОБЛИЧЧЯ!';
     const sub = game.pov==='dima' ? 'вона ж нічого не підозрює (підозрює)' : 'ти ж нічого не знала (знала)';
     ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(40,8+TITLE_Y,240,36);
-    ctx.fillStyle = '#fff'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+    ctx.fillStyle = '#fff'; ctx.textAlign='center'; fitText(label, 232, 9, true);
     ctx.fillText(label, W/2, 20+TITLE_Y);
-    ctx.fillStyle = '#bcb7a8'; ctx.font='9px monospace';
+    ctx.fillStyle = '#bcb7a8'; fitText(sub, 232, 9, false);
     ctx.fillText(sub, W/2, 30+TITLE_Y);
     if(game.pov==='dima' && p.rum){
       const r=p.rum;
@@ -4098,7 +4099,7 @@ function drawGuest(x, y, col, seated, t, faceImg, sc){
   ctx.fillRect(x-5*sc, y-(seated?26:34)*sc-b, 12*sc, (seated?20:28)*sc);   // контур тіла
   ctx.fillStyle = col;
   ctx.fillRect(x-4*sc, y-(seated?25:33)*sc-b, 10*sc, (seated?18:26)*sc);   // тіло
-  if(sc>1.2){                                                              // деталі на великих
+  {                                                                        // деталі на всіх масштабах
     ctx.fillStyle='rgba(0,0,0,.16)'; ctx.fillRect(x-4*sc, y-(seated?25:33)*sc-b, 3*sc, (seated?18:26)*sc); // тінь збоку
     ctx.fillStyle='#f4e8c8'; ctx.fillRect(x-1*sc, y-(seated?24:32)*sc-b, 2.4*sc, 3.6*sc);                  // комірець
     ctx.fillStyle='rgba(255,255,255,.14)'; ctx.fillRect(x+3*sc, y-(seated?25:33)*sc-b, 1.6*sc, (seated?18:26)*sc); // відблиск
@@ -4238,8 +4239,8 @@ function drawWedSofi(){
   ctx.fillRect(47, FLOOR_Y+4, 2, 2); ctx.fillRect(47, FLOOR_Y+8, 2, 2);
   ctx.fillRect(99, FLOOR_Y+4, 2, 2); ctx.fillRect(99, FLOOR_Y+8, 2, 2);
   // почет: дружки ліворуч від Каті, бояри праворуч від Діми
-  drawAttendant(14, FLOOR_Y+4, BRIDES[0]); drawAttendant(29, FLOOR_Y+4, BRIDES[1]);
-  drawAttendant(107, FLOOR_Y+4, GROOMS[0]); drawAttendant(120, FLOOR_Y+4, GROOMS[1]);
+  drawAttendant(10, FLOOR_Y+4, BRIDES[0], 1.35); drawAttendant(32, FLOOR_Y+4, BRIDES[1], 1.35);
+  drawAttendant(104, FLOOR_Y+4, GROOMS[0], 1.35); drawAttendant(126, FLOOR_Y+4, GROOMS[1], 1.35);
   // молодята на рушнику
   drawCouple(58, 90, FLOOR_Y+4);
   // ЗАСТІЛЛЯ: довгий стіл, скатертина з вишивкою, КОРОВАЙ у центрі
@@ -4268,7 +4269,7 @@ function drawWedSofi(){
   const sofiGuests = [[tx+16,'#5a7ea6',0],[tx+42,'#a8505f',8],[tx+88,'#3F7C77',4]];
   const SHOUTS = ['ГІРКО!', 'ГІРКО!!!', 'За молодят!', 'многая літа!'];
   sofiGuests.forEach(([gx,col,off],i)=>{
-    drawGuest(gx, ty-24, col, true, game.t+off, guestFace(i));
+    drawGuest(gx, ty-24, col, true, game.t+off, guestFace(i), 1.4);
     // по черзі один кричить, решта наспівують ноти
     const active = ((game.t>>6) % sofiGuests.length) === i;
     if(active) drawShout(gx, ty-32, SHOUTS[(game.t>>6) % SHOUTS.length]);
@@ -4350,8 +4351,8 @@ function drawWedKhv(){
   ctx.fillStyle = '#a8323c';                                     // вишита смужка на краю сцени
   for(let ox=sx+4; ox<sx+sw-6; ox+=8){ ctx.fillRect(ox, syTop+1, 4, 2); }
   // почет стоїть на сцені обабіч: дружки ліворуч, бояри праворуч
-  drawAttendant(sx+10, syTop, BRIDES[0]); drawAttendant(sx+22, syTop, BRIDES[1]);
-  drawAttendant(sx+96, syTop, GROOMS[0]); drawAttendant(sx+108, syTop, GROOMS[1]);
+  drawAttendant(sx+8, syTop, BRIDES[0], 1.3); drawAttendant(sx+26, syTop, BRIDES[1], 1.3);
+  drawAttendant(sx+92, syTop, GROOMS[0], 1.3); drawAttendant(sx+112, syTop, GROOMS[1], 1.3);
   // МОЛОДЯТА СИДЯТЬ на краю сцени, ноги звисають
   drawSeatedCouple(sx+34, sx+74, syTop);
   // мікрофон на стійці біля сцени
@@ -4534,7 +4535,7 @@ function montageIntroScript(){
 function montageOutroScript(){
   return [
     {who:'katya', emo:'happy', text:'Ідеальний рез.'},
-    {who:null,    emo:null,     text:'(Цей випуск Катя так і не монтувала.\nАле в грі можна все.)'},
+    {who:null,    emo:null,     text:'(Цей випуск Катя так і не монтувала, —\nа гра змонтує все, чого бракувало.)'},
   ];
 }
 function startMontage(){
@@ -5081,14 +5082,14 @@ function novelData(){
   const N = t => ({who:null, text:t});
   return [
     {bg:0, cap:['КИЇВ · 2021 · ще до війни','зйомка ШТОРМНАДО'], lines:[
-      N('Ще мирний рік. На зйомці, на рекламній, —\nвона режисерка, він у кадрі, під камерою.'),
+      N('Ще мирний рік, реклама, знімальна метушня:\nвона за камерою, він — у кадрі щодня.'),
       {who:'katya', emo:'normal', text:'Офіс агенції. Знімаємо ШТОРМНАДО.\nБув якийсь бриф про метаверс.'},
       {who:'dima',  emo:'happy',  text:'А куди дивитись — в камеру\nчи на режисерку?)'},
-      N('Імені він так і не спитав тоді, —\nне знав, що поряд доля походжала.'),
+      N('Імені він не спитав — і не збагнув,\nщо поряд доля ходить: він її не вчув.'),
     ]},
     {bg:1, cap:['СЕРПЕНЬ 2022 · вже інше життя','Тіндер'], lines:[
       N('А потім — впала на нас війна,\nусе, що «до», лягло за темну стіну.'),
-      N('Аж через рік, у Тіндері, здалека,\nзвела їх доля вдруге — «на пиво», мовби.'),
+      N('Аж через рік звела їх доля вдруге:\nодин свайп вправо — і минула туга.'),
       {who:'katya', emo:'wow',  text:'Стоп. Це ж хлопець зі зйомок 2021-го…'},
     ]},
     {bg:2, cap:['ПЕЙЗАЖКА','перше побачення'], lines:[
@@ -5107,7 +5108,7 @@ function novelData(){
     {bg:4, cap:['ОСІНЬ 2023 · Білогородка','Кітана'], lines:[
       N('Осінь. У Даниному дворі, в Білогородці,\nкошенята — й одне тулиться до Каті.'),
       {who:'katya', emo:'happy', text:'Це вона.'},
-      N('Приїхали по неї — а вона\nсама в коробку скік, і вже рідна.'),
+      N('Приїхали по неї — а мала\nсама в коробку скочила. Й своя вже стала.'),
     ]},
     {bg:5, cap:['СВАТАННЯ','за давнім звичаєм'], lines:[
       N('Перш ніж весілля — йдуть у хату свати:\nстарости з хлібом, за руку просити.'),
@@ -5125,7 +5126,7 @@ function novelData(){
       {who:'dima', emo:'shy', text:'Хочу, щоб ти стала… Катериною Лютою.'},
       {who:'dima', emo:'shy', text:'І попри те, що ти мене часом бісиш —\nхочу з тобою жити.'},
       {who:'katya', emo:'happy', text:'Так!'},
-      N('Сказала «так» ще до крапки останньої, —\nсерце давно вже знало відповідь.'),
+      N('Сказала «так», не дослухавши слова, —\nбо серце відповідь тримало вже готову.'),
     ]},
     {bg:8, cap:['06.09.2026 · Київ','весілля'], lines:[
       N('Од свайпу вправо — та до рушничка,\nвід пива на Пейзажці — та до вінця.'),
@@ -5750,7 +5751,7 @@ function drawNovel(){
       'СВАТАННЯ':'старости з хлібом приходять просити руки:\nрушники — згода, гарбуз — відмова',
       'ЗАРУЧИНИ':'молоді дають слово і мають обручки:\nвідтепер вони — заручені',
       'ВЕСІЛЛЯ':'вінчання, коровай і гуляння —\nувесь рід за одним столом'};
-    (gloss[part]||'').split('\n').forEach((gl,gi)=> ctx.fillText(gl, W/2, H/2+24+gi*12));
+    (gloss[part]||'').split('\n').forEach((gl,gi)=>{ fitText(gl, W-24, 9, false); ctx.fillText(gl, W/2, H/2+24+gi*12); });
     drawOrnament(H/2+58);
     ctx.fillStyle='rgba(216,212,196,.45)'; ctx.font='8px monospace';
     ctx.fillText('тап — далі', W/2, H-30);
@@ -8524,8 +8525,8 @@ function startKitana(){
 }
 function kitanaIntroScript(pov){
   return [
-    {who:null, emo:null, text:'Білогородка. У друга Каті — Дана —\nу дворі вуличка окотила кошенят.'},
-    {who:null, emo:null, text:'Катя побачила найручніше в його сторіз\nі одразу: «це вона». Господиня дозволила котика.'},
+    {who:null, emo:null, text:'Білогородка. У дворі у Дана\nкотиків принесла кішка зрана.'},
+    {who:null, emo:null, text:'Катя в сторіз побачила мале —\nй одразу: «це вона». Отак і все.'},
     {who:null, emo:null, text:'ПРАВИЛА: щоб покликати Кітану — треба\nнявкати, а гра «слухає» твій голос.'},
     {who:null, emo:null, text:'Тому далі браузер спитає доступ до мікрофона —\nце лише щоб чути твоє «няв». Дозволь 🎤'},
     {who:null, emo:null, text:'🐈 Нявкай — Кітана біжить до вас!\nЧастіше нявкаєш — швидше. (нема мікрофона? тап / ПРОБІЛ)'},
@@ -8649,7 +8650,7 @@ function drawKitanaScene(){
 }
 function kitanaOutroScript(pov){
   return [
-    {who:null, emo:null, text:'Повелась на іграшку — і лишилась назавжди.\nВідтоді в нас її затишний кут. 🐈'},
+    {who:null, emo:null, text:'Повелась на іграшку — і зосталась:\nу затишнім кутку тут прописалась 🐈'},
   ];
 }
 
