@@ -156,7 +156,7 @@
   #kbd-hint{position:absolute;bottom:2.5%;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.55);font-size:clamp(10px,2cqw,13px);letter-spacing:1px;text-shadow:1px 1px 0 #000}
 
   /* ---------- семплер ---------- */
-  #sampler-screen{background:#14121c;gap:2.2%;padding:2%}
+  #sampler-screen{background:#14121c;gap:2%;padding:2% 2% 6%;overflow-y:auto;justify-content:flex-start}
   .s-head{color:#fff;font-weight:bold;font-size:clamp(11px,2.6cqw,18px);letter-spacing:1px;text-align:center}
   .s-head span{display:block;color:#bcb7a8;font-weight:normal;font-size:clamp(10px,2cqw,13px);margin-top:2px}
   #s-grid{
@@ -171,8 +171,8 @@
   .s-cell.on{background:var(--rose);border-color:#d98a96}
   .s-cell.col-now{filter:brightness(1.6)}
   .s-cell:nth-child(17n+6), .s-cell:nth-child(17n+10), .s-cell:nth-child(17n+14){border-left:2px solid #55515f}
-  .s-controls{display:flex;gap:8px}
-  .s-btn{font-size:clamp(10px,2.2cqw,15px);padding:.4em .9em}
+  .s-controls{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:96vw}
+  .s-btn{font-size:clamp(9px,2cqw,14px);padding:.35em .6em}
   #s-play{background:var(--sage)} #s-code{background:var(--terra)} #s-back{background:#55515f}
 
   /* ---------- end screen ---------- */
@@ -4804,6 +4804,7 @@ function startNovel(){
 }
 function updateNovel(){
   const n = game.nov; if(!n) return;
+  n.chT = (n.chT||0)+1;
   const chap = n.chapters[n.ch]; if(!chap){ finishGame(); return; }
   const ln = chap.lines[n.li];
   if(n.shown < ln.text.length){ const prev=Math.floor(n.shown); n.shown = Math.min(ln.text.length, n.shown + 1.2);
@@ -4815,7 +4816,7 @@ function novelAdvance(){
   const ln = chap.lines[n.li];
   if(n.shown < ln.text.length){ n.shown = ln.text.length; return; }   // домалювати рядок
   n.li++; n.shown = 0;
-  if(n.li >= chap.lines.length){ novelMarkSeen(n.ch); n.ch++; n.li = 0; }
+  if(n.li >= chap.lines.length){ novelMarkSeen(n.ch); n.ch++; n.li = 0; n.chT = 0; }
   if(n.ch >= n.chapters.length){ finishGame(); }
 }
 // памʼять про переглянуті розділи (щоб можна було пропускати бачене)
@@ -4823,7 +4824,7 @@ function novelSeenSet(){ try{ return new Set(JSON.parse(localStorage.getItem('we
 function novelMarkSeen(ch){ const s=novelSeenSet(); s.add(ch); try{ localStorage.setItem('wed-novel-seen', JSON.stringify([...s])); }catch(_){} if(game.nov) game.nov.seen=s; }
 function novelSkipRect(){ return {x:W-104, y:46, w:96, h:20}; }
 function novelCanSkip(){ const n=game.nov; return !!(n && n.seen && n.seen.has(n.ch) && n.ch < n.chapters.length-1); }
-function novelSkipChapter(){ const n=game.nov; if(!n) return; novelMarkSeen(n.ch); n.ch++; n.li=0; n.shown=0; if(n.ch>=n.chapters.length) finishGame(); }
+function novelSkipChapter(){ const n=game.nov; if(!n) return; novelMarkSeen(n.ch); n.ch++; n.li=0; n.shown=0; n.chT=0; if(n.ch>=n.chapters.length) finishGame(); }
 /* ===== АНІМЕ-ПОРТРЕТИ (мальовані, окрема манга — без фото й ігрових спрайтів) =====
    Катя й Діма в аніме-стилі: великі очі, чисті лінії, cel-shading. */
 /* GAME BOY портрет для новели: фото-бюст у бірюзовій 4-тоновій палітрі з дизерингом.
@@ -5119,9 +5120,38 @@ function drawNovelFx(i, boxY){
       ctx.beginPath(); ctx.moveTo(dx2-6,dy2+wing-2); ctx.lineTo(dx2,dy2); ctx.lineTo(dx2+6,dy2+wing-2); ctx.stroke(); }
   }
 }
+const NOVEL_PARTS=['ВЕЧОРНИЦІ','ВЕЧОРНИЦІ','ВЕЧОРНИЦІ','ЖЕНИХАННЯ','ЖЕНИХАННЯ','СВАТАННЯ','ЗАРУЧИНИ','ЗАРУЧИНИ','ВЕСІЛЛЯ'];
+function novelPartCardActive(){
+  const n=game.nov; if(!n) return false;
+  const chap=n.chapters[n.ch]; if(!chap) return false;
+  const part=NOVEL_PARTS[chap.bg], prev=n.ch>0?NOVEL_PARTS[n.chapters[n.ch-1].bg]:null;
+  return part && part!==prev && (n.chT||0)<95;
+}
 function drawNovel(){
   const n = game.nov; if(!n){ finishGame(); return; }
   const chap = n.chapters[n.ch]; if(!chap){ finishGame(); return; }
+  if(novelPartCardActive()){
+    // повноекранна картка частини традиційного весілля
+    const part=NOVEL_PARTS[chap.bg];
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0d1a18'); g.addColorStop(1,'#16302c');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    for(let k=0;k<14;k++){ ctx.fillStyle='rgba(150,196,178,.25)';
+      ctx.fillRect((k*47+game.t*0.3)%W,(k*67)%H,2,2); }
+    ctx.textAlign='center';
+    drawOrnament(H/2-64);
+    ctx.fillStyle='rgba(150,196,178,.85)'; ctx.font='bold 11px monospace';
+    ctx.fillText('· ЧАСТИНА '+(['','ПЕРША','','','ДРУГА','','ТРЕТЯ','ЧЕТВЕРТА','','ШОСТА'][chap.bg]||'')+' ·', W/2, H/2-34);
+    ctx.fillStyle='#e2f2e2'; ctx.font='bold 26px monospace';
+    ctx.fillText(part, W/2, H/2+2);
+    ctx.fillStyle='rgba(226,242,226,.6)'; ctx.font='9px monospace';
+    const gloss={'ВЕЧОРНИЦІ':'де молодь зустрічалась','ЖЕНИХАННЯ':'ходіння в парі','СВАТАННЯ':'старости йдуть у хату','ЗАРУЧИНИ':'слово і каблучка','ВЕСІЛЛЯ':'вінчання і гуляння'};
+    ctx.fillText(gloss[part]||'', W/2, H/2+24);
+    drawOrnament(H/2+44);
+    ctx.fillStyle='rgba(216,212,196,.45)'; ctx.font='8px monospace';
+    ctx.fillText('тап — далі', W/2, H-30);
+    ctx.textAlign='left';
+    return;
+  }
   const ln = chap.lines[n.li];
   const talking = n.shown < ln.text.length;
   const boxY = H - (PORTRAIT_MODE?132:70), boxH = PORTRAIT_MODE?112:56;
@@ -5199,7 +5229,6 @@ function drawNovel(){
   // капшн зверху
   ctx.textAlign='center';
   ctx.fillStyle='rgba(10,8,14,.55)'; ctx.fillRect(0,10,W,32);
-  const NOVEL_PARTS=['ВЕЧОРНИЦІ','ВЕЧОРНИЦІ','ВЕЧОРНИЦІ','ЖЕНИХАННЯ','ЖЕНИХАННЯ','СВАТАННЯ','ЗАРУЧИНИ','ЗАРУЧИНИ','ВЕСІЛЛЯ'];
   ctx.fillStyle='rgba(232,138,160,.9)'; ctx.font='bold 8px monospace'; ctx.fillText('· '+(NOVEL_PARTS[chap.bg]||'')+' ·', W/2, 16);
   ctx.fillStyle=COL.gold; ctx.font='bold 12px monospace'; ctx.fillText(chap.cap[0], W/2, 26);
   ctx.fillStyle='#d8d4c4'; ctx.font='9px monospace'; ctx.fillText(chap.cap[1], W/2, 38);
@@ -5433,6 +5462,7 @@ function canvasPos(e){
 cv.addEventListener('pointerdown', e=>{
   e.preventDefault();
   if(game.state==='novel'){
+    if(novelPartCardActive()){ game.nov.chT = 95; return; }
     if(novelCanSkip()){ const p=canvasPos(e), r=novelSkipRect();
       if(p.x>=r.x && p.x<=r.x+r.w && p.y>=r.y && p.y<=r.y+r.h){ novelSkipChapter(); return; } }
     novelAdvance(); return;
@@ -5968,7 +5998,11 @@ document.getElementById('viber-save').addEventListener('click', ()=>{
 
 /* тайтл-музика: браузер дозволяє звук лише після жесту — вмикаємо з першого дотику */
 document.addEventListener('pointerdown', ()=>{
-  if(game.state==='title' && !chipKey) playChip('planeta');
+  if(game.state==='title' && !chipKey){
+    const overlayOpen = ['sampler-screen','playlist-screen','party-screen','selfie-screen','rating-screen','ach-screen']
+      .some(id=>{ const el=document.getElementById(id); return el && !el.classList.contains('hidden'); });
+    if(!overlayOpen) playChip('planeta');
+  }
 });
 
 /* імʼя гравця: питаємо один раз, гра звертається на імʼя */
@@ -6594,9 +6628,11 @@ const SMP = {
       cell.dataset.r = r; cell.dataset.c = c;
       cell.addEventListener('pointerdown', e=>{
         e.preventDefault();
-        SMP.grid[r][c] = !SMP.grid[r][c];
-        cell.classList.toggle('on', SMP.grid[r][c]);
-        if(SMP.grid[r][c]){ ensureAudio(); playNote(row.f, audioCtx.currentTime, 0.22, SMP.wave||'square', 0.06); }
+        SMP.grid[r][c] = SMP.grid[r][c] ? false : (SMP.wave||'square');
+        cell.classList.toggle('on', !!SMP.grid[r][c]);
+        const WCOL={square:'',triangle:'#B58A2E',sawtooth:'#A8505F',sine:'#4a7c9e'};
+        cell.style.background = SMP.grid[r][c] ? (WCOL[SMP.grid[r][c]]||'') : '';
+        if(SMP.grid[r][c]){ ensureAudio(); playNote(row.f, audioCtx.currentTime, 0.22, SMP.grid[r][c], 0.06); }
       });
       el.appendChild(cell);
     }
@@ -6619,7 +6655,7 @@ document.getElementById('s-play').addEventListener('click', ()=>{
   document.getElementById('s-play').textContent = '■ СТОП';
   SMP.timer = setInterval(()=>{
     const t = audioCtx.currentTime;
-    SMP.rows.forEach((row,r)=>{ if(SMP.grid[r][SMP.col]) playNote(row.f, t, 0.24, SMP.wave||'square', 0.06); });
+    SMP.rows.forEach((row,r)=>{ const w=SMP.grid[r][SMP.col]; if(w) playNote(row.f, t, 0.24, w===true?'square':w, 0.06); });
     samplerHighlight(SMP.col);
     SMP.col = (SMP.col+1) % SMP.steps;
   }, 240);
@@ -6746,6 +6782,7 @@ document.getElementById('s-myplay').addEventListener('click', ()=>{
 });
 document.getElementById('s-clear').addEventListener('click', ()=>{
   SMP.grid.forEach(r=>r.fill(false));
+  document.querySelectorAll('.s-cell').forEach(c=>c.style.background='');
   document.querySelectorAll('.s-cell.on').forEach(c=>c.classList.remove('on'));
 });
 /* --------- весільний плейлист: мелодії гостей у Firestore ---------
@@ -6756,19 +6793,22 @@ document.getElementById('s-clear').addEventListener('click', ()=>{
        allow update, delete: if false;
      } */
 function smpSerialize(){
-  return SMP.grid.map((row,r)=> row.map((v,c)=> v? `${SMP.rows[r].n}:${c}`:null).filter(Boolean).join(','))
+  const wi = w => Math.max(0, SMP_WAVES.findIndex(x=>x[0]===(w===true?'square':w)));
+  return SMP.grid.map((row,r)=> row.map((v,c)=> v? `${SMP.rows[r].n}:${c}:${wi(v)}`:null).filter(Boolean).join(','))
     .filter(s=>s).join(';');
 }
 function smpDeserialize(code){
   SMP.grid.forEach(r=>r.fill(false));
   document.querySelectorAll('.s-cell.on').forEach(c=>c.classList.remove('on'));
   (code||'').split(/[;,]/).forEach(tok=>{
-    const [n, c] = tok.split(':');
+    const [n, c, w] = tok.split(':');
     const r = SMP.rows.findIndex(row=>row.n===n);
     if(r>=0 && c>=0 && c<SMP.steps){
-      SMP.grid[r][+c] = true;
+      const wave = (SMP_WAVES[+w||0]||SMP_WAVES[0])[0];
+      SMP.grid[r][+c] = wave;
       const cell = document.querySelector(`.s-cell[data-r="${r}"][data-c="${c}"]`);
-      if(cell) cell.classList.add('on');
+      const WCOL={square:'',triangle:'#B58A2E',sawtooth:'#A8505F',sine:'#4a7c9e'};
+      if(cell){ cell.classList.add('on'); cell.style.background = WCOL[wave]||''; }
     }
   });
 }
