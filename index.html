@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Катя ♥ Діма — гра-запрошення</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#a8323c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Катя♥Діма">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
   :root{
     --terra:#1E4E8A; --sage:#3F7C77; --rose:#A8505F; --gold:#B58A2E;
@@ -281,6 +287,7 @@
       </div>
       <div class="btn-row">
         <button class="btn small" id="btn-party">Тіндер</button>
+        <button class="btn small" id="btn-install" style="background:#6a5cff">📲 На робочий стіл</button>
         <button class="btn small" id="btn-viber-title">Гарне запрошення</button>
       </div>
     </div>
@@ -7683,6 +7690,26 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+
+/* ================= PWA: додати на робочий стіл ================= */
+if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js'); }catch(_){} }
+let installPrompt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
+document.getElementById('btn-install').addEventListener('click', async ()=>{
+  if(installPrompt){                                   // Android / Chrome / Edge — системний діалог
+    installPrompt.prompt();
+    try{ await installPrompt.userChoice; }catch(_){}
+    installPrompt = null;
+    return;
+  }
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua);
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if(standalone){ alert('🎉 Гра вже на твоєму робочому столі!'); return; }
+  alert(isIOS
+    ? '📲 На iPhone/iPad:\n\n1. Тисни кнопку «Поділитись» (квадрат зі стрілкою внизу Safari)\n2. Гортай вниз → «На Початковий екран» / «Add to Home Screen»\n3. «Додати» — і гра буде як застосунок!'
+    : '📲 На компʼютері (Chrome/Edge):\n\nВ адресному рядку праворуч — іконка встановлення (монітор зі стрілкою). Натисни її → «Встановити».\n\nНа Android: меню ⋮ → «Додати на головний екран».');
+});
 </script>
 </body>
 </html>

@@ -1,0 +1,15 @@
+{
+  "name": "Катя ♥ Діма — гра-запрошення",
+  "short_name": "Катя♥Діма",
+  "description": "Весільне запрошення-гра: пройди нашу історію і поклич себе на свято",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f0e4",
+  "theme_color": "#a8323c",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
