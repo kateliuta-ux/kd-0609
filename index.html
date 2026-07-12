@@ -395,7 +395,7 @@
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
       <button class="btn s-btn" id="selfie-snap" style="background:var(--rose)">📸 КЛАЦ</button>
       <button class="btn s-btn" id="selfie-file" style="background:#6a5cff">📁 З ГАЛЕРЕЇ</button>
-      <button class="btn s-btn" id="selfie-gb" style="background:#3f7c77">Game Boy: ON</button>
+      <button class="btn s-btn hidden" id="selfie-gb" style="background:#3f7c77">СТИЛЬ: GAME BOY 🎮</button>
       <button class="btn s-btn" id="selfie-send" style="background:var(--sage)" disabled>⬆ НАДІСЛАТИ</button>
       <button class="btn s-btn" id="selfie-back" style="background:#55515f">НАЗАД</button>
     </div>
@@ -6545,6 +6545,7 @@ async function openSelfie(){
   const snapBtn = document.getElementById('selfie-snap');
   // камера відкривається ЗАВЖДИ (обмеження «одне фото на гостя» — на сервері).
   snapBtn.disabled = false;
+  document.getElementById('selfie-gb').classList.add('hidden');
   document.getElementById('selfie-send').disabled = true;
   const already = !!localStorage.getItem('wed-selfie-sent');
   st.textContent = 'вмикаю камеру…';
@@ -6614,6 +6615,7 @@ document.getElementById('selfie-snap').addEventListener('click', ()=>{
   g.drawImage(v, (v.videoWidth-s)/2, (v.videoHeight-s)/2, s, s, 0, 0, 320, 320);
   selfieRaw = c;
   renderSelfieShot();
+  document.getElementById('selfie-gb').classList.remove('hidden');   // стиль можна міняти лише коли є кадр
   document.getElementById('selfie-send').disabled = false;
   document.getElementById('selfie-status').textContent = 'є кадр! «Game Boy» — перемкнути стиль · «НАДІСЛАТИ» або переклацай';
 });
@@ -6628,6 +6630,7 @@ document.getElementById('selfie-file-input').addEventListener('change', e=>{
     const s = Math.min(img.width, img.height);
     g.drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, 320, 320);  // квадратний центр-кроп
     selfieRaw = c; renderSelfieShot();
+    document.getElementById('selfie-gb').classList.remove('hidden');
     document.getElementById('selfie-send').disabled = false;
     st.textContent = 'фото завантажено! «Game Boy» — стиль · «НАДІСЛАТИ» або обери інше';
     URL.revokeObjectURL(img.src);
@@ -6638,7 +6641,10 @@ document.getElementById('selfie-file-input').addEventListener('change', e=>{
 });
 document.getElementById('selfie-gb').addEventListener('click', ()=>{
   selfieGB = !selfieGB;
-  document.getElementById('selfie-gb').textContent = 'Game Boy: ' + (selfieGB?'ON':'OFF');
+  document.getElementById('selfie-gb').textContent = selfieGB ? 'СТИЛЬ: GAME BOY 🎮' : 'СТИЛЬ: ЗВИЧАЙНЕ ФОТО';
+  document.getElementById('selfie-status').textContent = selfieGB
+    ? 'ретро-стиль: 4 бірюзові тони, як на Game Boy Camera'
+    : 'звичайне кольорове фото (без ретро-фільтра)';
   if(selfieRaw) renderSelfieShot();
 });
 document.getElementById('selfie-send').addEventListener('click', async ()=>{
