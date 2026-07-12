@@ -2247,7 +2247,7 @@ function drawVykup(){
       ctx.closePath(); ctx.stroke();
     }
   // армії: дружки (ліворуч, обороняють Катю) vs Діма з боярами (праворуч)
-  const uy = Math.round(H*0.62), bob=(game.t>>4)&1;
+  const uy = Math.round(H*(PORTRAIT_MODE?0.42:0.62)), bob=(game.t>>4)&1;
   // ворота-арка з рушником (Катя за ними — «фортеця»)
   ctx.fillStyle='#5a3a1e'; ctx.fillRect(84,uy-92,6,96); ctx.fillRect(84,uy-92,10,6);
   ctx.fillStyle='#f4e8c8'; ctx.fillRect(86,uy-86,3,86);                       // рушник на воротах
@@ -2284,16 +2284,16 @@ function drawVykup(){
   if(v.done){ ctx.fillText('ВИКУП СПЛАЧЕНО! Стрічку знято, дружки пропускають ✔', W/2, 44); }
   else ctx.fillText(VYKUP_ROUNDS[v.round].q, W/2, 44);
   // ── КАЗНА ВИКУПУ (ресурсна смуга Героїв 3) ──
-  { const ry=H-26, icons=[['🍬','sweets'],['🍾','fizz'],['♥','heart']];
+  { const ry = PORTRAIT_MODE ? 66 : 62, icons=[['🍬','sweets'],['🍾','fizz'],['♥','heart']];
     ctx.fillStyle='rgba(26,18,10,.85)'; ctx.fillRect(W/2-84, ry-13, 168, 22);
     ctx.strokeStyle='#c8a050'; ctx.lineWidth=1; ctx.strokeRect(W/2-83.5, ry-12.5, 167, 21);
     ctx.font='10px monospace'; ctx.textAlign='center';
     icons.forEach(([ic,key],i)=>{ const ix=W/2-56+i*56;
       ctx.fillStyle='#f4e8c8'; ctx.fillText(ic+' '+(key==='heart'&&v.res.heart<1?'∞':v.res[key]), ix, ry+2);
       if(v.spend && v.spend.key===key){ ctx.globalAlpha=Math.max(0,1-v.spend.t/50);
-        ctx.fillStyle='#e05a64'; ctx.fillText('−1', ix+14, ry-8-v.spend.t*0.4); ctx.globalAlpha=1; }
+        ctx.fillStyle='#e05a64'; ctx.fillText('−1', ix+14, ry+14+v.spend.t*0.4); ctx.globalAlpha=1; }
     });
-    ctx.fillStyle='rgba(244,232,200,.5)'; ctx.font='7px monospace'; ctx.fillText('казна викупу', W/2, ry-16); }
+    ctx.fillStyle='rgba(244,232,200,.5)'; ctx.font='7px monospace'; ctx.fillText('казна викупу', W/2, ry+19); }
   if(v.done){
     ctx.fillStyle='rgba(26,18,10,.8)'; ctx.fillRect(W/2-90, H*0.36, 180, 26);
     ctx.fillStyle='#8fd07a'; ctx.font='bold 11px monospace'; ctx.fillText('ПЕРЕМОГА КОХАННЯ', W/2, H*0.36+17);
