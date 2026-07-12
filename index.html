@@ -4858,6 +4858,50 @@ function drawNovel(){
   drawNovelBgGB(chap.bg, boxY);
   ctx.fillStyle='rgba(10,8,14,.3)'; ctx.fillRect(0,0,W,boxY);
   if(chap.bg===8 || chap.bg===5) drawNovelGuests(boxY);   // весілля / сватання — гості з вами
+  if(chap.bg===1){                                         // тіндер: анімована картка свайпається вправо
+    const cyc = (game.t % 140) / 140;                      // цикл ~2.3с
+    const t2 = cyc<0.55 ? 0 : (cyc-0.55)/0.45;             // пауза → політ
+    const cw=76, ch=100, cx = W/2 + t2*t2*220, cy = 120, rot = t2*0.5;
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+    ctx.globalAlpha = 1 - t2*0.85;
+    ctx.fillStyle='#16121c'; ctx.fillRect(-cw/2-2,-ch/2-2,cw+4,ch+4);
+    ctx.fillStyle='#f4f0e4'; ctx.fillRect(-cw/2,-ch/2,cw,ch);
+    // силует Діми на картці
+    ctx.fillStyle='#2a3644'; ctx.fillRect(-cw/2,-ch/2,cw,ch-24);
+    ctx.fillStyle='#e8c49c'; ctx.fillRect(-8,-ch/2+16,16,16);
+    ctx.fillStyle='#221c26'; ctx.fillRect(-8,-ch/2+16,16,6);
+    ctx.fillStyle='#3F7C77'; ctx.fillRect(-11,-ch/2+32,22,16);
+    ctx.fillStyle='#1a1a24'; ctx.font='bold 7px monospace'; ctx.textAlign='center';
+    ctx.fillText('Дмитро, 32', 0, ch/2-13);
+    ctx.font='6px monospace'; ctx.fillStyle='#777'; ctx.fillText('синтезатори · жарти', 0, ch/2-4);
+    if(t2>0.05){ ctx.strokeStyle='#4ea86a'; ctx.lineWidth=2; ctx.strokeRect(-cw/2+6,-ch/2+6,34,14);
+      ctx.fillStyle='#4ea86a'; ctx.font='bold 8px monospace'; ctx.fillText('LIKE', -cw/2+23, -ch/2+16); }
+    ctx.restore(); ctx.globalAlpha = 1;
+    // палець, що свайпає
+    const fx = W/2 - 14 + t2*90;
+    ctx.fillStyle='rgba(238,188,150,.92)'; ctx.beginPath(); ctx.arc(fx, cy+44, 7, 0, 7); ctx.fill();
+    ctx.fillRect(fx-3, cy+44, 6, 16);
+  }
+  if(chap.bg===8){                                         // поверх весільної сцени — головне запрошення
+    const v = guestVenue();                                // sofi / khv / null(обидві)
+    const blocks = [];
+    if(v!=='khv') blocks.push(SLOTS.A);
+    if(v!=='sofi') blocks.push(SLOTS.B);
+    const bh = 34 + blocks.length*30 + (DRESS_CODE!=='—'?14:0);
+    const by2 = 96;
+    ctx.fillStyle='rgba(13,26,24,.82)'; ctx.fillRect(24,by2,W-48,bh);
+    ctx.strokeStyle='rgba(150,196,178,.75)'; ctx.lineWidth=1.5; ctx.strokeRect(25,by2+1,W-50,bh-2);
+    ctx.textAlign='center';
+    ctx.fillStyle='#e6f2e2'; ctx.font='bold 11px monospace'; ctx.fillText('· ЗАПРОШЕННЯ ·', W/2, by2+18);
+    let ly = by2+34;
+    blocks.forEach(s=>{
+      ctx.fillStyle='#96c4b2'; ctx.font='bold 9px monospace'; ctx.fillText(s.where, W/2, ly);
+      ctx.fillStyle='#d8e8dc'; ctx.font='8px monospace'; ctx.fillText(s.what+' · '+s.when.replace('6 вересня 2026 · ',''), W/2, ly+12);
+      ly += 30;
+    });
+    if(DRESS_CODE!=='—'){ ctx.fillStyle='#c9d9c4'; ctx.font='8px monospace'; ctx.fillText('дрес-код: '+DRESS_CODE, W/2, ly); }
+    ctx.textAlign='left';
+  }
   const bob = talking?((game.t>>3)&1):0;
   if(ln.who){
     const s = PORTRAIT_MODE?72:40, cx = ln.who==='katya'?W*0.34:W*0.66;
