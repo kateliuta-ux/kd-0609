@@ -6594,7 +6594,7 @@ function render(){
     const tby = H-22;
     drawPerson(100, tby-bob, 'katya', 0, 1, false, VYSH_K);
     drawPerson(220, tby-(1-bob), 'dima', 0, -1, false, VYSH_D);
-    { const hx=100, hy=tby-79-bob;                       // ВІНОК на маківці (PSCALE=1.4 → голова сягає tby-74)
+    { const hx=100, hy=tby-75-bob;                       // ВІНОК: сидить НА волоссі (маківка tby-74, легкий нахлест)
       ctx.fillStyle='#3f6b3a'; ctx.fillRect(hx-10,hy,20,3);                       // основа-зелень
       [['#a8323c',-9],['#f4cf5e',-4],['#e08aa0',1],['#a8323c',6]].forEach(([c,dx])=>{  // квіти
         ctx.fillStyle=c; ctx.fillRect(hx+dx,hy-3,4,4); });
