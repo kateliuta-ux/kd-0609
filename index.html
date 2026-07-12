@@ -5265,9 +5265,14 @@ function drawNovel(){
   ctx.fillStyle='rgba(10,8,14,.3)'; ctx.fillRect(0,0,W,boxY);
   drawNovelFx(chap.bg, boxY);                              // жива анімація розділу
   if(chap.bg===8 || chap.bg===5) drawNovelGuests(boxY);   // весілля / сватання — гості з вами
-  if(chap.bg===1){                                         // тіндер: анімована картка свайпається вправо
-    const cyc = (game.t % 140) / 140;                      // цикл ~2.3с
-    const t2 = cyc<0.55 ? 0 : (cyc-0.55)/0.45;             // пауза → політ
+  if(chap.bg===1){                                         // тіндер: профіль свайпається ОДИН раз
+    const ct = (game.nov && game.nov.chT) || 0;
+    const t2 = Math.min(1, Math.max(0, (ct-46)/50));       // пауза ~0.8с → один політ
+    if(t2>=1){                                             // після свайпу — тільки штамп-згадка
+      ctx.fillStyle='rgba(226,242,226,.5)'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+      ctx.fillText('✓ LIKE', W/2, 96); ctx.textAlign='left';
+      return;
+    }
     const cw=76, ch=100, cx = W/2 + t2*t2*220, cy = 120, rot = t2*0.5;
     ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
     ctx.globalAlpha = 1 - t2*0.85;
