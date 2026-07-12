@@ -165,7 +165,7 @@
   #kbd-hint{position:absolute;bottom:2.5%;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.55);font-size:clamp(10px,2cqw,13px);letter-spacing:1px;text-shadow:1px 1px 0 #000}
 
   /* ---------- семплер ---------- */
-  #sampler-screen{background:#14121c;gap:2%;padding:2% 2% 6%;overflow-y:auto;justify-content:flex-start}
+  #sampler-screen{background:#14121c;gap:2%;padding:7% 2% 6%;overflow-y:auto;justify-content:flex-start}
   .s-head{color:#fff;font-weight:bold;font-size:clamp(11px,2.6cqw,18px);letter-spacing:1px;text-align:center}
   .s-head span{display:block;color:#bcb7a8;font-weight:normal;font-size:clamp(10px,2cqw,13px);margin-top:2px}
   #s-grid{
@@ -2503,7 +2503,7 @@ function vykupPay(v, opt){
 function updateVykup(){
   const v = game.vykup; if(!v) return;
   if(v.intro){ v.introT++;                                     // картка з правилами
-    if((game.watch && v.introT>170) || (input.actionEdge && v.introT>20) || (game._tapPos && v.introT>20)){
+    if((game.watch && v.introT>300) || (input.actionEdge && v.introT>40) || (game._tapPos && v.introT>40)){
       input.actionEdge=false; game._tapPos=null; v.intro=false; }
     return; }
   if(v.done){ v.doneT++; if(v.doneT>110) setPhase('wed'); return; }
@@ -2622,13 +2622,20 @@ function drawVykup(){
     return;
   }
   ctx.fillStyle='#f4e8c8';
-  if(v.done){ fitText('ВИКУП СПЛАЧЕНО! Стрічку опущено — проходь до нареченої ✔', W-36, 8, false);
-    ctx.fillText('ВИКУП СПЛАЧЕНО! Стрічку опущено — проходь до нареченої ✔', W/2, 44); }
-  else{ fitText(VYKUP_ROUNDS[v.round].q, W-36, 8, false); ctx.fillText(VYKUP_ROUNDS[v.round].q, W/2, 44);
-    ctx.fillStyle='rgba(244,232,200,.55)'; ctx.font='7px monospace';
-    ctx.fillText('раунд '+(v.round+1)+' з '+VYKUP_ROUNDS.length+' · обери хід. Помилка — штраф із казни!', W/2, 55); }
+  ctx.fillStyle='rgba(244,232,200,.7)'; ctx.font='8px monospace';
+  if(!v.done) ctx.fillText('раунд '+(v.round+1)+' з '+VYKUP_ROUNDS.length, W/2, 44);
+  { // ПИТАННЯ — окрема велика плашка нижче (не біля краю, крупним кеглем)
+    const qy = PORTRAIT_MODE ? 96 : 58;
+    ctx.fillStyle='rgba(26,18,10,.88)'; ctx.fillRect(16, qy, W-32, 44);
+    ctx.strokeStyle='#c8a050'; ctx.lineWidth=1; ctx.strokeRect(16.5, qy+0.5, W-33, 43);
+    ctx.fillStyle='#f4e8c8';
+    const qt = v.done ? 'ВИКУП СПЛАЧЕНО! Стрічку опущено ✔' : VYKUP_ROUNDS[v.round].q;
+    fitText(qt, W-44, 11, true); ctx.fillText(qt, W/2, qy+19);
+    ctx.fillStyle='rgba(244,232,200,.65)'; ctx.font='8px monospace';
+    ctx.fillText(v.done ? 'проходь до нареченої!' : 'обери хід — помилка = штраф із казни', W/2, qy+34);
+  }
   // ── КАЗНА ВИКУПУ (ресурсна смуга Героїв 3) ──
-  { const ry = PORTRAIT_MODE ? 66 : 62, icons=[['🍬','sweets'],['🍾','fizz'],['♥','heart']];
+  { const ry = PORTRAIT_MODE ? 156 : 74, icons=[['🍬','sweets'],['🍾','fizz'],['♥','heart']];
     ctx.fillStyle='rgba(26,18,10,.85)'; ctx.fillRect(W/2-84, ry-13, 168, 22);
     ctx.strokeStyle='#c8a050'; ctx.lineWidth=1; ctx.strokeRect(W/2-83.5, ry-12.5, 167, 21);
     ctx.font='10px monospace'; ctx.textAlign='center';
@@ -2646,7 +2653,7 @@ function drawVykup(){
   if(v.noteT>0){
     ctx.fillStyle='rgba(26,18,10,.88)'; ctx.fillRect(18, H*0.34, W-36, 26);
     ctx.strokeStyle='#c8a050'; ctx.strokeRect(18.5, H*0.34+0.5, W-37, 25);
-    ctx.fillStyle='#f4e8c8'; fitText(v.note, W-44, 8, false); ctx.fillText(v.note, W/2, H*0.34+16);
+    ctx.fillStyle='#f4e8c8'; fitText(v.note, W-44, 10, false); ctx.fillText(v.note, W/2, H*0.34+17);
   } else {
     VYKUP_ROUNDS[v.round].opts.forEach((m,i)=>{
       const b=chessBtn(i), on=i===v.sel;
@@ -3385,7 +3392,7 @@ function drawSvat(){
 
   if(s.step==='mash' && me==='katya'){
     // ── КРУПНИЙ ПЛАН: колупання печі (комедійний інсет) ──
-    const px2=W/2-105, py2=Math.round(H*0.16), pw2=210, ph2=170;
+    const px2=W/2-105, py2=Math.round(H*(PORTRAIT_MODE?0.26:0.10)), pw2=210, ph2=170;
     ctx.fillStyle='#141018'; ctx.fillRect(px2-4,py2-4,pw2+8,ph2+8);
     ctx.fillStyle='#f2ede0'; ctx.fillRect(px2,py2,pw2,ph2);                        // БІЛА піч (як на плані)
     ctx.fillStyle='#e4dccb';
@@ -3423,7 +3430,7 @@ function drawSvat(){
   }
   if(s.step==='mash' && me==='dima'){
     // ── КРУПНИЙ ПЛАН: хліб на рушнику, хилиться — тримай рівно ──
-    const px2=W/2-105, py2=Math.round(H*0.16), pw2=210, ph2=150;
+    const px2=W/2-105, py2=Math.round(H*(PORTRAIT_MODE?0.26:0.12)), pw2=210, ph2=150;
     ctx.fillStyle='#141018'; ctx.fillRect(px2-4,py2-4,pw2+8,ph2+8);
     ctx.fillStyle='#e8ddc8'; ctx.fillRect(px2,py2,pw2,ph2);
     ctx.fillStyle='#d8cbb2'; for(let vx=px2; vx<px2+pw2; vx+=14) ctx.fillRect(vx,py2,2,ph2);
@@ -3517,7 +3524,7 @@ function drawSvat(){
   if(s.step==='tied'){
     ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0,60,W,26);
     ctx.fillStyle = COL.gold; ctx.font='bold 11px monospace'; ctx.textAlign='center';
-    ctx.fillText('ІСПИТ СКЛАДЕНО! РУШНИКИ ПОДАНО', W/2, 76);
+    ctx.fillText('ІСПИТ СКЛАДЕНО! РУШНИКИ ПОДАНО', W/2, Math.round(H*0.30));
   }
 }
 
@@ -3603,7 +3610,7 @@ function updateProp(){
       // ── РЕАЛЬНЕ копирсання: речі навалені КУПОЮ поверх коробочки — відкидай їх пальцем ──
       if(!p.rum){
         const kinds=['sock','power','gum','keys','pick','cable','shirt','sock2','bottle','phones','note','snack'];
-        const cxm=W/2, cym=Math.round(H*0.33);
+        const cxm=W/2, cym=Math.round(H*(PORTRAIT_MODE?0.41:0.33));
         const items=kinds.map((k,i)=>({kind:k, x:cxm+(Math.random()*120-60), y:cym+(Math.random()*80-40),
           vx:0, vy:0, held:false, out:false, z:i}));
         p.rum={items, box:{x:cxm+(Math.random()*70-35), y:cym+(Math.random()*40-10)}, drag:null, found:false, _t:0};
@@ -3855,7 +3862,7 @@ function drawProp(){
     if(game.pov==='dima' && p.rum){
       const r=p.rum;
       // рюкзак крупним планом
-      const bx=W/2-112, by=Math.round(H*0.18), bw=224, bh=190;
+      const bx=W/2-112, by=Math.round(H*(PORTRAIT_MODE?0.26:0.14)), bw=224, bh=190;
       ctx.fillStyle='#141018'; ctx.fillRect(bx-4,by-4,bw+8,bh+8);
       ctx.fillStyle='#3a4a6a'; ctx.fillRect(bx,by,bw,bh);
       ctx.fillStyle='#2e3c58';
@@ -5243,7 +5250,7 @@ function novelData(){
       {who:'katya', emo:'wow',  text:'Стоп. Це ж хлопець зі зйомок 2021-го…'},
     ]},
     {bg:2, cap:['ПЕЙЗАЖКА','перше побачення'], lines:[
-      N('Раз похвалилась: «люблю темне, кокосове,\nз Хвильового» — і забула тую мову.'),
+      N('Раз похвалилась: «люблю темне, кокосове,\nз Хвильового» — й забула ту розмову.'),
       N('А він те слово в чаті підхопив,\nу серденько сховав, як зерня золотив.'),
       {who:'dima', emo:'shy', text:'І ще. Тримай.'},
       {who:'katya', emo:'wow', text:'Андервуд коконат?! Ти ЗАПАМʼЯТАВ?'},
@@ -5251,7 +5258,7 @@ function novelData(){
       N('Світять над кручею ліхтарики дрібні,\nа вустонька зійшлися вперше — мов у сні.'),
     ]},
     {bg:3, cap:['ЖОВТЕНЬ 2022','Київ ↔ Лондон'], lines:[
-      N('А там — і Лондон. За візою, на місяць,\nвона за море, від нього далеко.'),
+      N('А там — і Лондон, місяць розлуки:\nвона за морем — він рахує дні й муки.'),
       {who:'dima', emo:'shy', text:'Вона за 2500 км. Я був закоханий\nі — чесно — скучав.'},
       N('Одинадцять тисяч листів — за місяць лік,\nвернулась раніш, бо серцю невтерпік.'),
     ]},
@@ -5265,8 +5272,8 @@ function novelData(){
       N('— У вас куниця, у нас мисливець! —\nподали рушники, і згода, й до вінця.'),
     ]},
     {bg:6, cap:['ЛЮТИЙ 2026 · Позняки','щось задумав'], lines:[
-      N('Позняки — де Діма зріс малим,\nтепер це їхній спільний рідний дім.'),
-      N('Лютий. Він щось задумав, тихо-тихо,\nі ховає в рюкзаку — а що, не каже.'),
+      N('Позняки — тут Діма зріс колись,\nтепер удвох вони тут оселились.'),
+      N('Лютий. Він щось задумав — і мовчить:\nховає в рюкзаку. Інтрига миготить.'),
       {who:'dima', emo:'normal', text:'Головне — щоб вона не побачила.'},
       {who:'katya', emo:'happy', text:'Я нічого не бачила. Нічогісінько.'},
     ]},
@@ -6354,6 +6361,7 @@ function updateHudAndControls(){
 
 function setPhase(p){
   game.phase = p; game.phaseT = 0;
+  input.actionEdge = false; game._tapPos = null;        // залишковий тап не перегортає нову сцену
   if(p==='set') game.shoot = null;   // свіжий старт мінігри-оператора
   if(p!=='kitana' && typeof stopMic==='function') stopMic();   // мікрофон живе лише в сцені Кітани
   // поліфонічна музика за фазою; глушимо лише на Кітані (там мікрофон)
