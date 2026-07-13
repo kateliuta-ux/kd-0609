@@ -331,6 +331,7 @@
     <div class="menu" id="main-menu">
       <button class="btn katya" id="btn-newgame">Нова гра</button>
       <button class="btn watch" data-pov="watch">Історія без ігор</button>
+      <button class="btn small" id="btn-story-en" style="background:#2a4a6a">🇬🇧 Our story in English</button>
       <div class="btn-row">
         <button class="btn small" id="btn-sampler">Семплер</button>
       </div>
@@ -910,7 +911,7 @@ const GUEST_CAMEOS = {
     { match:/матвійчук/, lines:[
       {who:null, text:'А ти, Катю Матвійчук, — однокурсниця моя:\nстрілись раптом — й у Хвильовім гуля сімʼя!'} ]},
     { match:/костя|костянтин|давід|георгій|ліка/, lines:[
-      {who:null, text:'А ти, братику Костю, — аж з Лондона, до нас:\nз Вікою, Давідом, Георгієм, Лікою — ураз!'} ]},
+      {who:null, text:'А ти, братику Костю, — з Лондона до нас,\nа Віка з дітьми — в зумі, з нами ураз!'} ]},
     { match:/чубах|лана ч/, lines:[
       {who:null, text:'А ти ж, Лано Чубахо, — з бенду, з рідного двору:\nзаграй нам у Хвильовому, як у стару пору!'} ]},
     { match:/бікер|байкер/, lines:[
@@ -4342,9 +4343,9 @@ function drawWedHearts(){
 function drawWed(){
   if(game.wedLoc === 'khv') drawWedKhv(); else drawWedSofi();
   if(!game.watch && game.phaseT > 80){
-    ctx.fillStyle='rgba(10,8,14,.55)'; ctx.fillRect(W/2-70,H-24,140,14);
+    ctx.fillStyle='rgba(10,8,14,.55)'; ctx.fillRect(W/2-80,H-62,160,14);
     ctx.fillStyle='#f4e8c8'; ctx.font='8px monospace'; ctx.textAlign='center';
-    ctx.fillText(game.wedBoth && game.wedLoc!=='khv' ? 'тап — і на вечірку в «Хвильовий»' : 'тап — до титрів', W/2, H-14);
+    ctx.fillText(game.wedBoth && game.wedLoc!=='khv' ? 'тап — і на вечірку в «Хвильовий»' : 'тап — до титрів', W/2, H-52);
     ctx.textAlign='left';
   }
 }
@@ -4449,6 +4450,28 @@ function drawWedSofi(){
   // Кітана під столом
   drawKitana(tx+58, FLOOR_Y+16, -1);
   ctx.fillStyle = COL.rose; ctx.fillRect(tx+61, FLOOR_Y+7, 4, 3);
+  // ── ЛОНДОН НА ЗВʼЯЗКУ: Віка з Давідом, Георгієм і Лікою в зумі ──
+  {
+    const zx = 12, zy = FLOOR_Y-96, zw = 62, zh = 44;
+    ctx.fillStyle='#221c26'; ctx.fillRect(zx+zw/2-3, zy+zh, 6, 22);           // стійка-тринога
+    ctx.fillRect(zx+zw/2-12, zy+zh+20, 24, 3);
+    ctx.fillStyle='#141018'; ctx.fillRect(zx-3, zy-3, zw+6, zh+6);            // ноутбук/планшет
+    ctx.fillStyle='#1c2a3a'; ctx.fillRect(zx, zy, zw, zh);                    // екран
+    const tiles=[['#c99a52','Віка'],['#5a3d24','Давід'],['#c99a52','Георгій'],['#e8c49c','Ліка']];
+    tiles.forEach(([hair],ti)=>{
+      const cx2 = zx+3+(ti%2)*(zw/2), cy2 = zy+3+Math.floor(ti/2)*(zh/2), tw2=zw/2-5, th2=zh/2-5;
+      ctx.fillStyle='#2a3a50'; ctx.fillRect(cx2, cy2, tw2, th2);              // віконечко
+      ctx.fillStyle='#eebc96'; ctx.fillRect(cx2+tw2/2-4, cy2+4, 8, 8);        // личко
+      ctx.fillStyle=hair;      ctx.fillRect(cx2+tw2/2-4, cy2+4, 8, 3);        // волосся
+      ctx.fillStyle='#221c26'; ctx.fillRect(cx2+tw2/2-2, cy2+8, 1, 1); ctx.fillRect(cx2+tw2/2+1, cy2+8, 1, 1);
+      if(((game.t>>4)+ti)%3===0){ ctx.fillStyle='#eebc96'; ctx.fillRect(cx2+tw2-4, cy2+3, 3, 3); }   // махають!
+      ctx.strokeStyle='#141018'; ctx.lineWidth=1; ctx.strokeRect(cx2+0.5, cy2+0.5, tw2-1, th2-1);
+    });
+    ctx.fillStyle='#3fae5a'; ctx.beginPath(); ctx.arc(zx+4, zy+4, 2, 0, 7); ctx.fill();   // зелений «онлайн»
+    ctx.fillStyle='rgba(12,9,16,.72)'; ctx.fillRect(zx-6, zy+zh+24, zw+12, 10);
+    ctx.fillStyle='#f4f0e4'; ctx.font='6px monospace'; ctx.textAlign='center';
+    ctx.fillText('Лондон на звʼязку 🇬🇧', zx+zw/2, zy+zh+31); ctx.textAlign='left';
+  }
   drawWedHearts();
   ctx.fillStyle = '#2a3444'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
   ctx.fillText('06 · 09 · 2026', W/2, 26);
@@ -5066,6 +5089,7 @@ function pixBands(x, y, w, h, stops){
 /* підказка-правило з темною підкладкою — читабельна на будь-якому фоні */
 function drawHint(txt, x, y, size){
   if(!txt) return;
+  if(PORTRAIT_MODE && y > H-46) y = H-64;     // над зоною великого пальця
   ctx.save();
   ctx.font = (size||9)+'px monospace'; ctx.textAlign = 'center';
   const w = Math.ceil(ctx.measureText(txt).width);
@@ -5259,6 +5283,7 @@ function drawProlog(){
    Для тих, хто не хоче грати: та сама історія кадрами — детальний фон,
    крупний фото-портрет того, хто говорить, і текст. */
 function novelData(){
+  if(LANG==='en') return novelDataEn();
   const N = t => ({who:null, text:t});
   return [
     {bg:0, cap:['КИЇВ · 2021 · ще до війни','зйомка ШТОРМНАДО'], lines:[
@@ -5898,11 +5923,70 @@ function drawNovelFx(i, boxY){
       ctx.beginPath(); ctx.moveTo(dx2-6,dy2+wing-2); ctx.lineTo(dx2,dy2); ctx.lineTo(dx2+6,dy2+wing-2); ctx.stroke(); }
   }
 }
+let LANG = 'ua';                       // 'en' — історія англійською (для лондонської рідні)
 const NOVEL_PARTS=['ВЕЧОРНИЦІ','ВЕЧОРНИЦІ','ВЕЧОРНИЦІ','ЖЕНИХАННЯ','ЖЕНИХАННЯ','СВАТАННЯ','ЗАРУЧИНИ','ЗАРУЧИНИ','ВЕСІЛЛЯ'];
+const NOVEL_PARTS_EN=['VECHORNYTSI','VECHORNYTSI','VECHORNYTSI','ZHENYKHANNIA','ZHENYKHANNIA','SVATANNIA','BETROTHAL','BETROTHAL','WEDDING'];
+const NPART = bg => (LANG==='en'?NOVEL_PARTS_EN:NOVEL_PARTS)[bg];
+function novelDataEn(){
+  const N = t => ({who:null, text:t});
+  return [
+    {bg:0, cap:['KYIV · 2021 · before the war','the STORMNADO shoot'], lines:[
+      N("A peaceful year. A film set, lights and cameras:\nshe runs the shoot, and he is in the frame."),
+      {who:'katya', emo:'normal', text:"Ad agency. We're shooting STORMNADO.\nSome brief about the metaverse."},
+      {who:'dima',  emo:'happy',  text:"Where should I look — at the camera\nor at the director?)"},
+      N("He never even asked her name that day —\nnot knowing fate had looked his way."),
+    ]},
+    {bg:1, cap:['AUGUST 2022 · another life','Tinder'], lines:[
+      N("Then war fell down on everything they knew,\nand all 'before' was hidden from their view."),
+      N("A year went by — and Tinder, out of blue,\nbrought them together: one swipe right came true."),
+      {who:'katya', emo:'wow',  text:"Wait. That's the guy\nfrom the 2021 shoot…"},
+    ]},
+    {bg:2, cap:['PEIZAZHKA ALLEY','the first date'], lines:[
+      N("She once had written: 'coconut dark beer\nis my favourite' — and forgot it here."),
+      N("But he remembered that one little thing\nand kept it in his heart like treasuring."),
+      {who:'dima', emo:'shy', text:"Ta-dam. For you."},
+      {who:'katya', emo:'wow', text:"Underwood Coconut?!\nYou REMEMBERED?"},
+      N("And from that little can of beer that night\na warmth lit up their hearts — and burned so bright."),
+      N("The lanterns glowed above the river bend —\ntheir first kiss felt just like a dream, my friend."),
+    ]},
+    {bg:3, cap:['OCTOBER 2022','Kyiv ↔ London'], lines:[
+      N("Then London came — a month so far away:\nshe crossed the sea, he counted every day."),
+      {who:'dima', emo:'shy', text:"She was 2500 km away.\nI was in love and — honestly — I missed her."},
+      N("Eleven thousand letters — quite a lot!\nShe came back early: hearts don't do remote."),
+    ]},
+    {bg:4, cap:['AUTUMN 2023 · Bilohorodka','Kitana the cat'], lines:[
+      N("Autumn at Dan's: a yard, a sunny spot,\nwhere little kittens played and purred a lot."),
+      {who:'katya', emo:'happy', text:"That's her."},
+      N("One kitten snuggled up to Katya tight —\nthey came for her, and she moved in that night."),
+    ]},
+    {bg:5, cap:['SVATANNIA','the old matchmaking custom'], lines:[
+      N("Before a wedding, by the old tradition,\nthe matchmakers arrive on love's own mission."),
+      N("'You have a marten — we've a hunter here!'\nThe towels are given: yes! The wedding's near."),
+    ]},
+    {bg:6, cap:['FEBRUARY 2026 · Pozniaky','he is up to something'], lines:[
+      N("Pozniaky — where Dima grew up small —\nis now their home, their own, for good and all."),
+      N("February. He is quiet as a mouse:\na secret box is hidden in the house."),
+      {who:'dima', emo:'normal', text:"The main thing is —\nshe must not see it."},
+      {who:'katya', emo:'happy', text:"I saw nothing.\nNothing at all."},
+    ]},
+    {bg:7, cap:['14.02.2026 · Minimalist bar','the proposal'], lines:[
+      N("A game of chess on Valentine's night —\nshe won, and gave a joke-gift with delight."),
+      {who:'katya', emo:'happy', text:"Checkmate. And here's your present —\n'Chess for dummies'."},
+      {who:'dima', emo:'shy', text:"I want you to become…\nKateryna Liuta."},
+      {who:'dima', emo:'shy', text:"And even though you drive me crazy sometimes —\nI want to live my life with you."},
+      {who:'katya', emo:'happy', text:"Yes!"},
+      N("She said her 'yes' before the sentence end —\nher heart had known the answer, my dear friend."),
+    ]},
+    {bg:8, cap:['06.09.2026 · Kyiv','the wedding'], lines:[
+      N("From one swipe right — to the embroidered towel,\nfrom beer at Peizazhka — to the wedding vow."),
+      N("On September 6 we celebrate —\ncome join us, dear ones: don't be late!"),
+    ]},
+  ];
+}
 function novelPartCardActive(){
   const n=game.nov; if(!n) return false;
   const chap=n.chapters[n.ch]; if(!chap) return false;
-  const part=NOVEL_PARTS[chap.bg], prev=n.ch>0?NOVEL_PARTS[n.chapters[n.ch-1].bg]:null;
+  const part=NPART(chap.bg), prev=n.ch>0?NPART(n.chapters[n.ch-1].bg):null;
   if(!part || part===prev) return false;
   if(n.partDone === n.ch) return false;                   // тап уже закрив цю картку
   if(game.watch && (n.chT||0)>140) return false;          // у перегляді — сама йде далі
@@ -5913,7 +5997,7 @@ function drawNovel(){
   const chap = n.chapters[n.ch]; if(!chap){ finishGame(); return; }
   if(novelPartCardActive()){
     // повноекранна картка частини традиційного весілля
-    const part=NOVEL_PARTS[chap.bg];
+    const part=NPART(chap.bg);
     const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0d1a18'); g.addColorStop(1,'#16302c');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
     for(let k=0;k<14;k++){ ctx.fillStyle='rgba(150,196,178,.25)';
@@ -5921,11 +6005,19 @@ function drawNovel(){
     ctx.textAlign='center';
     drawOrnament(H/2-64);
     ctx.fillStyle='rgba(150,196,178,.85)'; ctx.font='bold 11px monospace';
-    ctx.fillText('· ЧАСТИНА '+(['','ПЕРША','','','ДРУГА','','ТРЕТЯ','ЧЕТВЕРТА','','ШОСТА'][chap.bg]||'')+' ·', W/2, H/2-34);
+    ctx.fillText('· '+(LANG==='en'
+      ? (['','PART ONE','','','PART TWO','','PART THREE','PART FOUR','','PART SIX'][chap.bg]||'')
+      : 'ЧАСТИНА '+(['','ПЕРША','','','ДРУГА','','ТРЕТЯ','ЧЕТВЕРТА','','ШОСТА'][chap.bg]||''))+' ·', W/2, H/2-34);
     ctx.fillStyle='#e2f2e2'; ctx.font='bold 26px monospace';
     ctx.fillText(part, W/2, H/2+2);
     ctx.fillStyle='rgba(226,242,226,.65)'; ctx.font='9px monospace';
-    const gloss={
+    const gloss = LANG==='en' ? {
+      'VECHORNYTSI':'autumn gatherings where young people\nmet, sang, worked and fell in love',
+      'ZHENYKHANNIA':'the courtship: a lad visits the girl,\nbrings little gifts, looks for the best words',
+      'SVATANNIA':'matchmakers come with bread to propose:\ntowels mean «yes», a pumpkin means «no»',
+      'BETROTHAL':'vows and rings are exchanged —\nfrom now on they are engaged',
+      'WEDDING':'the ceremony, the korovai bread and the feast —\nall the family at one table'
+    } : {
       'ВЕЧОРНИЦІ':'осінні зібрання молоді: пісні, робота й жарти —\nсаме там дівчата й парубки знайомились',
       'ЖЕНИХАННЯ':'залицяння: парубок ходить до дівчини,\nносить гостинці й шукає найкращі слова',
       'СВАТАННЯ':'старости з хлібом приходять просити руки:\nрушники — згода, гарбуз — відмова',
@@ -6007,7 +6099,8 @@ function drawNovel(){
     ctx.fillStyle='rgba(13,26,24,.82)'; ctx.fillRect(24,by2,W-48,bh);
     ctx.strokeStyle='rgba(150,196,178,.75)'; ctx.lineWidth=1.5; ctx.strokeRect(25,by2+1,W-50,bh-2);
     ctx.textAlign='center';
-    ctx.fillStyle='#e6f2e2'; ctx.font='bold 11px monospace'; ctx.fillText('· ЗАПРОШЕННЯ ·', W/2, by2+18);
+    ctx.fillStyle='#e6f2e2'; ctx.font='bold 11px monospace';
+    ctx.fillText(LANG==='en' ? '· INVITATION ·' : '· ЗАПРОШЕННЯ ·', W/2, by2+18);
     let ly = by2+34;
     blocks.forEach(s=>{
       ctx.fillStyle='#96c4b2'; ctx.font='bold 9px monospace'; ctx.fillText(s.where, W/2, ly);
@@ -6030,7 +6123,7 @@ function drawNovel(){
   // капшн зверху
   ctx.textAlign='center';
   ctx.fillStyle='rgba(10,8,14,.55)'; ctx.fillRect(0,10,W,32);
-  ctx.fillStyle='rgba(232,138,160,.9)'; ctx.font='bold 8px monospace'; ctx.fillText('· '+(NOVEL_PARTS[chap.bg]||'')+' ·', W/2, 16);
+  ctx.fillStyle='rgba(232,138,160,.9)'; ctx.font='bold 8px monospace'; ctx.fillText('· '+(NPART(chap.bg)||'')+' ·', W/2, 16);
   ctx.fillStyle=COL.gold; ctx.font='bold 12px monospace'; ctx.fillText(chap.cap[0], W/2, 26);
   ctx.fillStyle='#d8d4c4'; ctx.font='9px monospace'; ctx.fillText(chap.cap[1], W/2, 38);
   // кнопка «пропустити розділ» — зʼявляється лише для вже баченого
@@ -6054,7 +6147,7 @@ function drawNovel(){
   shown.split('\n').forEach((t,i)=> ctx.fillText(t, 22, boxY + (ln.who?34:22) + i*(ln.who?15:16)));
   // прогрес + підказка
   ctx.fillStyle='rgba(216,212,196,.5)'; ctx.font='8px monospace'; ctx.textAlign='right';
-  ctx.fillText('тап — далі  ·  '+(n.ch+1)+'/'+n.chapters.length, W-16, H-6);
+  ctx.fillText((LANG==='en'?'tap — next':'тап — далі')+'  ·  '+(n.ch+1)+'/'+n.chapters.length, W-16, PORTRAIT_MODE?H-52:H-6);
   ctx.textAlign='left';
 }
 
@@ -6913,7 +7006,7 @@ document.querySelectorAll('#title-screen .btn[data-pov]').forEach(b=>{
   b.addEventListener('click', ()=>{
     const p = b.dataset.pov;
     tryFullscreen();
-    if(p==='watch'){ startNovel(); return; }
+    if(p==='watch'){ LANG='ua'; startNovel(); return; }
     startFromSide(p);               // сторона обрана → спершу назвись
   });
 });
@@ -6949,6 +7042,9 @@ function resetTitleMenus(){
   document.getElementById('play-pov-menu').classList.add('hidden');
   const wm = document.getElementById('watch-pov-menu'); if(wm) wm.classList.add('hidden');
 }
+document.getElementById('btn-story-en').addEventListener('click', ()=>{
+  tryFullscreen(); LANG='en'; startNovel();
+});
 document.getElementById('btn-newgame').addEventListener('click', ()=>{
   tryFullscreen();
   document.getElementById('main-menu').classList.add('hidden');
@@ -9140,7 +9236,10 @@ function rsvpText(){
     RSVP_QUESTIONS.map((it,i)=> (i+1)+') '+it.q+' — '+rsvp.answers[i]).join('\n');
 }
 function rsvpFinish(){
-  elRsvpQ.textContent = rsvp.pending
+  const declined = (rsvp.answers[0]||'').indexOf('Ніяк')===0;
+  elRsvpQ.textContent = declined
+    ? 'Шкода, що не вийде 💛 Але церемонію можна буде подивитись НАЖИВО онлайн!'
+    : rsvp.pending
     ? 'Дякуємо! Тебе не було в списку — ми підтвердимо вручну 💛 Надішли відповіді:'
     : 'Дякуємо! Надішли нам відповіді:';
   elRsvpDots.textContent = '';
@@ -9166,6 +9265,17 @@ function rsvpFinish(){
     b.addEventListener('click', fn);
     elRsvpOpts.appendChild(b);
   };
+  if(declined){
+    mk('📺 Посилання на трансляцію', 'var(--sage)', ()=>{
+      if(STREAM_URL) open(STREAM_URL, '_blank', 'noopener');
+      else alert('📺 Посилання на трансляцію додамо ближче до дати.\nЛишай пошту — надішлемо нагадування!');
+    });
+    mk('✉️ Нагадати мені про трансляцію', 'var(--rose)', ()=>{
+      const es = document.getElementById('email-screen');
+      es.querySelector('.s-head').innerHTML = '📮 Куди надіслати нагадування про трансляцію?<span>перед церемонією пришлемо лист із посиланням</span>';
+      es.classList.remove('hidden');
+    });
+  }
   mk('✈️ Надіслати в Telegram', 'var(--terra)', ()=>{
     open('https://t.me/share/url?url=%20&text='+encodeURIComponent(rsvpText()), '_blank');
   });
