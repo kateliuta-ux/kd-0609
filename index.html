@@ -326,8 +326,10 @@
   </div>
 
   <div id="title-screen" class="overlay">
-    <h1>Катя <span class="amp">&amp;</span> Діма</h1>
-    <div class="sub">запрошуємо на наше весілля · 6 вересня 2026 · Київ</div>
+    <h1 id="title-h1"><img src="art/title_kandd.png" alt="Катя &amp; Діма — запрошуємо на весілля"
+      style="width:min(72vw,340px);image-rendering:auto;filter:drop-shadow(0 2px 0 rgba(255,255,255,.65)) drop-shadow(0 3px 6px rgba(150,80,110,.25))"
+      onerror="this.parentNode.innerHTML='Катя <span class=amp>&amp;</span> Діма'"></h1>
+    <div class="sub">6 вересня 2026 · Київ</div>
     <div class="menu" id="main-menu">
       <button class="btn katya" id="btn-newgame">Нова гра</button>
       <button class="btn watch" data-pov="watch">Історія без ігор</button>
@@ -438,7 +440,9 @@
         <circle cx="56" cy="36" r="14" fill="none" stroke="#f4e2a0" stroke-width="2"/>
       </svg>
       <div class="v-hello" id="viber-hello">Дорога тьотю!</div>
-      <div class="v-title v-script">Запрошуємо<br>на весілля!</div>
+      <div class="v-title v-script"><img src="art/zaproshuemo_vesillia.png" alt="Запрошуємо на наше весілля"
+        style="width:78%;max-width:260px;filter:drop-shadow(1px 2px 0 rgba(255,255,255,.7))"
+        onerror="this.outerHTML='Запрошуємо<br>на весілля!'"></div>
       <div class="v-names">Катерина&nbsp;♥&nbsp;Дмитро</div>
       <div class="v-date">✧ 06.09.2026 ✧ Київ ✧</div>
       <svg class="v-glasses" viewBox="0 0 80 90" width="64" height="72">
@@ -506,7 +510,8 @@
       <button class="btn s-btn" id="party-back" style="background:#55515f">НАЗАД</button>
     </div>
     <div id="party-match" class="hidden">
-      <div style="color:var(--gold);font-weight:bold;font-size:26px;letter-spacing:2px">ЦЕ МЕТЧ!</div>
+      <div><img src="art/txt_match.png" alt="ЦЕ МЕТЧ!" style="width:min(56vw,240px)"
+        onerror="this.outerHTML='<span style=&quot;color:var(--gold);font-weight:bold;font-size:26px;letter-spacing:2px&quot;>ЦЕ МЕТЧ!</span>'"></div>
       <div style="color:#bcb7a8;font-size:11px">(дружній, звісно 😄 — тут женихаються тільки Катя з Дімою)</div>
       <div id="party-match-face"></div>
       <div id="party-match-text" style="color:#eee;text-align:center;max-width:82%;font-size:13px;line-height:1.4"></div>
@@ -735,6 +740,31 @@ const FACE_OVR = {katya:null, dima:null};
   try{ const d=localStorage.getItem('wed-face-'+w);
     if(d){ const im=new Image(); im.src=d; FACE_OVR[w]=[im,im,im,im]; } }catch(_){}
 }); })();
+/* ── РУКОПИСНІ написи Каті (графічний планшет) ── */
+const ART = {};
+['title_kandd','part_vechornytsi','part_zhenykhannia','part_svatannia','part_zaruchyny',
+ 'part_rozpys','part_vesillia','part_vykup','part_perezva',
+ 'txt_match','txt_kiss','txt_hirko','txt_tak','date_0609','zaproshuemo_vesillia'
+].forEach(n=>{ const i=new Image(); i.src='art/'+n+'.png'; ART[n]=i; });
+const artReady = n => ART[n] && ART[n].complete && ART[n].naturalWidth>0;
+function drawArt(n, cx, cy, maxW, maxH, alpha){
+  if(!artReady(n)) return false;
+  const img = ART[n];
+  const k = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
+  const w = img.naturalWidth*k, h = img.naturalHeight*k;
+  if(alpha!==undefined){ ctx.save(); ctx.globalAlpha = alpha; }
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(img, cx-w/2, cy-h/2, w, h);
+  if(alpha!==undefined) ctx.restore();
+  return true;
+}
+const PART_ART = {'ВЕЧОРНИЦІ':'part_vechornytsi','ЖЕНИХАННЯ':'part_zhenykhannia','СВАТАННЯ':'part_svatannia',
+  'ЗАРУЧИНИ':'part_zaruchyny','РОЗПИС':'part_rozpys','ВЕСІЛЛЯ':'part_vesillia','ВИКУП':'part_vykup','ПЕРЕЗВА':'part_perezva'};
+function partArtFor(s){
+  if(LANG==='en' || !s) return null;
+  for(const k in PART_ART) if(s.indexOf(k)>=0) return PART_ART[k];
+  return null;
+}
 const headFramesPx = who => FACE_OVR[who] || (who==='katya' ? HEAD_K_FR_PX : who==='dima' ? HEAD_D_FR_PX : null);
 // кокосовий Андервуд (Underwood Coco Milk) — те саме пиво, яке Діма запам'ятав
 const BEER_CAN = mkImg('iVBORw0KGgoAAAANSUhEUgAAABAAAAAqCAYAAAC6EtuqAAACAklEQVR4nMVWPUsDQRCdPTamkBCEEIMEMaUYW9E2pYVtrBJs09oYEezUxsbCVmJn6w+wC4JNCiOSxmgIgpIUR7AwBiOzuTkny95dDkVfcTu3O+/NzH7diWqjBelEfAgO2h1btVcvb1A/PYRsqQy52Wn0Ac1HoI9AAQBQAuTERRBcQBsTklRVh0NAYHTXdi1QGZGoUqg2WkOeHkWhEjixsDSnlwFKgDr1OqkEAi/l/O5ZvUteQn1/D/xgKkU8dW3jCviB6kdITqb0cjA5JH+hDMJAkuGXNk/ZUyCnOQXNA0HwSTTh8T0CstcxjmEQiQ4L0Y8xgpterzM+SQZIncQxiCU8o+MYbn0rIIByVM4G4LxZQQJ+QirD276E5alBoAD6KURTo7Y/aiQf1IVckg9kWIIOKzTjtwUkGVg/X3M+4/peqEVTcPwZGReQvQ6caBcKXhr8WqO+mXlDCTVneeimQehk06Gz8EHpeJH8YHEyj26CaVxkHobucd62vk+lFzBg8xUgkzQIENDhb/dBMygi3bVxQwbNScm6TQIQFnYYATug3/YTmPAbY/2E7C0A/yJgh0udIDNJEPiT1Qwr4vzhyJXdIvQ2dgBWFwGSzq4MEFnv3ity7PJIHSZAEUS2VFYH67rt/b1dSwu8MzBruDmogMhvFpRBIhpISRE4LrYqkD8rwhdGcuYfhIhc2AAAAABJRU5ErkJggg==');
@@ -2146,8 +2176,9 @@ function drawMatch(){
   ctx.textAlign='center';
   drawOrnament(Math.max(2, titleY-24));               // вишиванковий кант зверху
   drawOrnament(portY+fw+30);                          // і знизу
-  ctx.fillStyle = COL.gold; ctx.font='bold '+(big?22:16)+'px monospace';
-  ctx.fillText('ЦЕ МЕТЧ!', W/2, titleY);
+  if(LANG!=='en' && drawArt('txt_match', W/2, titleY-6, big?230:170, big?54:40)){ /* рукопис */ }
+  else { ctx.fillStyle = COL.gold; ctx.font='bold '+(big?22:16)+'px monospace';
+    ctx.fillText('ЦЕ МЕТЧ!', W/2, titleY); }
   // портрети (по центру)
   ctx.imageSmoothingEnabled = false;
   const lx = W/2 - fw - 3, rx = W/2 + 3;
@@ -2216,8 +2247,10 @@ function drawKiss(){
     ctx.fillRect(hcx-6,hcy,12,5); ctx.fillRect(hcx-4,hcy+5,8,4); ctx.fillRect(hcx-2,hcy+9,4,2);
     ctx.fillStyle='rgba(10,8,14,.78)'; ctx.fillRect(W/2-92, 78, 184, 40);
     ctx.strokeStyle=COL.gold; ctx.lineWidth=1; ctx.strokeRect(W/2-91.5, 78.5, 183, 39);
-    ctx.fillStyle=COL.gold; ctx.font='bold 12px monospace'; ctx.textAlign='center';
-    ctx.fillText(T('ПЕРШИЙ ПОЦІЛУНОК'), W/2, 95);
+    ctx.textAlign='center';
+    if(LANG!=='en' && drawArt('txt_kiss', W/2, 91, 200, 30)){ /* рукопис */ }
+    else { ctx.fillStyle=COL.gold; ctx.font='bold 12px monospace';
+      ctx.fillText(T('ПЕРШИЙ ПОЦІЛУНОК'), W/2, 95); }
     ctx.fillStyle='#e8e2d0'; ctx.font='8px monospace';
     ctx.fillText(T('над кручею, під ліхтариками — мов у сні'), W/2, 110);
   } else {
@@ -4094,6 +4127,10 @@ function drawProp(){
       ctx.fillStyle = '#c9c4b4'; ctx.font='8px monospace';
       ctx.fillText(T('(головне вже було сказано)'), W/2, H-38);
     }
+    if(p.finger>=0 && p.ringT>18 && LANG!=='en'){
+      const pop = Math.min(1,(p.ringT-18)/16);
+      drawArt('txt_tak', W/2, (PORTRAIT_MODE?150:56)+FZ*0, 150*pop+40, 60*pop+16);
+    }
     if(p.finger<0){
       ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font='9px monospace';
       drawHint(game.watch?'':(isTouch?'тапни палець':'← → і ПРОБІЛ'), W/2, H-34);
@@ -4417,6 +4454,11 @@ function drawSongNote(x, headY, seed){
 }
 /* Бульбашка-вигук над гостем */
 function drawShout(x, headY, text){
+  if(LANG!=='en' && (text==='ГІРКО!'||text==='ГІРКО!!!') && artReady('txt_hirko')){
+    const big2 = text==='ГІРКО!!!';
+    drawArt('txt_hirko', x, headY-16, big2?86:68, big2?42:34);
+    return;
+  }
   text = T(text);
   ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center';
   const w = ctx.measureText(text).width + 8;
@@ -4590,7 +4632,8 @@ function drawWedSofi(){
   }
   drawWedHearts();
   ctx.fillStyle = '#2a3444'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
-  ctx.fillText('06 · 09 · 2026', W/2, PORTRAIT_MODE?54:26);
+  if(!drawArt('date_0609', W/2, (PORTRAIT_MODE?50:22), 120, 26))
+    ctx.fillText('06 · 09 · 2026', W/2, PORTRAIT_MODE?54:26);
   ctx.font = '8px monospace'; ctx.fillStyle = 'rgba(42,52,68,.8)';
   ctx.fillText(T('тераса «Бути Софі» · Софія Київська · «Гірко!» 🥂'), W/2, PORTRAIT_MODE?66:38);
 }
@@ -4684,7 +4727,8 @@ function drawWedKhv(){
   ctx.fillStyle = COL.rose; ctx.fillRect(sx+103, syTop-7, 4, 3);
   drawWedHearts();
   ctx.fillStyle = '#f4e8c8'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
-  ctx.fillText('06 · 09 · 2026', W/2, PORTRAIT_MODE?54:26);
+  if(!drawArt('date_0609', W/2, (PORTRAIT_MODE?50:22), 120, 26))
+    ctx.fillText('06 · 09 · 2026', W/2, PORTRAIT_MODE?54:26);
   ctx.font = '8px monospace'; ctx.fillStyle = 'rgba(244,232,200,.8)';
   ctx.fillText(T('дворик «Хвильового» · усі співають «Штольню» 🎶'), W/2, PORTRAIT_MODE?66:38);
 }
@@ -5319,8 +5363,10 @@ function drawCaption(line1, line2, part){
     ctx.fillStyle=i%2?'rgba(232,138,160,.5)':'rgba(255,255,255,.35)'; ctx.fillRect(px,py,3,2); }
   ctx.textAlign='center';
   if(part){                                             // частина традиційного весілля
-    ctx.fillStyle='rgba(232,138,160,.85)'; ctx.font='bold 9px monospace';
-    ctx.fillText('· '+part+' ·', W/2, H/2-62);
+    const pa = partArtFor(part);
+    if(pa && drawArt(pa, W/2, H/2-72, W-90, 42)){ /* рукою Каті */ }
+    else { ctx.fillStyle='rgba(232,138,160,.85)'; ctx.font='bold 9px monospace';
+      ctx.fillText('· '+part+' ·', W/2, H/2-62); }
   }
   drawOrnament(H/2-46);
   ctx.fillStyle='rgba(244,207,94,.12)'; ctx.beginPath(); ctx.ellipse(W/2,H/2-6,108,30,0,0,7); ctx.fill();  // сяйво
@@ -6139,8 +6185,10 @@ function drawNovel(){
     ctx.fillText('· '+(LANG==='en'
       ? (['','PART ONE','','','PART TWO','','PART THREE','PART FOUR','','PART SIX'][chap.bg]||'')
       : 'ЧАСТИНА '+(['','ПЕРША','','','ДРУГА','','ТРЕТЯ','ЧЕТВЕРТА','','ШОСТА'][chap.bg]||''))+' ·', W/2, H/2-34);
-    ctx.fillStyle='#e2f2e2'; ctx.font='bold 26px monospace';
-    ctx.fillText(part, W/2, H/2+2);
+    const pa2 = partArtFor(part);
+    if(pa2 && drawArt(pa2, W/2, H/2-4, W-70, 64)){ /* рукопис */ }
+    else { ctx.fillStyle='#e2f2e2'; ctx.font='bold 26px monospace';
+      ctx.fillText(part, W/2, H/2+2); }
     ctx.fillStyle='rgba(226,242,226,.65)'; ctx.font='9px monospace';
     const gloss = LANG==='en' ? {
       'VECHORNYTSI':'autumn gatherings where young people\nmet, sang, worked and fell in love',
