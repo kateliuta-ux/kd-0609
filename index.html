@@ -4433,31 +4433,9 @@ function drawWedSofi(){
   drawAttendant(10, FLOOR_Y+4, BRIDES[0], 1.35); drawAttendant(32, FLOOR_Y+4, BRIDES[1], 1.35);
   drawAttendant(104, FLOOR_Y+4, GROOMS[0], 1.35); drawAttendant(126, FLOOR_Y+4, GROOMS[1], 1.35);
   // молодята на рушнику
-  // ── обряд «ВЕРБОВА ДОЩЕЧКА»: дружки співають — наречену ведуть до нареченого ──
   const vd = Math.min(1, game.phaseT/240);
-  if(game.phaseT < 250){
-    // дощечка з вербовим гіллям, покладена до нареченого
-    ctx.fillStyle='#8a6a3e'; ctx.fillRect(64, FLOOR_Y+2, 176, 5);
-    ctx.fillStyle='#a5824e'; ctx.fillRect(64, FLOOR_Y+2, 176, 2);
-    ctx.fillStyle='#6e5430'; for(let px2=70; px2<236; px2+=22) ctx.fillRect(px2, FLOOR_Y+4, 2, 3);
-    for(let k=0;k<7;k++){                                            // вербові котики-гілочки
-      const wx = 74+k*24;
-      ctx.strokeStyle='#7a8a4e'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(wx, FLOOR_Y+2); ctx.quadraticCurveTo(wx+3, FLOOR_Y-4, wx+6, FLOOR_Y-7); ctx.stroke();
-      ctx.fillStyle='#d8d2be'; ctx.fillRect(wx+2,FLOOR_Y-3,2,3); ctx.fillRect(wx+5,FLOOR_Y-7,2,3);
-    }
-    // Діма чекає, Катя-наречена йде дощечкою до нього
-    drawPerson(58, FLOOR_Y+2, 'dima', 0, 1, false, DIMA_FEB26);
-    const kx2 = Math.round(228 - vd*152);                            // 228 → 76
-    const walking = vd < 0.98;
-    drawPerson(kx2, FLOOR_Y-(walking?1:0), 'katya', (game.t>>3), -1, walking,
-      {top:'#f8f5ea', topD:'#ddd8c4', skirtCol:'#f8f5ea'});
-    ctx.fillStyle='rgba(248,245,234,.7)'; ctx.fillRect(kx2+7, FLOOR_Y-70, 7, 38);   // фата
-    if(((game.t>>4)&3)===0) drawSongNote(kx2+18, FLOOR_Y-64, game.t);
-    drawHint('обряд «Вербова дощечка»: дружки співають — наречену ведуть до нареченого', W/2, Math.round(H*0.32));
-  } else {
-    drawCouple(58, 90, FLOOR_Y+4);
-  }
+  if(game.phaseT >= 250) drawCouple(58, 90, FLOOR_Y+4);
+  else drawPerson(58, FLOOR_Y+2, 'dima', 0, 1, false, DIMA_FEB26);   // Діма чекає біля столу
   // НІКА СЕЛЕГА веде обряд (без підпису — просто веде)
   {
     const nk = pickFace(['селега','ніка']);
@@ -4521,6 +4499,26 @@ function drawWedSofi(){
     ctx.fillStyle='rgba(12,9,16,.72)'; ctx.fillRect(zx-4, zy-14, zw+8, 10);
     ctx.fillStyle='#f4f0e4'; ctx.font='6px monospace'; ctx.textAlign='center';
     ctx.fillText('Лондон на звʼязку 🇬🇧', zx+zw/2, zy-7); ctx.textAlign='left';
+  }
+  // ── обряд «ВЕРБОВА ДОЩЕЧКА» (передній план): наречену ведуть до нареченого ──
+  if(game.phaseT < 250){
+    const wy = FLOOR_Y+18;                                           // доріжка перед столом
+    ctx.fillStyle='#8a6a3e'; ctx.fillRect(64, wy, 178, 5);
+    ctx.fillStyle='#a5824e'; ctx.fillRect(64, wy, 178, 2);
+    ctx.fillStyle='#6e5430'; for(let px2=70; px2<238; px2+=22) ctx.fillRect(px2, wy+2, 2, 3);
+    for(let k=0;k<7;k++){                                            // вербові котики
+      const wx = 76+k*24;
+      ctx.strokeStyle='#7a8a4e'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(wx, wy); ctx.quadraticCurveTo(wx+3, wy-6, wx+6, wy-9); ctx.stroke();
+      ctx.fillStyle='#d8d2be'; ctx.fillRect(wx+2,wy-5,2,3); ctx.fillRect(wx+5,wy-9,2,3);
+    }
+    const kx2 = Math.round(230 - vd*156);                            // 230 → 74 (до Діми)
+    const walking = vd < 0.98;
+    drawPerson(kx2, wy-(walking?1:0), 'katya', (game.t>>3), -1, walking,
+      {top:'#f8f5ea', topD:'#ddd8c4', skirtCol:'#f8f5ea'});
+    ctx.fillStyle='rgba(248,245,234,.7)'; ctx.fillRect(kx2+7, wy-72, 7, 38);        // фата
+    if(((game.t>>4)&3)===0) drawSongNote(kx2+18, wy-66, game.t);
+    drawHint('обряд «Вербова дощечка»: наречену ведуть до нареченого', W/2, Math.round(H*0.30));
   }
   drawWedHearts();
   ctx.fillStyle = '#2a3444'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
