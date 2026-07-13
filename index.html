@@ -494,7 +494,7 @@
   </div>
 
   <div id="party-screen" class="overlay hidden" style="background:#14121c;gap:12px">
-    <div class="s-head">ТІНДЕР <span>гортай гостей весілля · вправо — лайк, вліво — пас</span></div>
+    <div class="s-head">ТІНДЕР · жартома 😄 <span>шукаємо не любов, а КОМПАНІЮ на весілля: лайкни, з ким хочеш потеревенити й потанцювати. Пари і +1 — сміливо грайте теж!</span></div>
     <div id="party-stack"></div>
     <div id="party-empty" class="hidden"></div>
     <div id="party-actions" style="display:flex;gap:26px;justify-content:center;align-items:center">
@@ -507,6 +507,7 @@
     </div>
     <div id="party-match" class="hidden">
       <div style="color:var(--gold);font-weight:bold;font-size:26px;letter-spacing:2px">ЦЕ МЕТЧ!</div>
+      <div style="color:#bcb7a8;font-size:11px">(дружній, звісно 😄 — тут женихаються тільки Катя з Дімою)</div>
       <div id="party-match-face"></div>
       <div id="party-match-text" style="color:#eee;text-align:center;max-width:82%;font-size:13px;line-height:1.4"></div>
       <button class="btn katya" id="party-match-go">ДАЛІ ▶</button>
@@ -8529,7 +8530,7 @@ function openParty(){
   // хто лайкнув тебе раніше — показуємо в шапці
   loadMyMatches().then(names=>{
     const h=document.querySelector('#party-screen .s-head span');
-    if(h && names.length) h.textContent = '💘 тебе лайкнули: ' + names.slice(0,4).join(', ') + (names.length>4?' +'+(names.length-4):'') + ' · свайпай у відповідь!';
+    if(h && names.length) h.textContent = '💘 по-дружньому лайкнули: ' + names.slice(0,4).join(', ') + (names.length>4?' +'+(names.length-4):'') + ' · свайпай у відповідь!';
   });
   document.getElementById('party-match').classList.add('hidden');
   document.getElementById('party-screen').classList.remove('hidden');
@@ -8645,7 +8646,7 @@ function showPartyMatch(card){
   face.append(im, h, k);
   const nm = (card.name||'Гість').replace(/[,—].*/,'').trim();
   document.getElementById('party-match-text').textContent =
-    'Ви метч! ' + nm + ', на весіллі точно буде з ким потеревенити. До зустрічі 6 вересня! 🥂';
+    'Дружній метч! 😄 Знайди(-и) ' + nm + ' на весіллі, привітайтесь і цокніться. До зустрічі 6 вересня! 🥂';
   document.getElementById('party-match').classList.remove('hidden');
 }
 document.getElementById('party-like').addEventListener('click', ()=>{ if(partyTopEl && partyTopCard) swipeParty(partyTopCard, 1, partyTopEl); });
