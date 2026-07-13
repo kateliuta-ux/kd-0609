@@ -498,7 +498,7 @@
   </div>
 
   <div id="party-screen" class="overlay hidden" style="background:#14121c;gap:12px">
-    <div class="s-head">ТІНДЕР · жартома 😄 <span>шукаємо не любов, а КОМПАНІЮ на весілля: лайкни, з ким хочеш потеревенити й потанцювати. Пари і +1 — сміливо грайте теж!</span></div>
+    <div class="s-head">ТІНДЕР <span>гортай гостей весілля · метч = привітатися 6 вересня 🥂</span></div>
     <div id="party-stack"></div>
     <div id="party-empty" class="hidden"></div>
     <div id="party-actions" style="display:flex;gap:26px;justify-content:center;align-items:center">
@@ -512,7 +512,6 @@
     <div id="party-match" class="hidden">
       <div><img src="art/txt_match.png" alt="ЦЕ МЕТЧ!" style="width:min(56vw,240px)"
         onerror="this.outerHTML='<span style=&quot;color:var(--gold);font-weight:bold;font-size:26px;letter-spacing:2px&quot;>ЦЕ МЕТЧ!</span>'"></div>
-      <div style="color:#bcb7a8;font-size:11px">(дружній, звісно 😄 — тут женихаються тільки Катя з Дімою)</div>
       <div id="party-match-face"></div>
       <div id="party-match-text" style="color:#eee;text-align:center;max-width:82%;font-size:13px;line-height:1.4"></div>
       <button class="btn katya" id="party-match-go">ДАЛІ ▶</button>
@@ -8573,6 +8572,7 @@ if(PARAMS.get('selfie') !== null && PARAMS.get('selfie') !== undefined && PARAMS
    «Додати своє фото» веде у звичайну камеру-селфі → твоє фото лягає в `selfies`,
    отже наступні гравці свайпатимуть і тебе. Все на HTML/CSS, окремо від головного циклу. */
 let partyDeck = [], partyIdx = 0, partyBusy = false, partyTopEl = null, partyTopCard = null;
+let partyLikedMe = new Set();      // хто вже лайкнув МЕНЕ (для справжніх взаємних метчів)
 function partyFaceSrc(who){ try{ return (who==='katya'?offK:offD).toDataURL(); }catch(_){ return ''; } }
 // гість без селфі все одно має «якусь картинку»: монограма на кольоровому тлі
 function placeholderAvatar(name){
@@ -8636,14 +8636,16 @@ async function checkMatchNotify(){
 setTimeout(checkMatchNotify, 2200);
 function openParty(){
   partyDeck = buildPartyDeck(); partyIdx = 0; partyBusy = false; sessionMatches = [];
+  partyLikedMe = new Set();
   loadMyMatches().then(names=>{                                   // відкрив тіндер = побачив лайки
+    partyLikedMe = new Set((names||[]).map(n=>n.toLowerCase().trim()));
     try{ localStorage.setItem('wed-matches-seen', JSON.stringify(names||[])); }catch(_){}
     const b=document.getElementById('party-badge'); if(b) b.remove();
   });
   // хто лайкнув тебе раніше — показуємо в шапці
   loadMyMatches().then(names=>{
     const h=document.querySelector('#party-screen .s-head span');
-    if(h && names.length) h.textContent = '💘 по-дружньому лайкнули: ' + names.slice(0,4).join(', ') + (names.length>4?' +'+(names.length-4):'') + ' · свайпай у відповідь!';
+    if(h && names.length) h.textContent = '💘 тебе лайкнули: ' + names.slice(0,4).join(', ') + (names.length>4?' +'+(names.length-4):'') + ' · лайкни у відповідь — буде метч!';
   });
   document.getElementById('party-match').classList.add('hidden');
   document.getElementById('party-screen').classList.remove('hidden');
@@ -8712,10 +8714,13 @@ function swipeParty(card, dir, el){
   if(dir > 0){ try{ sfxScore(); }catch(_){} }
   setTimeout(() => {
     partyBusy = false;
-    // лайк на гостя → приблизно половина «метчить у відповідь» (без набридливих попапів)
-    if(dir > 0 && card.kind === 'guest' && (((card.name||'').length + partyIdx) % 2 === 0)){
-      sessionMatches.push(card.name); saveMatch(card.name);
-      showPartyMatch(card); return; }
+    if(dir > 0 && card.kind === 'guest'){
+      saveMatch(card.name);                                        // мій лайк записується завжди
+      if(partyLikedMe.has((card.name||'').toLowerCase().trim())){  // МЕТЧ — лише якщо гість лайкнув мене раніше
+        sessionMatches.push(card.name);
+        showPartyMatch(card); return;
+      }
+    }
     partyIdx++; renderPartyTop();
   }, 340);
 }
@@ -8759,7 +8764,7 @@ function showPartyMatch(card){
   face.append(im, h, k);
   const nm = (card.name||'Гість').replace(/[,—].*/,'').trim();
   document.getElementById('party-match-text').textContent =
-    'Дружній метч! 😄 Знайди(-и) ' + nm + ' на весіллі, привітайтесь і цокніться. До зустрічі 6 вересня! 🥂';
+    'Взаємно! Знайди(-и) ' + nm + ' на весіллі й привітайтесь 🥂';
   document.getElementById('party-match').classList.remove('hidden');
 }
 document.getElementById('party-like').addEventListener('click', ()=>{ if(partyTopEl && partyTopCard) swipeParty(partyTopCard, 1, partyTopEl); });
