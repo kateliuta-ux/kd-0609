@@ -8726,7 +8726,10 @@ async function playVoiceTrack(t, btn){
       t.pattern.split(/[;,]/).forEach(tok=>{ const [n,c,w]=tok.split(':');
         const r=SMP.rows.findIndex(row=>row.n===n);
         if(r>=0 && c>=0 && c<SMP.steps) grid[r][+c]=(SMP_WAVES[+w||0]||SMP_WAVES[0])[0]; });
-      const pat = await renderPatternClean(grid, 2, patTempo(t.pattern), t.sample ? sampleFromB64(t.sample) : null);
+      // стільки кіл лупа, скільки наспівано (старі треки = 2, нові = 4)
+      const stepMs = patTempo(t.pattern), loopS = SMP.steps*stepMs/1000;
+      const loops = Math.max(1, Math.min(8, Math.round(dig.duration/loopS)));
+      const pat = await renderPatternClean(grid, loops, stepMs, t.sample ? sampleFromB64(t.sample) : null);
       outBuf = mixVoicePattern(dig, pat);
     }
     plVoiceSrc = audioCtx.createBufferSource(); plVoiceSrc.buffer = outBuf;
@@ -8747,78 +8750,112 @@ document.getElementById('s-mysave').addEventListener('click', async ()=>{
         'не вдалося зберегти — спробуй пізніше (трек лишився тут)');
 });
 const sStat = t => { document.getElementById('s-status').textContent = t; };
+/* WAV із PCM16 — маленький і читається decodeAudioData на всіх пристроях */
+function wavBlob(pcm16, sr){
+  const n=pcm16.length, ab=new ArrayBuffer(44+n*2), v=new DataView(ab);
+  const ws=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+  ws(0,'RIFF'); v.setUint32(4, 36+n*2, true); ws(8,'WAVEfmt '); v.setUint32(16,16,true);
+  v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true);
+  v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+  ws(36,'data'); v.setUint32(40,n*2,true);
+  new Int16Array(ab,44).set(pcm16);
+  return new Blob([ab], {type:'audio/wav'});
+}
+let recStop = null;                                   // зупинка поточного запису голосу
 async function smpRecord(){
   const btn=document.getElementById('s-rec');
-  if(recMedia){ recMedia.stop(); return; }                       // друге натискання — стоп
+  if(recMedia){ if(recStop) recStop(); return; }                 // друге натискання — стоп
+  let stream=null;
+  try{ stream = await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ sStat('мікрофон недоступний — дозволь доступ у браузері'); return; }
   try{
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    ensureAudio();
-    // пишемо ТІЛЬКИ голос: семплер потім домішується чистим (без діджиталізації)
-    const dest = audioCtx.createMediaStreamDestination();
+    ensureAudio(); if(audioCtx.state==='suspended'){ try{ await audioCtx.resume(); }catch(_){} }
+    // пишемо ТІЛЬКИ голос PCM-ом (без MediaRecorder — той підводив); семплер домішується чистим
     const micSrc = audioCtx.createMediaStreamSource(stream);
-    micSrc.connect(dest);
     const liveAn = audioCtx.createAnalyser(); liveAn.fftSize=1024; micSrc.connect(liveAn);
     startLiveWave(liveAn);
-    recMedia = {_ctxTap:{dest, micSrc}};                          // тимчасово, замінимо нижче
     const hasPattern = SMP.grid.some(row=>row.some(v=>v));
-    if(SMP.playing) samplerStop();                                 // патерн стартуємо ПІСЛЯ відліку
-    recChunks=[];
-    recMedia = new MediaRecorder(dest.stream);
-    recMedia._tap = {dest, micSrc};
-    recMedia.ondataavailable = e => { if(e.data.size) recChunks.push(e.data); };
-    recMedia.onstop = async ()=>{
-      stream.getTracks().forEach(t=>t.stop());                   // мікрофон гаситься одразу
-      try{ recMedia._tap.micSrc.disconnect(); }catch(_){}
-      if(SMP.playing) samplerStop();                              // сітка стихає разом із записом
-      clearTimeout(recTimer); clearInterval(recBarTimer);
-      document.getElementById('s-recbar').classList.add('hidden');
-      btn.textContent='🎙 ЗАПИСАТИ ГОЛОС';
-      sStat('обробляю запис…');
-      try{
-        ensureAudio();
-        myTrackBlob = new Blob(recChunks, {type: recMedia.mimeType || 'audio/webm'});
-        const raw = await myTrackBlob.arrayBuffer();
-        const buf = await audioCtx.decodeAudioData(raw.slice(0));
-        const voiceDig = await digitalizeBuffer(buf);            // цифровий — ТІЛЬКИ голос
-        if(myTrackLoop){
-          myTrackPattern = smpSerialize();                       // патерн їде в плейлист окремо
-          const pat = await renderPatternClean(SMP.grid, 2, SMP.stepMs, getUserSample());     // семплер — чистий
-          myTrackBuf = mixVoicePattern(voiceDig, pat);
-        } else { myTrackPattern=''; myTrackBuf = voiceDig; }
-        cancelAnimationFrame(waveAnim); drawTrackWave(null);
-        document.getElementById('s-myplay').classList.remove('hidden');
-        document.getElementById('s-mysave').classList.remove('hidden');
-        sStat(myTrackLoop
-          ? '✓ 2 кола записано! «▶ МІЙ ТРЕК» крутить твій спів лупом 🔁 · «💾 ЗБЕРЕГТИ» — у плейлист'
-          : 'готово! «▶ МІЙ ТРЕК» — послухати · «💾 ЗБЕРЕГТИ ПІСНЮ» — у плейлист ('+Math.round(myTrackBuf.duration)+'с)');
-      }catch(e){ sStat('не вдалось обробити запис — спробуй ще раз'); }
-      recMedia=null;
-    };
-    // відлік 3-2-1 перед записом (з бипами)
+    if(SMP.playing) samplerStop();                                 // луп стартуємо ПІСЛЯ відліку
+    const sp = audioCtx.createScriptProcessor(2048, 1, 1);
+    const mute0 = audioCtx.createGain(); mute0.gain.value=0;      // мікрофон не дудить у динаміки
+    micSrc.connect(sp); sp.connect(mute0); mute0.connect(audioCtx.destination);
+    const chunks=[]; let got=0, capturing=false;
+    sp.onaudioprocess = e=>{ if(!capturing) return;
+      const d=e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); got+=d.length; };
+    recMedia = {pcm:true};                                        // маркер «зараз пишемо»
+    // відлік 3-2-1 перед записом (бипи в темпі лупа)
     btn.disabled = true;
     for(let cd=3; cd>=1; cd--){
       sStat('🎙 запис через… '+cd);
       try{ playNote(440+cd*60, audioCtx.currentTime, 0.15, 'square', 0.06); }catch(_){}
-      await new Promise(r=>setTimeout(r, 650));
+      await new Promise(r=>setTimeout(r, Math.max(480, SMP.stepMs*2)));
     }
     try{ playNote(880, audioCtx.currentTime, 0.2, 'square', 0.07); }catch(_){}
     btn.disabled = false;
-    if(hasPattern){ SMP.col = 0; document.getElementById('s-play').click(); }   // патерн з нуля — синхронно із записом
-    recMedia.start();
+    if(hasPattern){ SMP.col = 0; document.getElementById('s-play').click(); }   // луп з нуля — синхронно із записом
+    capturing = true;
     btn.textContent='⏹ СТОП (пише…)';
-    const hasP = SMP.grid.some(row=>row.some(v=>v));
-    const recMs = hasP ? SMP.steps*SMP.stepMs*2 : 30000;          // з мелодією = РІВНО 2 кола (потім зациклимо)
-    myTrackLoop = hasP;
-    sStat(hasP ? '🔴 пише 2 КОЛА мелодії — співай! потім твій спів зациклиться'
-               : '🔴 пише голос (до 30с)… з нотами в сітці було б 2 кола + луп');
+    const LOOPS = 4;                                              // ← співаєш РІВНО 4 кола лупа
+    const recMs = hasPattern ? SMP.steps*SMP.stepMs*LOOPS : 30000;
+    myTrackLoop = hasPattern;
+    sStat(hasPattern ? '🔴 пише 4 КОЛА лупа — співай поверх! твій спів потім зациклиться'
+                     : '🔴 пише голос (до 30с)… з нотами в сітці було б 4 кола лупа');
     stopChip();                                                   // фонова музика не лізе в запис
     // прогрес-бар: скільки лишилось
     const bar=document.getElementById('s-recbar'), fill=document.getElementById('s-recfill');
     bar.classList.remove('hidden'); fill.style.width='0%';
     const t0=Date.now();
     recBarTimer=setInterval(()=>{ fill.style.width=Math.min(100,(Date.now()-t0)/recMs*100)+'%'; }, 100);
-    recTimer=setTimeout(()=>{ if(recMedia && recMedia.stop) recMedia.stop(); }, recMs);
-  }catch(e){ sStat('мікрофон недоступний — дозволь доступ у браузері'); recMedia=null; }
+    let stopped=false;
+    const finish = async ()=>{
+      if(stopped) return; stopped=true;
+      capturing=false;
+      try{ sp.disconnect(); micSrc.disconnect(); mute0.disconnect(); }catch(_){}
+      stream.getTracks().forEach(t=>t.stop());                    // мікрофон гаситься одразу
+      if(SMP.playing) samplerStop();                              // сітка стихає разом із записом
+      clearTimeout(recTimer); clearInterval(recBarTimer);
+      document.getElementById('s-recbar').classList.add('hidden');
+      btn.textContent='🎙 ЗАПИСАТИ ГОЛОС';
+      sStat('обробляю запис…');
+      try{
+        // склеїти PCM → 9кГц mono WAV (стільки ж лишається після «діджиталізації», а важить мало)
+        const all=new Float32Array(got);
+        { let o=0; for(const c of chunks){ all.set(c, o); o+=c.length; } }
+        const ratio=audioCtx.sampleRate/9000, n=Math.floor(all.length/ratio);
+        const pcm=new Int16Array(n);
+        for(let i=0;i<n;i++){ pcm[i]=Math.max(-1, Math.min(1, all[(i*ratio)|0]))*32767; }
+        myTrackBlob = wavBlob(pcm, 9000);
+        const buf = await audioCtx.decodeAudioData(await myTrackBlob.arrayBuffer());
+        const voiceDig = await digitalizeBuffer(buf);            // цифровий — ТІЛЬКИ голос
+        if(myTrackLoop){
+          myTrackPattern = smpSerialize();                       // патерн їде в плейлист окремо
+          const pat = await renderPatternClean(SMP.grid, LOOPS, SMP.stepMs, getUserSample());   // семплер — чистий
+          let mix = mixVoicePattern(voiceDig, pat);
+          // обрізати рівно в 4 кола — щоб луп крутився без шва
+          const loopLen = Math.round(SMP.steps*SMP.stepMs/1000*LOOPS*mix.sampleRate);
+          if(mix.length > loopLen){
+            const cutB = audioCtx.createBuffer(1, loopLen, mix.sampleRate);
+            cutB.getChannelData(0).set(mix.getChannelData(0).subarray(0, loopLen));
+            mix = cutB;
+          }
+          myTrackBuf = mix;
+        } else { myTrackPattern=''; myTrackBuf = voiceDig; }
+        cancelAnimationFrame(waveAnim); drawTrackWave(null);
+        document.getElementById('s-myplay').classList.remove('hidden');
+        document.getElementById('s-mysave').classList.remove('hidden');
+        sStat(myTrackLoop
+          ? '✓ 4 кола записано! «▶ МІЙ ТРЕК» крутить твій спів лупом 🔁 · «💾 ЗБЕРЕГТИ» — у плейлист'
+          : 'готово! «▶ МІЙ ТРЕК» — послухати · «💾 ЗБЕРЕГТИ ПІСНЮ» — у плейлист ('+Math.round(myTrackBuf.duration)+'с)');
+      }catch(e){ sStat('не вдалось обробити запис — спробуй ще раз'); }
+      recMedia=null; recStop=null;
+    };
+    recStop = finish;
+    recTimer=setTimeout(finish, recMs);
+  }catch(e){
+    sStat('не вдалося почати запис — спробуй ще раз');
+    try{ stream.getTracks().forEach(t=>t.stop()); }catch(_){}
+    recMedia=null; recStop=null;
+  }
 }
 document.getElementById('s-rec').addEventListener('click', smpRecord);
 document.getElementById('s-myplay').addEventListener('click', ()=>{
