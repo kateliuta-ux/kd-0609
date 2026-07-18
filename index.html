@@ -71,6 +71,16 @@
     box-shadow:0 3px 0 rgba(150,110,120,.28), 0 0 0 2px #ecd3c4;letter-spacing:.5px}
   #title-screen .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(150,110,120,.28), 0 0 0 2px #ecd3c4}
   #title-screen #btn-newgame{box-shadow:0 3px 0 rgba(180,140,60,.32), 0 0 0 2px #d9b56a}  /* головна — золотий кант */
+  /* «Моє запрошення» — НАЙПЕРШЕ і сяє: видно одразу після вводу пароля */
+  #title-screen #btn-viber-title{
+    background:linear-gradient(135deg,#f9c1d0,#e8899f 55%,#e5c26e)!important;
+    color:#5c1f30!important; font-size:clamp(14px,3cqw,19px);
+    animation:invGlow 1.7s ease-in-out infinite;
+  }
+  @keyframes invGlow{
+    0%,100%{box-shadow:0 3px 0 rgba(150,80,110,.4), 0 0 0 2px #d9b56a, 0 0 10px rgba(244,190,130,.55)}
+    50%{box-shadow:0 3px 0 rgba(150,80,110,.42), 0 0 0 2px #f4cf5e, 0 0 26px rgba(255,205,140,.95)}
+  }
   #title-screen .hint{color:#9a8a86;font-size:clamp(10px,2cqw,13px)}
 
   /* ---------- dialogue ---------- */
@@ -356,6 +366,7 @@
       onerror="this.parentNode.innerHTML='Катя <span class=amp>&amp;</span> Діма'"></h1>
     <div class="sub">6 вересня 2026 · Київ</div>
     <div class="menu" id="main-menu">
+      <button class="btn" id="btn-viber-title">💌 Моє запрошення</button>
       <button class="btn katya" id="btn-newgame">Нова гра</button>
       <button class="btn watch" data-pov="watch">Історія без ігор</button>
 
@@ -369,7 +380,6 @@
       <div class="btn-row">
         <button class="btn small" id="btn-party">Тіндер</button>
         <button class="btn small" id="btn-install" style="background:#6a5cff">📲 На робочий стіл</button>
-        <button class="btn small" id="btn-viber-title" style="box-shadow:0 3px 0 rgba(180,140,60,.32), 0 0 0 2px #d9b56a">💌 Моє запрошення</button>
       </div>
     </div>
     <div class="menu hidden" id="play-pov-menu">
