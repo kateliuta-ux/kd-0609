@@ -4907,15 +4907,18 @@ function drawGuestCrowd(yBase, opts){
   opts = opts || {};
   const faces = GUEST_FACES.filter(f=>headReady(f.img));
   if(!faces.length) return;
-  const n = Math.min(faces.length, opts.max||16), hs = opts.size||9, sp = W/(n+1);
-  const sh = ['#5a4a6a','#4a5a4a','#6a4a4a','#4a4a6a','#5a5a4a'];
+  const n = Math.min(faces.length, opts.max||16), r = (opts.size||10)/2, sp = W/(n+1);
   for(let i=0;i<n;i++){
     const f = faces[i], x = Math.round(sp*(i+1) + Math.sin(i*1.7)*3), y = yBase + ((i%2)?0:-3);
-    if(opts.skip && x>opts.skip[0] && x<opts.skip[1]) continue;   // не заходити на важливий елемент (напр. дзвіницю)
-    ctx.fillStyle = sh[i%sh.length]; ctx.fillRect(x-hs/2-1, y+hs-3, hs+2, hs);   // плечі
-    ctx.save(); ctx.beginPath(); ctx.rect(x-hs/2, y-hs/2, hs, hs); ctx.clip();
-    ctx.imageSmoothingEnabled=false; ctx.drawImage(f.img, x-hs/2, y-hs/2, hs, hs); ctx.restore();
-    ctx.strokeStyle='rgba(250,246,234,.6)'; ctx.lineWidth=1; ctx.strokeRect(x-hs/2+.5, y-hs/2+.5, hs-1, hs-1);
+    if(opts.skip && x>opts.skip[0] && x<opts.skip[1]) continue;   // не заходити на важливий елемент (дзвіницю)
+    // ТІЛО у вишиванці (дрес-код: біла сорочка + червона вишивка)
+    const bw = Math.round(r*2+3), bh = Math.round(r*1.9), bx = x-bw/2, by = Math.round(y+r-1);
+    ctx.fillStyle='#f4f0e4'; ctx.fillRect(bx, by, bw, bh);                    // біла сорочка
+    ctx.fillStyle='#c0303c'; ctx.fillRect(bx, by, bw, 2);                     // червоний комір
+    for(let e=bx+1; e<bx+bw-1; e+=3) ctx.fillRect(e, by+3, 1, 2);            // хрестики-орнамент
+    ctx.fillRect(bx, by, 2, bh); ctx.fillRect(bx+bw-2, by, 2, bh);           // вишиті боки
+    // ОБЛИЧЧЯ-кружечок — обрізка по контуру обличчя, як у Каті й Діми
+    drawFaceCircle(f.img, x, y, r, 1);
   }
 }
 function drawWed(){
