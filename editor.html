@@ -16,31 +16,49 @@
   header{ padding:14px 16px 10px; border-bottom:3px solid var(--line); display:flex; flex-wrap:wrap; gap:8px; align-items:baseline }
   header h1{ font-size:16px; letter-spacing:1px; color:var(--gold) }
   header .sub{ font-size:11px; color:var(--dim) }
-  nav{ display:flex; gap:6px; padding:10px 12px; flex-wrap:wrap; border-bottom:3px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:5 }
-  nav button{ font-family:inherit; font-size:12px; padding:8px 12px; background:var(--panel); color:var(--ink);
-    border:2px solid var(--line); cursor:pointer }
+  nav{ display:flex; gap:6px; padding:9px 10px; border-bottom:3px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:5;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none }
+  nav::-webkit-scrollbar{ display:none }
+  nav button{ font-family:inherit; font-size:13px; padding:11px 13px; background:var(--panel); color:var(--ink);
+    border:2px solid var(--line); cursor:pointer; white-space:nowrap; flex:none }
   nav button.on{ background:var(--rose); border-color:#d8899a; color:#fff }
   main{ padding:12px; max-width:760px; margin:0 auto }
-  .hint{ font-size:11px; color:var(--dim); line-height:1.5; margin:8px 2px 14px }
-  .card{ background:var(--panel); border:2px solid var(--line); margin-bottom:12px; padding:10px 12px }
-  .card h3{ font-size:13px; color:var(--gold); margin-bottom:2px }
-  .card .desc{ font-size:11px; color:var(--dim); margin-bottom:8px }
-  .row{ display:flex; gap:6px; flex-wrap:wrap; align-items:center }
-  .pill{ font-family:inherit; font-size:11px; padding:5px 9px; border:2px solid var(--line); background:#262230; color:var(--dim); cursor:pointer }
+  .hint{ font-size:12px; color:var(--dim); line-height:1.55; margin:8px 2px 14px }
+  /* ── згортувані картки (зручно з телефону) ── */
+  .card{ background:var(--panel); border:2px solid var(--line); margin-bottom:9px }
+  .card-head{ display:flex; align-items:center; gap:8px; padding:13px 12px; cursor:pointer; user-select:none }
+  .card-head .ct{ flex:1; font-size:14px; color:var(--gold); line-height:1.3 }
+  .card-head .cbadges{ display:flex; gap:3px; flex:none }
+  .card-head .hb{ font-size:11px; padding:3px 6px; border-radius:3px; background:#332e3e; color:var(--dim); line-height:1 }
+  .card-head .hb-ok{ background:#274b33; color:#9fe0ae }
+  .card-head .hb-fix{ background:#5a4420; color:var(--gold) }
+  .card-head .hb-cut{ background:#5a2430; color:#f0a0ac }
+  .card-head .hb-note{ background:#2b3a52; color:#a9c9ef }
+  .card-head .hb-draw{ background:#3a2540; color:#e0a0f0 }
+  .card-head .cdel{ color:#f0a0ac; font-size:15px; padding:0 4px; flex:none }
+  .card-head .carr{ color:var(--dim); font-size:13px; flex:none; transition:transform .15s }
+  .card.open .card-head .carr{ transform:rotate(90deg) }
+  .card.open .card-head{ border-bottom:2px solid var(--line) }
+  .card-body{ display:none; padding:12px }
+  .card.open .card-body{ display:block }
+  .card .desc{ font-size:12px; color:var(--dim); margin-bottom:10px; line-height:1.5 }
+  .row{ display:flex; gap:7px; flex-wrap:wrap; align-items:center }
+  .pill{ font-family:inherit; font-size:12px; padding:9px 13px; border:2px solid var(--line); background:#262230; color:var(--dim); cursor:pointer }
   .pill.on-ok{ background:#274b33; color:#9fe0ae; border-color:#3f7c52 }
   .pill.on-fix{ background:#5a4420; color:var(--gold); border-color:#a08034 }
   .pill.on-cut{ background:#5a2430; color:#f0a0ac; border-color:var(--red) }
-  .tools{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px }
-  .tbtn{ font-family:inherit; font-size:11px; padding:6px 10px; background:#2b2838; color:var(--ink); border:2px solid var(--line); cursor:pointer }
+  .tools{ display:flex; gap:7px; flex-wrap:wrap; margin-top:10px }
+  .tbtn{ font-family:inherit; font-size:12px; padding:10px 13px; background:#2b2838; color:var(--ink); border:2px solid var(--line); cursor:pointer }
   .tbtn:active{ transform:translateY(1px) }
-  textarea{ width:100%; min-height:64px; margin-top:8px; background:#0f0d16; color:var(--ink); border:2px solid var(--line);
-    font-family:inherit; font-size:13px; padding:8px; resize:vertical }
-  .thumbs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+  textarea{ width:100%; min-height:70px; margin-top:10px; background:#0f0d16; color:var(--ink); border:2px solid var(--line);
+    font-family:inherit; font-size:14px; padding:9px; resize:vertical; line-height:1.5 }
+  .thumbs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px }
   .thumb{ position:relative; border:2px solid var(--line); background:#000 }
   .thumb img{ display:block; width:120px; height:90px; object-fit:cover; image-rendering:auto }
   .thumb .x{ position:absolute; top:-2px; right:-2px; background:var(--red); color:#fff; border:none; font-family:inherit;
-    font-size:11px; width:20px; height:20px; cursor:pointer }
+    font-size:13px; width:24px; height:24px; cursor:pointer }
   .thumb .tag{ position:absolute; left:0; bottom:0; right:0; background:rgba(0,0,0,.65); color:#eee; font-size:9px; padding:2px 4px }
+  .grouphead{ font-size:13px; color:var(--gold); margin:16px 2px 7px; letter-spacing:1px; position:sticky; top:52px; background:var(--bg); padding:4px 0; z-index:3 }
   /* ── малювальня ── */
   #draw-wrap{ position:fixed; inset:0; background:#0c0a12; z-index:50; display:none; flex-direction:column }
   #draw-wrap.open{ display:flex }
@@ -250,39 +268,55 @@ document.querySelectorAll('nav button').forEach(b=> b.addEventListener('click', 
 }));
 setActiveNav();
 
+const openCards = new Set();     // які картки розгорнуті (щоб не згорталися при перемалюванні)
 function sceneCard(id, title, desc, isNovel, placeholder, onDelete){
   const card = document.createElement('div'); card.className='card'; card.dataset.scene=id;
-  card.innerHTML = '<h3>'+title+(onDelete?' <span style="float:right;cursor:pointer;color:#f0a0ac" title="прибрати">✕</span>':'')+'</h3>'+(desc?'<div class="desc">'+desc+'</div>':'');
-  if(onDelete){ card.querySelector('span').addEventListener('click', onDelete); }
-  // статус
+  if(openCards.has(id)) card.classList.add('open');
+  const st=db.status[id];
+  const hasNote=!!(db.notes[id]&&db.notes[id].trim());
+  const hasDraw=db.items.some(i=>i.scene===id&&i.img);
+  // заголовок-шапка (тап — розгорнути/згорнути)
+  const head=document.createElement('div'); head.className='card-head';
+  let badges='';
+  if(st) badges+='<span class="hb hb-'+st+'">'+({ok:'✓',fix:'✎',cut:'✕'}[st]||'')+'</span>';
+  if(hasNote) badges+='<span class="hb hb-note">✎</span>';
+  if(hasDraw) badges+='<span class="hb hb-draw">🖊</span>';
+  head.innerHTML='<span class="ct">'+title+'</span><span class="cbadges">'+badges+'</span>'+(onDelete?'<span class="cdel" title="прибрати">✕</span>':'')+'<span class="carr">▸</span>';
+  head.addEventListener('click', e=>{
+    if(e.target.classList.contains('cdel')) return;
+    card.classList.toggle('open');
+    if(card.classList.contains('open')) openCards.add(id); else openCards.delete(id);
+  });
+  if(onDelete){ head.querySelector('.cdel').addEventListener('click', e=>{ e.stopPropagation(); onDelete(); }); }
+  card.appendChild(head);
+  // тіло (згортуване)
+  const body=document.createElement('div'); body.className='card-body';
+  if(desc){ const dd=document.createElement('div'); dd.className='desc'; dd.innerHTML=desc; body.appendChild(dd); }
   const row = document.createElement('div'); row.className='row';
-  [['ok','✓ ок'],['fix','✎ змінити'],['cut','✕ прибрати']].forEach(([st,lab])=>{
+  [['ok','✓ ок'],['fix','✎ змінити'],['cut','✕ прибрати']].forEach(([s,lab])=>{
     const p=document.createElement('button'); p.className='pill'; p.textContent=lab;
-    if(db.status[id]===st) p.classList.add('on-'+st);
-    p.addEventListener('click', ()=>{ db.status[id] = db.status[id]===st ? '' : st; touch('s:'+id); persist(); render(); });
+    if(db.status[id]===s) p.classList.add('on-'+s);
+    p.addEventListener('click', ()=>{ db.status[id] = db.status[id]===s ? '' : s; touch('s:'+id); openCards.add(id); persist(); render(); });
     row.appendChild(p);
   });
-  card.appendChild(row);
-  // нотатка
+  body.appendChild(row);
   const ta=document.createElement('textarea');
   ta.placeholder = placeholder || (isNovel ? 'сюжет: що змінити, які слова, який настрій…' : 'механіка/сцена: що змінити, як має працювати…');
   ta.value = db.notes[id]||'';
   ta.addEventListener('input', ()=>{ db.notes[id]=ta.value; touch('n:'+id); persist(); });
-  card.appendChild(ta);
-  // інструменти
+  body.appendChild(ta);
   const tools=document.createElement('div'); tools.className='tools';
   const mk=(lab,fn)=>{ const b=document.createElement('button'); b.className='tbtn'; b.textContent=lab; b.addEventListener('click',fn); tools.appendChild(b); };
   mk('🖊 намалювати', ()=> openDraw(id, null));
   mk('📷 додати фото/скрін', ()=> pickPhoto(id));
-  card.appendChild(tools);
-  // мініатюри
+  body.appendChild(tools);
   const items = db.items.filter(i=> i.scene===id && i.img);
   if(items.length){
     const th=document.createElement('div'); th.className='thumbs';
     items.forEach(it=>{
       const d=document.createElement('div'); d.className='thumb';
       const im=document.createElement('img'); im.src=it.img; d.appendChild(im);
-      im.addEventListener('click', ()=> openDraw(id, it));          // тап по мініатюрі → домалювати
+      im.addEventListener('click', ()=> openDraw(id, it));
       const tag=document.createElement('div'); tag.className='tag';
       tag.textContent=(it.kind==='photo'?'📷':'🖊')+(it.sent?' · ✓ надіслано':''); d.appendChild(tag);
       const x=document.createElement('button'); x.className='x'; x.textContent='✕';
@@ -290,34 +324,60 @@ function sceneCard(id, title, desc, isNovel, placeholder, onDelete){
       d.appendChild(x);
       th.appendChild(d);
     });
-    card.appendChild(th);
+    body.appendChild(th);
   }
+  card.appendChild(body);
   return card;
 }
 
 
 /* ───────────────────────── СПИСОК ЕЛЕМЕНТІВ ГРИ (що можна перемалювати/переписати) ───────────────────────── */
 const ELEMENT_GROUPS = [
+ ['🏙 Локації — 📷 сфоткай кожне справжнє місце', [
+   ['el-loc-office','Офіс / зйомка ШТОРМНАДО','де познайомились — сфоткай офіс/студію'],
+   ['el-loc-band','Сцена гурту (концерт)','майданчик, де грав гурт'],
+   ['el-loc-alley','Пейзажна алея','де було ваше побачення (каштани, лавка)'],
+   ['el-loc-cabin','Каюта / кораблик','де було освідчення'],
+   ['el-loc-svaty','Хата у селі (свати)','піч, рушники — справжня хата'],
+   ['el-loc-bilohorodka','Білогородка','де знайшли Кітану'],
+   ['el-loc-kyiv','Київ — краєвид Каті','твоє місто/район'],
+   ['el-loc-london','Лондон — краєвид Діми','його місто на відстані'],
+   ['el-loc-pozniaky','Позняки','де живете разом'],
+   ['el-loc-shtolnia','Штольня / підземелля','локація секретів'],
+   ['el-loc-sofi','«Бути Софі» · Софія Київська','тераса/зал денної частини'],
+   ['el-loc-khv','«Хвильовий» · Поділ','дворик, цегла, вечірня частина'],
+   ['el-loc-diia','Загс / «Дія»','де подавали / екран Дії'],
+   ['el-loc-dance','Танцпол / святкова зала','де гуляєте ввечері'],
+   ['el-loc-photozone','Фотозона весілля','де гості фоткаються'],
+ ]],
+ ['✍️ Написи — ✍️ напиши кожне від руки', [
+   ['el-w-title','«Катя ♥ Діма»','головний напис — рукопис'],
+   ['el-w-date','«6 вересня 2026»',''],
+   ['el-w-zaprosyny','«ЗАПРОСИНИ»','напис на вступі'],
+   ['el-w-parts','Назви частин','«ЧАСТИНА ПЕРША…ШОСТА»'],
+   ['el-w-chapters','Назви глав','Вечорниці · Тіндер · Побачення · Кітана · Свати · Освідчення · Дія · Викуп · Весілля'],
+   ['el-w-credits','«Титри / Дякуємо»',''],
+   ['el-w-menu','Кнопки меню','Нова гра · Історія без ігор · Семплер · Додай себе · Тіндер · Моє запрошення'],
+   ['el-w-sampler','«СЕМПЛЕР» / «ПЛЕЙЛИСТ» / «РЕЙТИНГ»','заголовки екранів'],
+   ['el-w-notarius','Вивіска «НОТАРІУС»','неон у Хвильовому'],
+   ['el-w-sofi','«Бути Софі»','вивіска локації'],
+   ['el-w-khv','«Хвильовий»','вивіска локації'],
+   ['el-w-znimai','«ЗНІМАЙ УСЕ»','напис на камерах'],
+   ['el-w-invite','Текст запрошення','«Просили тато й мама…» — від руки'],
+   ['el-w-plivku','«плівку — молодятам»','підпис на камері'],
+ ]],
  ['🧍 Персонажі', [
-   ['el-katya','Катя (наречена)','фігурка: спідниця+вишиванка+віночок / біла сукня, обличчя'],
-   ['el-dima','Діма (наречений)','фігурка: сорочка, жилетка, обличчя'],
+   ['el-katya','Катя (наречена)','вишиванка+віночок / біла сукня, обличчя'],
+   ['el-dima','Діма (наречений)','сорочка, жилетка, обличчя'],
+   ['el-mol','Молодята разом','парний портрет-фігурка'],
    ['el-kitana','Кітана (кішка)','руда кішка з Білогородки'],
-   ['el-pochet','Дружки й бояри','почет: вінки зі стрічками, брилі'],
-   ['el-guests','Гості (болванчики)','фігурки гостей у дрес-коді'],
-   ['el-nika','Ніка Селега','веде обряд на весіллі'],
+   ['el-pochet','Дружки й бояри','вінки зі стрічками, брилі'],
+   ['el-guests','Гості (болванчики)','фігурки у дрес-коді'],
+   ['el-nika','Ніка Селега','веде обряд'],
+   ['el-band-mus','Музиканти гурту','сцена SSB'],
+   ['el-kostia','Костя (режисер ТВ)','сцена зйомки'],
  ]],
- ['🏙 Локації (фони)', [
-   ['el-office','Офіс ШТОРМНАДО','зйомка, зелений екран'],
-   ['el-band','Сцена гурту SSB','прожектори, колонки, юрба'],
-   ['el-alley','Пейзажна алея','побачення, пиво, каштани'],
-   ['el-cabin','Каюта (освідчення)','ілюмінатор, затишок'],
-   ['el-svaty','Хата (свати)','піч, рушники, лави'],
-   ['el-london','Київ ↔ Лондон','зум-віконця, місто'],
-   ['el-sofi','Тераса «Бути Софі»','Софія Київська, дзвіниця'],
-   ['el-khv','Дворик «Хвильовий»','цегла, неон «НОТАРІУС»'],
-   ['el-diia','Екран «Дія»','айфон-анкета, прізвище'],
- ]],
- ['🎁 Предмети й дрібниці', [
+ ['🎁 Предмети', [
    ['el-korovai','Коровай','весільний хліб, калина'],
    ['el-rushnyk','Рушник','орнамент, червоні кінці'],
    ['el-ring','Обручка',''],
@@ -325,17 +385,20 @@ const ELEMENT_GROUPS = [
    ['el-ribbon','Стрічка викупу','червона з бантом'],
    ['el-malva','Мальва / квіти дрес-коду',''],
    ['el-doves','Голуби й блискітки','святкова картка'],
+   ['el-fuji','Камера Fuji','одноразова мильниця'],
+   ['el-mic','Мікрофон',''],
+   ['el-backpack','Рюкзак Діми',''],
  ]],
- ['✍️ Написи, шрифти, орнамент', [
-   ['el-title','Напис «Катя & Діма»','титульний рукопис'],
-   ['el-date','Дата 6.9.2026',''],
-   ['el-ornament','Орнаментні смуги','вишивка-бордюр'],
-   ['el-invitetext','Текст запрошення','«Просили тато й мама…»'],
+ ['🎨 Стиль і оздоба', [
+   ['el-palette','Палітра кольорів','які кольори «ваші»'],
+   ['el-ornament','Орнамент-бордюр','вишивка-смуга'],
+   ['el-gbstyle','Game Boy-вигляд','ретро-стиль «Історії без ігор»'],
+   ['el-font','Шрифт заголовків','яким має бути рукописний шрифт'],
  ]],
  ['📱 Інтерфейс', [
-   ['el-menu','Кнопки меню','головний екран'],
    ['el-stub','Заставка-заглушка','відлік до релізу'],
    ['el-invitecard','Фінальне запрошення','картка з часом і місцем'],
+   ['el-viber','Viber-запрошення','блискітки, голуби'],
  ]],
 ];
 function renderElements(){
@@ -345,11 +408,11 @@ function renderElements(){
     '<div class="desc" style="line-height:1.6;margin-top:6px;color:#9fe0ae">Як це доходить до Клода: усе, що ти малюєш і пишеш, зберігається тут-таки. Тиснеш <b>«⤴ Надіслати правки Клоду»</b> внизу — і воно летить у базу гри. Я забираю звідти твої малюнки, фото й тексти (кожен привʼязаний до свого елемента) і вношу в гру. Нічого вручну пересилати не треба.</div>';
   main.appendChild(h);
   ELEMENT_GROUPS.forEach(([g,items])=>{
-    const gh=document.createElement('div'); gh.style.cssText='font-size:12px;color:var(--gold);margin:14px 2px 6px;letter-spacing:1px'; gh.textContent=g;
+    const gh=document.createElement('div'); gh.className='grouphead'; gh.textContent=g;
     main.appendChild(gh);
     items.forEach(([id,t,d])=> main.appendChild(sceneCard(id,t,d,false,'як має виглядати/звучати цей елемент…')));
   });
-  const gh=document.createElement('div'); gh.style.cssText='font-size:12px;color:var(--gold);margin:14px 2px 6px;letter-spacing:1px'; gh.textContent='➕ Твої елементи';
+  const gh=document.createElement('div'); gh.className='grouphead'; gh.textContent='➕ Твої елементи';
   main.appendChild(gh);
   db.customElements.forEach((ce)=>{
     main.appendChild(sceneCard(ce.id, ce.title, '', false, 'опиши або намалюй цей елемент…',
