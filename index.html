@@ -9967,7 +9967,9 @@ function pixelateToDataURL(imgEl, targetW){
   return c.toDataURL('image/jpeg', 0.7);
 }
 // тестові документи (додані нами до запуску) — не показувати; у консолі видаляться назавжди
-const HIDE_DOCS = new Set(['11C0788YMDaPpyzSldQi','JVn93SeHaUGa1l08osaM','__selftest','gFK1wMAuNpWuob4kKAcy','name-діма']);
+const HIDE_DOCS = new Set(['11C0788YMDaPpyzSldQi','JVn93SeHaUGa1l08osaM','__selftest','gFK1wMAuNpWuob4kKAcy','name-діма',
+  'name-дмитро','rbfAkpUyuLwItWrLb9ab',                        // тестові прогони Діми (селфі + рахунок у рейтингу)
+  'gYVDK8o97KQ3bjtLaXnG','actCmPHa5unhGlVRLRsw','bvGXCCK5MA9tCWYZAPOj']);   // тех-проби редакторської
 async function loadMemories(){
   try{
     const r = await fetch(FS_BASE+'memories?key='+FB.apiKey+'&pageSize=60');
@@ -10085,6 +10087,7 @@ async function loadScores(){
     const j = await r.json();
     const best = {};                                      // найкращий результат кожного імені
     (j.documents||[]).forEach(d=>{
+      if(HIDE_DOCS.has(d.name.split('/').pop())) return;      // тестові прогони — не в рейтинг
       const nm = d.fields?.name?.stringValue; if(!nm) return;
       const sc = +(d.fields?.score?.integerValue || 0);
       if(best[nm]===undefined || sc>best[nm]) best[nm]=sc;
