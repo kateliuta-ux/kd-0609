@@ -10726,6 +10726,30 @@ async function loadGuestsLive(){
   }catch(e){}
 }
 loadGuestsLive();
+/* Паролі/імена з Редакторської (editor.html): злиття поверх зашитого списку.
+   Додає нових гостей і оновлює змінені паролі; зашитий список — надійний фолбек. */
+async function loadGuestPwOverride(){
+  try{
+    const r = await fetch(FS_BASE+'voice-tracks/wed-guestlist?key='+FB.apiKey);
+    if(!r.ok) return;
+    const j = await r.json();
+    const str = j.fields && j.fields.list && j.fields.list.stringValue;
+    if(!str) return;
+    const over = str.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
+      const p=l.split(';');
+      return {id:(p[0]||'').trim(), name:(p[1]||'').trim(), side:(p[2]||'').trim(),
+              plus1:(p[3]||'').trim(), censor:(p[4]||'').trim()==='1', pass:normPass(p[5]||'')};
+    }).filter(g=>g.name);
+    if(over.length < 50) return;                       // захист від зіпсованого доку
+    const byId={}; RSVP_GUEST_LIST.forEach(g=> byId[g.id]=g);
+    over.forEach(o=>{ if(byId[o.id]) Object.assign(byId[o.id], o); else RSVP_GUEST_LIST.push(o); });
+    if(!AUTH_GUEST){                                    // раптом зайшли новим паролем через ?p=
+      const up=normPass(PARAMS.get('p')||'');
+      if(up){ const g=RSVP_GUEST_LIST.find(x=>x.pass&&x.pass===up); if(g) gateAuth(g,false); }
+    }
+  }catch(e){}
+}
+loadGuestPwOverride();
 const slugify = s => (s||'').toLowerCase().trim()
   .replace(/[^a-zа-яїієґ0-9]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'x';
 async function sendRsvpToApp(guestId, response, extra){

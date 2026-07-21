@@ -86,6 +86,7 @@
 <nav>
   <button data-tab="mech" class="on">Механіки гри</button>
   <button data-tab="novel">Історія без ігор</button>
+  <button data-tab="guests">Гості й паролі</button>
   <button data-tab="free">Вільний аркуш</button>
   <button data-tab="sent">Мої правки</button>
 </nav>
@@ -242,6 +243,7 @@ function render(){
     main.appendChild(h);
     list.forEach(([id,t,d])=> main.appendChild(sceneCard(id,t,d,tab==='novel')));
   }
+  if(tab==='guests'){ renderGuests(); }
   if(tab==='free'){
     const h=document.createElement('div'); h.className='hint';
     h.textContent='Аркуші без привʼязки до сцени — для будь-чого: нові ідеї, шрифти, написи, персонажі.';
@@ -377,6 +379,270 @@ cv.addEventListener('pointermove', e=>{
   repaint();
 });
 ['pointerup','pointercancel'].forEach(t=> cv.addEventListener(t, ()=>{ cur=null; }));
+
+
+/* ───────────────────────── ГОСТІ Й ПАРОЛІ (dev) ───────────────────────── */
+const GUEST_BASE = `
+g1781813835774;Мама Леся Синявська;К;;1;S4LO
+g1781813848562;Папа Паша Овечкін;К;;1;BORSHCH1K
+g1781813867090;Віка Кукрицька;К;;0;KAVUNCH1K
+g1781813882415;Луїза Шабліян;К;Антон Міхайленко;0;KYIVSK1
+g1781813904967;Аня Кімельфельд;К;;0;PLY4TSOK
+g1781813921543;Юля Приймак;К;Сашко;0;BOGR4CH
+g1781813938759;Аліна Сміла;К;Жора;0;SHKV4RKA
+g1781813965048;Катя Большакова;К;;0;KRUCHEN1K
+g1781813970341;Ліда;К;;0;PYR1ZHOK
+g1781813982362;Дан;К;;0;BANOSH
+g1781814044022;Марія Пінаєвська;К;Вова;0;KUL1SH
+g1781814128008;Дарина;К;Саша;0;BRYNZ4
+g1781855826271;Юля Рябухіна;К;Артем Щербань;0;VYSHENK4
+g1781855841086;Іванка;К;Рома;0;KNYSH
+g1781855868807;Катя Плешакова;К;;0;HR1NKA
+g1781863514005;Дядя Саша;К;;1;VAR3NYK
+g1781863528069;Брат Саша;К;Брат Боря;0;SUSHK4
+g1781863598784;Аня Дідора;К;;0;SL1VKA
+g1781864190608;Альона Казанець;К;;0;B4TON
+g1781864209138;Настя Крестенко;К;;0;BUBL1K
+g1781864236003;Інна Кандаурова;К;Богдан;0;H4RBUZ
+g1781864246321;Леся;К;Діма;0;OG1ROK
+g1781864270163;Настя Запорожець;К;Уляна;0;TSYBUL4
+g1781864289887;Тімур;К;Яна;0;CH4SNYK
+g1781865782041;Аліса;К;;0;BURY4K
+g1781872792125;Мама Світлана;Н;;1;SYRN1K
+g1781872806567;Папа Олег;Н;;1;KOMP0T
+g1781872824065;Бабуся Марія;Н;;1;UZV4R
+g1781872842661;Дядько Віктор;Н;;1;DERUN
+g1781872864554;Тітка Тома;Н;;1;HALUSHK4
+g1781872877920;Сусід Олександр;Н;;1;PAMPUSH4
+g1781872995801;Сусідка Іра;Н;;1;KOVB4SKA
+g1781873009119;Сусідка Юля;Н;;1;HOLUBTS1
+g1781873027984;Сусідка Віка;Н;;1;NALYSNYK
+g1781873085024;Хрещена;Н;;1;KUT1A
+g1781873112567;Хрещени чоловік;Н;;1;KOROV4Y
+g1781873130730;Оксана бикова;Н;;0;KARTOPL4
+g1781873162994;Олег Бурий;Н;;0;M4KUKHA
+g1781873183238;Ярік Соколовський;Н;Марина;0;BULK4
+g1781873197438;Олег Сміря;Н;;0;ZR4ZY
+g1781873240687;Настя Мітіна;Н;;0;VERHUN1
+g1781873251619;Влад Тріфа;Н;;0;SHPUNDR4
+g1781873263811;Валєра;Н;;0;BUZHENYN4
+g1781873285101;Діма Дмитро Плахотній;Н;Анна Гарбар;0;SALTYS0N
+g1781873300232;Лана Чубаха;Н;;0;KEF1R
+g1781873420900;Настя Гулєнко;Н;Саша Олександр гулянко;0;VARENUKH4
+g1781873431541;Павлуша;Н;;0;NALYVK4
+g1781873442149;Аня Анна Цюрко;Н;;0;LYSYCHK4
+g1781873471996;Като;Н;;0;ZATIRK4
+g1781873493882;Марина (бікер);Н;;0;LEMISHK4
+g1781873513462;Влад (бікер));Н;;0;TETER4
+g1781873538177;Аліна (бікер);Н;;0;SHYSHK4
+g1781873551974;Ніка Селега;Н;;0;LOKSHYN4
+g1782392112389;Катя Матвійчук;К;;0;YUSHK4
+g1782489072928;Женя Галич;К;;0;PASK4
+g1782489130977;Влад Бранашко;К;;0;MEDOV1K
+g1783198185147;Дзен;Н;;0;KYS1L
+g1783198785170;Духніч;Н;;0;SMET4NA
+g1783198825850;Безвер;Н;;0;KALACH1K
+g1783202872352;Марія R;Н;;0;KORZH1K
+g1789000000001;Льоша Кучма;К;Іванка;0;KAPUSNY4K
+g1789000000002;Женя Поповіченко;К;;0;RYAZHANK4
+g1789000000003;Лєра;К;;0;MEDIVNYK
+g1790000000001;Гість у Софі 1;К;;1;HRECHK4
+g1790000000002;Гість у Софі 2;К;;1;K4SHA
+g1790000000003;Гість у Софі 3;К;;1;PYR1H
+g1790000000004;Гість у Софі 4;К;;1;MLYNTS1
+g1790000000005;Гість у Софі 5;К;;1;SYR0K
+g1790000000006;Гість у Софі 6;К;;1;MASL0
+g1790000000007;Гість у Софі 7;К;;1;MED0K
+g1790000000008;Гість у Софі 8;К;;1;MOLOCHK0
+g1790000000009;Гість у Софі 9;К;;1;KAPUST4
+g1790000000010;Гість у Софі 10;К;;1;MORKV4
+g1790000000011;Гість у Софі 11;К;;1;REDYSK4
+g1790000000012;Гість у Софі 12;К;;1;SELER4
+g1790000000013;Гість у Софі 13;К;;1;KABACH0K
+g1790000000014;Гість у Софі 14;К;;1;PETRUSHK4
+g1790000000015;Гість у Софі 15;К;;1;KR1PCHYK
+g1790000000016;Гість у Софі 16;К;;1;SYROVATK4
+g1790000000017;Гість у Софі 17;К;;1;ROHAL1K
+g1790000000018;Гість у Софі 18;К;;1;SHULYK1
+g1790000000019;Гість у Софі 19;К;;1;HORISH0K
+g1790000000020;Гість у Софі 20;К;;1;PALYANYTS4
+g1791000000001;Гість у Хвильовому 1;К;;0;SPOTYK4CH
+g1791000000002;Гість у Хвильовому 2;К;;0;MEDOVUKH4
+g1791000000003;Гість у Хвильовому 3;К;;0;KHRINIVK4
+g1791000000004;Гість у Хвильовому 4;К;;0;SLYVYANK4
+g1791000000005;Гість у Хвильовому 5;К;;0;PERTSIVK4
+g1791000000006;Гість у Хвильовому 6;К;;0;KROVYANK4
+g1791000000007;Гість у Хвильовому 7;К;;0;SHYNK4
+g1791000000008;Гість у Хвильовому 8;К;;0;SM4LETS
+g1791000000009;Гість у Хвильовому 9;К;;0;TYULK4
+g1791000000010;Гість у Хвильовому 10;К;;0;OSELEDTS1
+g1791000000011;Гість у Хвильовому 11;К;;0;KV4SYK
+g1791000000012;Гість у Хвильовому 12;К;;0;DERUNCH1K
+g1791000000013;Гість у Хвильовому 13;К;;0;VARENYCH0K
+g1791000000014;Гість у Хвильовому 14;К;;0;MIVIN4
+g1791000000015;Гість у Хвильовому 15;К;;0;SHAURM4
+g1791000000016;Гість у Хвильовому 16;К;;0;PYVK0
+g1791000000017;Гість у Хвильовому 17;К;;0;KANAPK4
+g1791000000018;Гість у Хвильовому 18;К;;0;HRIB0CHOK
+g1791000000019;Гість у Хвильовому 19;К;;0;SHASHLYK1
+g1791000000020;Гість у Хвильовому 20;К;;0;VAFELK4
+g1790000000021;Гість у Софі 21;К;;1;MLYNCH1K
+g1791000000021;Гість у Хвильовому 21;К;;0;ABRYK0S
+g1791000000022;Гість у Хвильовому 22;К;;0;HRUSHK4
+g1791000000023;Гість у Хвильовому 23;К;;0;YABLUCHK0
+g1791000000024;Гість у Хвильовому 24;К;;0;MALYNK4
+g1791000000025;Гість у Хвильовому 25;К;;0;POLUNYCH4
+g1791000000026;Гість у Хвильовому 26;К;;0;VYNOGR4D
+g1791000000027;Гість у Хвильовому 27;К;;0;DYNK4
+g1791000000028;Гість у Хвильовому 28;К;;0;SMORODYN4
+g1791000000029;Гість у Хвильовому 29;К;;0;AGRUS1K
+g1791000000030;Гість у Хвильовому 30;К;;0;OZHYNK4
+g1791000000031;Гість у Хвильовому 31;К;;0;PATYS0N
+g1791000000032;Гість у Хвильовому 32;К;;0;KVASOLK4
+g1791000000033;Гість у Хвильовому 33;К;;0;HOROSH0K
+g1791000000034;Гість у Хвильовому 34;К;;0;BAKLAZH4N
+g1791000000035;Гість у Хвильовому 35;К;;0;POMIDORK4
+g1791000000036;Гість у Хвильовому 36;К;;0;PERCH1K
+g1791000000037;Гість у Хвильовому 37;К;;0;TSUKERK4
+g1791000000038;Гість у Хвильовому 38;К;;0;KARAMELK4
+g1791000000039;Гість у Хвильовому 39;К;;0;ZEFIRK4
+g1791000000040;Гість у Хвильовому 40;К;;0;SHOKOLADK4
+g1791000000041;Гість у Хвильовому 41;К;;0;MARMELADK4
+g1791000000042;Гість у Хвильовому 42;К;;0;PECHYV0
+g1791000000043;Гість у Хвильовому 43;К;;0;TISTECHK0
+g1791000000044;Гість у Хвильовому 44;К;;0;T0RTYK
+g1791000000045;Гість у Хвильовому 45;К;;0;BEZESHK4
+g1791000000046;Гість у Хвильовому 46;К;;0;LIMON4D
+g1791000000047;Гість у Хвильовому 47;К;;0;HORIKHIVK4
+g1791000000048;Гість у Хвильовому 48;К;;0;KAKA0
+g1791000000049;Гість у Хвильовому 49;К;;0;CHARK4
+g1791000000050;Гість у Хвильовому 50;К;;0;KOTLETK4
+g1791000000051;Гість у Хвильовому 51;К;;0;SICHENYK1
+g1791000000052;Гість у Хвильовому 52;К;;0;ZAPIKANK4
+g1791000000053;Гість у Хвильовому 53;К;;0;SYRNYCH0K
+g1791000000054;Гість у Хвильовому 54;К;;0;HRECHANYK1
+g1791000000055;Гість у Хвильовому 55;К;;0;SOLOMK4
+g1791000000056;Гість у Хвильовому 56;К;;0;SUKHAR1K
+g1791000000057;Гість у Хвильовому 57;К;;0;RIPLYANK4
+g1791000000058;Гість у Хвильовому 58;К;;0;KREMZLYK1
+g1791000000059;Гість у Хвильовому 59;К;;0;TOK4N
+g1791000000060;Гість у Хвильовому 60;К;;0;TARANK4
+g1791000000061;Гість у Хвильовому 61;К;;0;KARAS1K
+g1791000000062;Гість у Хвильовому 62;К;;0;SKUMBRI4
+g1791000000063;Гість у Хвильовому 63;К;;0;PSHONK4
+g1791000000064;Гість у Хвильовому 64;К;;0;MAMALYG4
+g1791000000065;Гість у Хвильовому 65;К;;0;KLYOTSK1
+g1791000000066;Гість у Хвильовому 66;К;;0;HOMBOVTS1
+`.trim();
+// той самий поділ на локації, що і в грі (за іменем)
+const V_SOFI=/мама|папа|тато|батьк|шаблія|луїз|яра|дядя саша|дядьк|брат саша|брат.* саш|костя|костянтин|давід|георгій|ліка|бабус|тітк|тьот|хрещен|сусід|дідор|кукрицьк|віка|пінаєвськ|маріч|плахотн|олег бур|бурий|олег смір|сміря|селега|валєр|соколовськ|ярік|ярик|тріф|мітін|бикова|кучм|гість у софі/i;
+function gVenue(name){ return V_SOFI.test(name||'') ? 'Софі' : 'Хвильовий'; }
+function parseGuests(str){
+  return str.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
+    const p=l.split(';');
+    return {id:(p[0]||'').trim(), name:(p[1]||'').trim(), side:(p[2]||'К').trim(),
+            plus1:(p[3]||'').trim(), vacant:(p[4]||'').trim()==='1', pass:(p[5]||'').trim()};
+  });
+}
+function serializeGuests(arr){
+  return arr.map(g=>[g.id,g.name,g.side||'К',g.plus1||'',g.vacant?'1':'0',g.pass].join(';')).join('\n');
+}
+let GUESTS = parseGuests(GUEST_BASE);
+let guestFilter='';
+let guestDirty=false;
+
+async function loadGuestOverride(){
+  try{
+    const r=await fetch(FS_BASE+'voice-tracks/wed-guestlist?key='+FB.apiKey);
+    if(!r.ok) return;
+    const j=await r.json();
+    const s=j.fields && j.fields.list && j.fields.list.stringValue;
+    if(s){ const arr=parseGuests(s); if(arr.length>=50){ GUESTS=arr; if(tab==='guests') renderGuests(); } }
+  }catch(e){}
+}
+
+function renderGuests(){
+  const wrap=document.createElement('div');
+  const h=document.createElement('div'); h.className='hint';
+  h.innerHTML='Усі гості, їхні паролі та локація. Можна змінювати ім\'я/пароль, додавати й видаляти. '+
+    '«💾 Зберегти» — зміни їдуть у гру (нові гості й змінені паролі спрацюють одразу; для повного видалення я синхронізую в код). '+
+    'Раджу перед змінами натиснути «⬇︎ .txt» — резервна копія.';
+  wrap.appendChild(h);
+
+  const bar=document.createElement('div'); bar.className='row'; bar.style.marginBottom='8px';
+  const search=document.createElement('input'); search.placeholder='пошук: ім\'я або пароль…';
+  search.value=guestFilter;
+  search.style.cssText='flex:1;min-width:160px;background:#0f0d16;color:var(--ink);border:2px solid var(--line);font-family:inherit;font-size:13px;padding:7px';
+  search.addEventListener('input',()=>{ guestFilter=search.value; renderGuests();
+    setTimeout(()=>{const s=document.querySelector('#gsearch'); if(s){s.focus(); s.setSelectionRange(s.value.length,s.value.length);}},0); });
+  search.id='gsearch';
+  bar.appendChild(search);
+  const cnt=document.createElement('span'); cnt.style.cssText='font-size:11px;color:var(--dim)';
+  wrap.appendChild(bar);
+
+  const info=document.createElement('div'); info.style.cssText='font-size:11px;color:var(--dim);margin-bottom:6px';
+  const nsofi=GUESTS.filter(g=>gVenue(g.name)==='Софі').length, nkhv=GUESTS.length-nsofi;
+  info.textContent='Усього: '+GUESTS.length+'  ·  Софі: '+nsofi+'  ·  Хвильовий: '+nkhv+(guestDirty?'   ⚠️ є незбережені зміни':'');
+  wrap.appendChild(info);
+
+  const q=guestFilter.trim().toLowerCase();
+  GUESTS.forEach((g,idx)=>{
+    if(q && !(g.name.toLowerCase().includes(q) || g.pass.toLowerCase().includes(q))) return;
+    const c=document.createElement('div'); c.className='card'; c.style.padding='8px 10px';
+    const row=document.createElement('div'); row.className='row'; row.style.gap='6px';
+    const ven=gVenue(g.name);
+    const vpill=document.createElement('span'); vpill.textContent=ven;
+    vpill.style.cssText='font-size:10px;padding:3px 7px;border:2px solid var(--line);white-space:nowrap;'+
+      (ven==='Софі'?'background:#3a2b1a;color:#e0b23a':'background:#2a1a2a;color:#c96f8a');
+    const nm=document.createElement('input'); nm.value=g.name; nm.title='ім\'я';
+    nm.style.cssText='flex:2;min-width:120px;background:#0f0d16;color:var(--ink);border:2px solid var(--line);font-family:inherit;font-size:13px;padding:6px';
+    nm.addEventListener('input',()=>{ g.name=nm.value; guestDirty=true; });
+    const pw=document.createElement('input'); pw.value=g.pass; pw.title='пароль';
+    pw.style.cssText='flex:1;min-width:90px;background:#0f0d16;color:var(--gold);border:2px solid var(--line);font-family:inherit;font-size:13px;padding:6px;text-transform:uppercase;letter-spacing:1px';
+    pw.addEventListener('input',()=>{ g.pass=pw.value.trim(); guestDirty=true; });
+    const del=document.createElement('button'); del.textContent='✕'; del.className='tbtn'; del.title='видалити';
+    del.style.cssText='background:#5a2430;border-color:var(--red);color:#f0a0ac;padding:6px 9px';
+    del.addEventListener('click',()=>{ if(confirm('Видалити «'+g.name+'»?')){ GUESTS.splice(idx,1); guestDirty=true; renderGuests(); } });
+    row.appendChild(vpill); row.appendChild(nm); row.appendChild(pw); row.appendChild(del);
+    c.appendChild(row);
+    wrap.appendChild(c);
+  });
+
+  const add=document.createElement('button'); add.className='tbtn'; add.textContent='＋ додати гостя';
+  add.style.cssText='background:#274b33;border-color:#3f7c52;color:#9fe0ae;margin:6px 0';
+  add.addEventListener('click',()=>{
+    GUESTS.unshift({id:'g'+Date.now(), name:'Новий гість', side:'К', plus1:'', vacant:true, pass:''});
+    guestDirty=true; guestFilter=''; renderGuests();
+  });
+  wrap.appendChild(add);
+
+  const acts=document.createElement('div'); acts.className='row'; acts.style.marginTop='4px';
+  const mkb=(lab,bg,fn)=>{ const b=document.createElement('button'); b.className='tbtn'; b.textContent=lab; b.style.background=bg; b.addEventListener('click',fn); acts.appendChild(b); };
+  mkb('💾 Зберегти в гру','var(--rose)', saveGuests);
+  mkb('⬇︎ .txt','#2b2838',()=>{ const blob=new Blob([serializeGuests(GUESTS)],{type:'text/plain'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='gosti-paroli.txt'; a.click(); URL.revokeObjectURL(a.href); });
+  mkb('📋 Копіювати','#2b2838',()=>{ navigator.clipboard&&navigator.clipboard.writeText(serializeGuests(GUESTS)); toast('список скопійовано'); });
+  wrap.appendChild(acts);
+  main.appendChild(wrap);
+}
+
+async function saveGuests(){
+  // порожні паролі — попередити (гість без пароля не зайде)
+  const empty=GUESTS.filter(g=>!g.pass).length;
+  if(empty && !confirm(empty+' гостей без пароля — вони не зможуть увійти. Все одно зберегти?')) return;
+  toast('зберігаю…',60000);
+  const body={fields:{ guestlist:{stringValue:'1'}, redaktorska:{stringValue:'1'},
+    list:{stringValue:serializeGuests(GUESTS)}, at:{integerValue:String(Date.now())} }};
+  try{
+    let r=await fetch(FS_BASE+'voice-tracks/wed-guestlist?key='+FB.apiKey,
+      {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){ r=await fetch(FS_BASE+'voice-tracks?documentId=wed-guestlist&key='+FB.apiKey,
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
+    if(r.ok){ guestDirty=false; toast('✓ збережено — гра підхопить зміни'); renderGuests(); }
+    else toast('⚠️ не вдалось зберегти в базу — натисни «⬇︎ .txt» і надішли мені файл');
+  }catch(e){ toast('⚠️ помилка мережі — збережи «⬇︎ .txt»'); }
+}
+loadGuestOverride();
 
 /* ───────────────────────── надсилання ───────────────────────── */
 const FB={ apiKey:'AIzaSyAtHp8tsubQ_v4iSi2zkfCZTgKKMjm2VGA', projectId:'wedding-6e47f' };
