@@ -4920,15 +4920,29 @@ function guestScale(name){                        // чоловіки більш
   const s=guestSex(name), jit=1+(((ghash(name)%7)-3)/100);
   return (s==='m'?1.12:0.95)*jit;
 }
-function drawGuestFigure(img, x, feetY, r){       // повна фігурка (тіло+ноги+голова), стоїть ногами на feetY
-  const bw=Math.round(r*2.0), bh=Math.round(r*2.2), lh=Math.round(r*0.9);
+const DRESS_ORN=['#c0202e','#2e6a4a','#8a2432','#a8722f'];   // палітра дрес-коду (нео-етно)
+function drawGuestFigure(img, x, feetY, r, sex, seed){        // повна фігурка У ДРЕС-КОДІ, стоїть ногами на feetY
+  const bw=Math.round(r*2.0), bh=Math.round(r*2.1), lh=Math.round(r*1.0);
   const bx=x-Math.round(bw/2), by=feetY-lh-bh, headY=by-r+2;
-  ctx.fillStyle='#3a3550'; ctx.fillRect(bx+3,by+bh,3,lh); ctx.fillRect(bx+bw-6,by+bh,3,lh);      // ноги
-  ctx.fillStyle='#f4f0e4'; ctx.fillRect(bx,by,bw,bh);                                            // сорочка/сукня
-  ctx.fillStyle='#c0303c'; ctx.fillRect(bx,by,bw,2);                                             // червоний комір
-  for(let e=bx+2;e<bx+bw-2;e+=3) ctx.fillRect(e,by+4,1,2);                                       // орнамент
-  ctx.fillRect(bx,by,2,bh); ctx.fillRect(bx+bw-2,by,2,bh);                                       // вишиті боки
-  drawFaceCircle(img, x, headY, r, 1);                                                           // голова-селфі
+  const ec=DRESS_ORN[(seed||0)%DRESS_ORN.length];            // колір вишивки/низу
+  // НИЗ: жінки — спідниця в колір, чоловіки — темні штани
+  if(sex==='f'){ ctx.fillStyle=ec; ctx.fillRect(bx-1, by+bh-1, bw+2, lh+2);
+    ctx.fillStyle='#fdfdf6'; ctx.fillRect(bx-1, by+bh+lh, bw+2, 1); }               // край спідниці
+  else { ctx.fillStyle='#2f2b3a'; ctx.fillRect(bx+3,by+bh,3,lh); ctx.fillRect(bx+bw-6,by+bh,3,lh); }
+  // БІЛА ВИШИВАНКА
+  ctx.fillStyle='#f4f0e4'; ctx.fillRect(bx,by,bw,bh);
+  ctx.fillStyle=ec; ctx.fillRect(bx,by,bw,2);                                        // комір
+  for(let e=bx+2;e<bx+bw-2;e+=3){ ctx.fillRect(e,by+4,1,2); ctx.fillRect(e+1,by+6,1,2); }   // орнамент
+  ctx.fillRect(bx,by,2,bh); ctx.fillRect(bx+bw-2,by,2,bh);                           // вишиті боки
+  // пояс (чоловіки) / намисто (жінки)
+  if(sex==='f'){ ctx.fillStyle='#c0202e'; ctx.fillRect(bx+2,by+3,bw-4,1); }          // намисто
+  else { ctx.fillStyle=ec; ctx.fillRect(bx,by+bh-3,bw,2); }                          // пояс-крайка
+  drawFaceCircle(img, x, headY, r, 1);                                               // голова-селфі
+  // ВІНОК (жінки) — квіточки над головою
+  if(sex==='f'){ const fr=Math.max(2,Math.round(r*0.32));
+    [[-0.7,-0.55,'#d84a6a'],[0,-0.85,'#e8a23c'],[0.7,-0.55,'#d84a6a'],[-0.35,-0.8,'#2e6a4a'],[0.35,-0.8,'#2e6a4a']]
+      .forEach(([dx,dy,c])=>{ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x+dx*r, headY+dy*r, fr, 0, 7); ctx.fill(); });
+  } else { ctx.fillStyle='#4a3a24'; ctx.fillRect(x-Math.round(r*0.5), headY-r, Math.round(r), 2); }   // натяк на зачіску/бриль
 }
 function drawGuestCrowd(yBase, opts){
   opts = opts || {};
@@ -4941,7 +4955,7 @@ function drawGuestCrowd(yBase, opts){
     const r = Math.round(base * guestScale(f.name));
     const x = Math.round(sp*(i+1) + Math.sin(i*1.7)*3), feetY = yBase + 8 + ((i%2)?0:-5);
     if(opts.skip && x>opts.skip[0] && x<opts.skip[1]) continue;   // не заходити на важливий елемент (дзвіницю)
-    drawGuestFigure(f.img, x, feetY, r);
+    drawGuestFigure(f.img, x, feetY, r, guestSex(f.name), ghash(f.name));
   }
 }
 function drawWed(){
