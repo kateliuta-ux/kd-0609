@@ -672,16 +672,13 @@
   <div id="track-save" class="overlay hidden" style="background:rgba(10,9,16,.96);gap:9px;z-index:920;overflow-y:auto;padding:5% 3%">
     <div style="font-size:16px;font-weight:bold;color:#f4cf5e;letter-spacing:1px">💾 Залити трек у плейлист</div>
     <div style="font-size:13px;color:#e88aa0;text-align:center;max-width:88%">🎟 Розіграш: найкращий трек — запрошення на наше весілля!</div>
-    <div style="font-size:12px;color:#f4f0e4;text-align:center;max-width:88%;line-height:1.5;background:#2a1e24;border:2px solid #A8505F;border-radius:8px;padding:8px 12px">
-      🌻 Щоб залити трек — підтримай наш збір на ЗСУ <b>від 100 грн</b>.<br>Один донат — один трек. Це наша умова замість «вхідного» на розіграш 💛
+    <div style="font-size:12px;color:#f4f0e4;text-align:center;max-width:90%;line-height:1.5;background:#2a1e24;border:2px solid #A8505F;border-radius:8px;padding:8px 12px">
+      🌻 Щоб брати участь у розіграші — задонать на збір ЗСУ <b>від 100 грн</b> і встав у <b>коментар до переказу</b> свій імейл (той самий, що впишеш нижче). Ми звіримо й зарахуємо участь 🎟
     </div>
     <button class="btn" id="ts-donate" style="background:#3f7c5a">🌻 Перейти до збору</button>
     <input id="ts-name" type="text" maxlength="28" placeholder="твоє імʼя (автор треку)" autocomplete="name" style="font-family:inherit;font-size:16px;padding:.5em;width:min(84%,300px);text-align:center;background:#f8f8f3;border:3px solid #000;color:#1a1a24">
     <input id="ts-email" type="email" maxlength="60" placeholder="твоя@пошта.com" autocomplete="email" style="font-family:inherit;font-size:16px;padding:.5em;width:min(84%,300px);text-align:center;background:#f8f8f3;border:3px solid #000;color:#1a1a24">
-    <div style="font-size:11px;color:#8f8a7c;max-width:84%;text-align:center;line-height:1.4">імейл потрібен, щоб зберегти трек за тобою і сповістити, якщо переможеш. Нікому не видно — бачать лише Катя й Діма.</div>
-    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#f4f0e4;max-width:84%;cursor:pointer;line-height:1.4">
-      <input type="checkbox" id="ts-donated" style="width:20px;height:20px;flex:none;accent-color:#3f7c5a"> я задонатив(ла) від 100 грн на збір 🤍
-    </label>
+    <div style="font-size:11px;color:#8f8a7c;max-width:84%;text-align:center;line-height:1.4">імейл — щоб зберегти трек за тобою, звірити донат і сповістити, якщо переможеш. Бачать лише Катя й Діма.</div>
     <div id="ts-status" style="color:#f4cf5e;font-size:12px;min-height:14px"></div>
     <div style="display:flex;gap:10px">
       <button class="btn katya" id="ts-go">Залити ✓</button>
@@ -9272,7 +9269,7 @@ async function saveVoiceTrack(author, blob, pattern, sampleB64, email){
 async function loadVoiceTracks(){
   try{
     const r = await fetch(FS_BASE+'voice-tracks?key='+FB.apiKey+'&pageSize=200'+
-      ['author','audio','mime','pattern','sample','at'].map(f=>'&mask.fieldPaths='+f).join(''));   // маска: не тягнемо правки редакторської
+      ['author','audio','mime','pattern','sample','at','email'].map(f=>'&mask.fieldPaths='+f).join(''));   // маска: не тягнемо правки редакторської
     if(!r.ok) return [];
     const j = await r.json();
     return (j.documents||[]).map(d=>({
@@ -9281,6 +9278,7 @@ async function loadVoiceTracks(){
       mime: d.fields?.mime?.stringValue || 'audio/webm',
       pattern: d.fields?.pattern?.stringValue || '',
       sample: d.fields?.sample?.stringValue || '',
+      email: d.fields?.email?.stringValue || '',
       at: +(d.fields?.at?.integerValue || 0),
     })).filter(t=>t.audio && t.author!=='__selftest').sort((a,b)=> b.at-a.at);
   }catch(e){ return []; }
@@ -9502,7 +9500,6 @@ document.getElementById('ts-go').addEventListener('click', async ()=>{
   const email=(document.getElementById('ts-email').value||'').trim();
   if(!name){ st.textContent='впиши імʼя 🙂'; return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ st.textContent='перевір імейл — він потрібен, щоб зберегти трек'; return; }
-  if(!document.getElementById('ts-donated').checked){ st.textContent='спершу підтримай збір і постав галочку 🌻'; return; }
   localStorage.setItem('wed-player-name', name); localStorage.setItem('wed-email', email);
   st.textContent='зберігаю…';
   let ok;
@@ -9511,7 +9508,7 @@ document.getElementById('ts-go').addEventListener('click', async ()=>{
   if(ok==='big'){ st.textContent='запис задовгий — запиши коротший (до ~30с)'; return; }
   if(ok){
     document.getElementById('track-save').classList.add('hidden');
-    document.getElementById('s-status').textContent='✓ трек у весільному плейлисті! (автор: '+name+') 🎟 ти в конкурсі';
+    document.getElementById('s-status').textContent='✓ трек збережено! (автор: '+name+') 🎟 участь зарахуємо, щойно звіримо донат 🌻';
   } else st.textContent='поки не вдалося зберегти — спробуй ще раз за хвилину';
 });
 
@@ -9540,9 +9537,32 @@ async function loadTracks(){
       author: d.fields?.author?.stringValue || 'невідомий митець',
       pattern: d.fields?.pattern?.stringValue || '',
       sample: d.fields?.sample?.stringValue || '',
+      email: d.fields?.email?.stringValue || '',
       at: +(d.fields?.at?.integerValue || 0),
     })).filter(t=> t.author!=='__selftest' && t.pattern).sort((a,b)=> b.at-a.at);
   }catch(e){ return null; }
+}
+/* підтвердження донату — окремий запис (create), щоб не залежати від прав на оновлення */
+let CONFIRMED_EMAILS = null;
+async function loadConfirms(){
+  try{
+    const r = await fetch(FS_BASE+'voice-tracks?key='+FB.apiKey+'&pageSize=300&mask.fieldPaths=kind&mask.fieldPaths=cemail');
+    if(!r.ok) return new Set();
+    const j = await r.json(); const s=new Set();
+    (j.documents||[]).forEach(d=>{ const f=d.fields||{}; if(f.kind&&f.kind.stringValue==='trackconfirm'&&f.cemail&&f.cemail.stringValue) s.add(f.cemail.stringValue.trim().toLowerCase()); });
+    return s;
+  }catch(e){ return new Set(); }
+}
+async function confirmDonation(email, btn){
+  const em=(email||'').trim().toLowerCase();
+  if(!em){ return; }
+  const old=btn.textContent; btn.textContent='…'; btn.disabled=true;
+  try{
+    const body={fields:{ kind:{stringValue:'trackconfirm'}, cemail:{stringValue:em}, at:{integerValue:String(Date.now())} }};
+    const r=await fetch(FS_BASE+'voice-tracks?key='+FB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){ if(CONFIRMED_EMAILS) CONFIRMED_EMAILS.add(em); btn.textContent='🎟 підтверджено'; btn.style.background='#3f7c5a'; }
+    else { btn.textContent=old; btn.disabled=false; }
+  }catch(e){ btn.textContent=old; btn.disabled=false; }
 }
 document.getElementById('s-save').addEventListener('click', ()=>{
   const pattern = smpSerialize();
@@ -9589,26 +9609,34 @@ async function openPlaylist(fromSampler){
   list.innerHTML = ''; st.textContent = 'завантажую…';
   const tracks = await loadTracks();
   const voices = await loadVoiceTracks();
+  CONFIRMED_EMAILS = await loadConfirms();
   if(!tracks && !voices.length){ st.textContent = 'плейлист ще не відкрито — зазирни пізніше 🎶'; return; }
   if((!tracks || !tracks.length) && !voices.length){ st.textContent = 'поки порожньо. Стань першим автором!'; return; }
   const total = (tracks?tracks.length:0) + voices.length;
-  st.textContent = total + ' твор' + (total===1?'':'и'+(total<5?'':'ів')) + ' від гостей';
-  voices.forEach(t=>{
-    const row = document.createElement('button');
-    row.className='btn';
-    row.style.cssText='background:#3a2f42;display:flex;justify-content:space-between;gap:8px';
-    row.innerHTML='<span>▶ '+t.author.replace(/</g,'&lt;')+'</span><span style="opacity:.55">🎤 пісня</span>';
-    row.addEventListener('click', ()=> playVoiceTrack(t, row));
-    list.appendChild(row);
-  });
-  (tracks||[]).forEach(t=>{
-    const row = document.createElement('button');
-    row.className = 'btn';
-    row.style.cssText = 'background:#2b2b38;display:flex;justify-content:space-between;gap:8px';
-    row.innerHTML = '<span>▶ '+t.author.replace(/</g,'&lt;')+'</span><span style="opacity:.55">🎹</span>';
-    row.addEventListener('click', ()=> plPlayPattern(t, row));   // ЛИШЕ прослуховування — чужі треки не редагуються
-    list.appendChild(row);
-  });
+  st.textContent = total + ' твор' + (total===1?'':'и'+(total<5?'':'ів')) + ' від гостей' + (DEV_MODE?' · 🎛 підтверджуй донати нижче':'');
+  const addRow = (t, kind)=>{
+    const em=(t.email||'').trim().toLowerCase();
+    const isC = CONFIRMED_EMAILS && CONFIRMED_EMAILS.has(em);
+    const wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-direction:column;gap:3px;width:100%';
+    const row=document.createElement('button'); row.className='btn';
+    row.style.cssText='background:'+(kind==='voice'?'#3a2f42':'#2b2b38')+';display:flex;justify-content:space-between;gap:8px;width:100%';
+    row.innerHTML='<span>▶ '+t.author.replace(/</g,'&lt;')+'</span><span style="opacity:.7">'+(isC?'🎟 ':'')+(kind==='voice'?'🎤 пісня':'🎹')+'</span>';
+    row.addEventListener('click', ()=> kind==='voice'? playVoiceTrack(t,row) : plPlayPattern(t,row));   // чуже — тільки слухати
+    wrap.appendChild(row);
+    if(DEV_MODE){
+      const d=document.createElement('div'); d.style.cssText='display:flex;align-items:center;gap:8px;font-size:11px;color:#bcb7a8;padding:0 4px 2px';
+      const mail=document.createElement('span'); mail.textContent='✉ '+(t.email||'— без імейла'); mail.style.cssText='flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      d.appendChild(mail);
+      if(isC){ const b=document.createElement('span'); b.textContent='🎟 донат є'; b.style.color='#9fe0ae'; d.appendChild(b); }
+      else if(t.email){ const b=document.createElement('button'); b.textContent='✓ підтвердити донат';
+        b.style.cssText='font-family:inherit;font-size:11px;padding:4px 8px;background:#A8505F;color:#fff;border:none;border-radius:6px;cursor:pointer;flex:none';
+        b.addEventListener('click', ()=> confirmDonation(t.email, b)); d.appendChild(b); }
+      wrap.appendChild(d);
+    }
+    list.appendChild(wrap);
+  };
+  voices.forEach(t=> addRow(t,'voice'));
+  (tracks||[]).forEach(t=> addRow(t,'pattern'));
 }
 document.getElementById('s-playlist').addEventListener('click', ()=> openPlaylist(true));
 document.getElementById('pl-back').addEventListener('click', ()=>{
