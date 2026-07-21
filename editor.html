@@ -97,7 +97,7 @@
   <button data-tab="novel">Історія без ігор</button>
   <button data-tab="scenar">Сценарій і тексти</button>
   <button data-tab="guests">Гості й паролі</button>
-  <button data-tab="free">Вільний аркуш</button>
+  <button data-tab="elements">Що малювати</button>
   <button data-tab="sent">Мої правки</button>
 </nav>
 
@@ -182,8 +182,8 @@ const NOVEL_SCENES = [
 
 /* ───────────────────────── збереження ───────────────────────── */
 const LS_KEY = 'wed-editor-v1';
-let db = { status:{}, notes:{}, items:[] };     // items: {id, scene, kind:'drawing'|'photo'|'story', img?, text?, at, sent}
-try{ const raw = localStorage.getItem(LS_KEY); if(raw) db = Object.assign(db, JSON.parse(raw)); }catch(_){}
+let db = { status:{}, notes:{}, items:[], customElements:[] };     // items: {id, scene, kind:'drawing'|'photo'|'story', img?, text?, at, sent}
+try{ const raw = localStorage.getItem(LS_KEY); if(raw) db = Object.assign(db, JSON.parse(raw)); if(!db.customElements) db.customElements=[]; }catch(_){}
 function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(db)); }catch(e){ toast('⚠️ памʼять браузера переповнена — надішли або збережи правки і видали старі'); } }
 function toast(t, ms){ const el=document.getElementById('toast'); el.textContent=t; el.style.display='block';
   clearTimeout(el._t); el._t=setTimeout(()=> el.style.display='none', ms||2600); }
@@ -207,9 +207,10 @@ document.querySelectorAll('nav button').forEach(b=> b.addEventListener('click', 
   render();
 }));
 
-function sceneCard(id, title, desc, isNovel){
+function sceneCard(id, title, desc, isNovel, placeholder, onDelete){
   const card = document.createElement('div'); card.className='card'; card.dataset.scene=id;
-  card.innerHTML = '<h3>'+title+'</h3><div class="desc">'+desc+'</div>';
+  card.innerHTML = '<h3>'+title+(onDelete?' <span style="float:right;cursor:pointer;color:#f0a0ac" title="прибрати">✕</span>':'')+'</h3>'+(desc?'<div class="desc">'+desc+'</div>':'');
+  if(onDelete){ card.querySelector('span').addEventListener('click', onDelete); }
   // статус
   const row = document.createElement('div'); row.className='row';
   [['ok','✓ ок'],['fix','✎ змінити'],['cut','✕ прибрати']].forEach(([st,lab])=>{
@@ -221,7 +222,7 @@ function sceneCard(id, title, desc, isNovel){
   card.appendChild(row);
   // нотатка
   const ta=document.createElement('textarea');
-  ta.placeholder = isNovel ? 'сюжет: що змінити, які слова, який настрій…' : 'механіка/сцена: що змінити, як має працювати…';
+  ta.placeholder = placeholder || (isNovel ? 'сюжет: що змінити, які слова, який настрій…' : 'механіка/сцена: що змінити, як має працювати…');
   ta.value = db.notes[id]||'';
   ta.addEventListener('input', ()=>{ db.notes[id]=ta.value; persist(); });
   card.appendChild(ta);
@@ -251,6 +252,73 @@ function sceneCard(id, title, desc, isNovel){
   return card;
 }
 
+
+/* ───────────────────────── СПИСОК ЕЛЕМЕНТІВ ГРИ (що можна перемалювати/переписати) ───────────────────────── */
+const ELEMENT_GROUPS = [
+ ['🧍 Персонажі', [
+   ['el-katya','Катя (наречена)','фігурка: спідниця+вишиванка+віночок / біла сукня, обличчя'],
+   ['el-dima','Діма (наречений)','фігурка: сорочка, жилетка, обличчя'],
+   ['el-kitana','Кітана (кішка)','руда кішка з Білогородки'],
+   ['el-pochet','Дружки й бояри','почет: вінки зі стрічками, брилі'],
+   ['el-guests','Гості (болванчики)','фігурки гостей у дрес-коді'],
+   ['el-nika','Ніка Селега','веде обряд на весіллі'],
+ ]],
+ ['🏙 Локації (фони)', [
+   ['el-office','Офіс ШТОРМНАДО','зйомка, зелений екран'],
+   ['el-band','Сцена гурту SSB','прожектори, колонки, юрба'],
+   ['el-alley','Пейзажна алея','побачення, пиво, каштани'],
+   ['el-cabin','Каюта (освідчення)','ілюмінатор, затишок'],
+   ['el-svaty','Хата (свати)','піч, рушники, лави'],
+   ['el-london','Київ ↔ Лондон','зум-віконця, місто'],
+   ['el-sofi','Тераса «Бути Софі»','Софія Київська, дзвіниця'],
+   ['el-khv','Дворик «Хвильовий»','цегла, неон «НОТАРІУС»'],
+   ['el-diia','Екран «Дія»','айфон-анкета, прізвище'],
+ ]],
+ ['🎁 Предмети й дрібниці', [
+   ['el-korovai','Коровай','весільний хліб, калина'],
+   ['el-rushnyk','Рушник','орнамент, червоні кінці'],
+   ['el-ring','Обручка',''],
+   ['el-beer','Пиво «Андервуд коконат»','банка'],
+   ['el-ribbon','Стрічка викупу','червона з бантом'],
+   ['el-malva','Мальва / квіти дрес-коду',''],
+   ['el-doves','Голуби й блискітки','святкова картка'],
+ ]],
+ ['✍️ Написи, шрифти, орнамент', [
+   ['el-title','Напис «Катя & Діма»','титульний рукопис'],
+   ['el-date','Дата 6.9.2026',''],
+   ['el-ornament','Орнаментні смуги','вишивка-бордюр'],
+   ['el-invitetext','Текст запрошення','«Просили тато й мама…»'],
+ ]],
+ ['📱 Інтерфейс', [
+   ['el-menu','Кнопки меню','головний екран'],
+   ['el-stub','Заставка-заглушка','відлік до релізу'],
+   ['el-invitecard','Фінальне запрошення','картка з часом і місцем'],
+ ]],
+];
+function renderElements(){
+  const h=document.createElement('div'); h.className='card'; h.style.borderColor='var(--rose)';
+  h.innerHTML='<h3>Що можна намалювати чи переписати</h3>'+
+    '<div class="desc" style="line-height:1.6">Обери елемент → познач статус, впиши як має бути, або <b>🖊 намалюй</b> заміну (можна підкласти 📷 скрін і малювати поверх). Немає у списку — <b>＋ додай свій елемент</b> унизу.</div>'+
+    '<div class="desc" style="line-height:1.6;margin-top:6px;color:#9fe0ae">Як це доходить до Клода: усе, що ти малюєш і пишеш, зберігається тут-таки. Тиснеш <b>«⤴ Надіслати правки Клоду»</b> внизу — і воно летить у базу гри. Я забираю звідти твої малюнки, фото й тексти (кожен привʼязаний до свого елемента) і вношу в гру. Нічого вручну пересилати не треба.</div>';
+  main.appendChild(h);
+  ELEMENT_GROUPS.forEach(([g,items])=>{
+    const gh=document.createElement('div'); gh.style.cssText='font-size:12px;color:var(--gold);margin:14px 2px 6px;letter-spacing:1px'; gh.textContent=g;
+    main.appendChild(gh);
+    items.forEach(([id,t,d])=> main.appendChild(sceneCard(id,t,d,false,'як має виглядати/звучати цей елемент…')));
+  });
+  const gh=document.createElement('div'); gh.style.cssText='font-size:12px;color:var(--gold);margin:14px 2px 6px;letter-spacing:1px'; gh.textContent='➕ Твої елементи';
+  main.appendChild(gh);
+  db.customElements.forEach((ce)=>{
+    main.appendChild(sceneCard(ce.id, ce.title, '', false, 'опиши або намалюй цей елемент…',
+      ()=>{ if(confirm('Прибрати «'+ce.title+'»?')){ db.customElements=db.customElements.filter(x=>x!==ce); delete db.notes[ce.id]; delete db.status[ce.id]; persist(); render(); } }));
+  });
+  const add=document.createElement('button'); add.className='tbtn'; add.textContent='＋ додати свій елемент';
+  add.style.cssText='background:#274b33;border-color:#3f7c52;color:#9fe0ae;margin:8px 0';
+  add.addEventListener('click',()=>{ const t=(prompt('Назва елемента (напр. «мій кіт», «моя сукня», «напис на торті»):')||'').trim();
+    if(t){ db.customElements.push({id:'el-custom-'+uid(), title:t}); persist(); render(); } });
+  main.appendChild(add);
+}
+
 function render(){
   main.innerHTML='';
   if(tab==='mech' || tab==='novel'){
@@ -277,12 +345,7 @@ function render(){
     main.appendChild(fr);
   }
   if(tab==='guests'){ renderGuests(); }
-  if(tab==='free'){
-    const h=document.createElement('div'); h.className='hint';
-    h.textContent='Аркуші без привʼязки до сцени — для будь-чого: нові ідеї, шрифти, написи, персонажі.';
-    main.appendChild(h);
-    main.appendChild(sceneCard('free','Вільний аркуш','усе, що не влазить у сцени', false));
-  }
+  if(tab==='elements'){ renderElements(); }
   if(tab==='sent'){
     const h=document.createElement('div'); h.className='hint';
     const unsent = db.items.filter(i=>!i.sent).length + Object.values(db.notes).filter(Boolean).length;
