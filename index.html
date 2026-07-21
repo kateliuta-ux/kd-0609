@@ -10780,6 +10780,24 @@ function devBadge(){
     'font:bold 10px monospace;padding:3px 7px;border:2px solid #000;letter-spacing:1px;text-decoration:none;cursor:pointer';
   e.title='кімната правок: пишіть і малюйте зміни до гри (пароль K1TANA)';
   document.body.appendChild(e);
+  // «✎ ця сцена» — відкрити редактор одразу на поточній сцені (дев)
+  const es = document.createElement('a');
+  es.id='dev-scene'; es.href='#'; es.textContent='✎ ця сцена';
+  es.style.cssText='position:fixed;left:8px;bottom:32px;z-index:660;background:#3F7C77;color:#fff;'+
+    'font:bold 10px monospace;padding:3px 7px;border:2px solid #000;letter-spacing:1px;text-decoration:none;cursor:pointer';
+  es.title='редагувати ЦЮ сцену в Редакторській';
+  es.addEventListener('click', ev=>{
+    ev.preventDefault();
+    let tab='mech', open='';
+    try{
+      const AL={tetris:'secret', chess:'prop', fingers:'prop', rummage:'prop'};
+      if(game && game.watch){ tab='novel'; }
+      else if(game && game.phase){ open=AL[game.phase]||game.phase; }
+      else { open='menu'; }
+    }catch(_){}
+    window.open('editor?tab='+tab+(open?('&open='+encodeURIComponent(open)):''), '_blank');
+  });
+  document.body.appendChild(es);
 }
 function updateGateLocks(){
   const lock = !isAuthed();

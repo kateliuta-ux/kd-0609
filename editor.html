@@ -914,6 +914,16 @@ document.getElementById('btn-export').addEventListener('click', ()=>{
 });
 
 render();
+/* дев-перехід «редагувати цю сцену»: ?open=ID — розгорнути й доскролити відповідну картку */
+(function(){
+  const oid=new URLSearchParams(location.search).get('open'); if(!oid) return;
+  openCards.add(oid);
+  setTimeout(()=>{
+    let c=null; document.querySelectorAll('[data-scene]').forEach(el=>{ if(el.dataset.scene===oid) c=el; });
+    if(c){ c.classList.add('open'); try{ c.scrollIntoView({block:'center'}); }catch(_){}
+      c.style.outline='2px solid var(--gold)'; setTimeout(()=>c.style.outline='', 2500); }
+  }, 200);
+})();
 </script>
 </body>
 </html>
