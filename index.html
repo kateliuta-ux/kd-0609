@@ -7086,27 +7086,45 @@ function drawSitcom(){
   const frames = sitcomFrames();
   const t = game.phaseT, DUR = 80, n = frames.length;
   const idx = Math.min(n, Math.floor(t/DUR));
-  if(idx < n){
-    const fr = frames[idx], img = fr.img;
-    const pop = Math.min(1, (t%DUR)/6);                 // швидкий поп-ін
-    const maxW = Math.min(272, W-36, (H-120)/0.75);     // побільше (влазить і в ландшафт)
-    const pw = maxW*pop, phh = maxW*0.75*pop;
+  // кучка: кожне фото лягає на своє місце і ЛИШАЄТЬСЯ — купа росте, поки не вкриє екран
+  const sitSpot = i => {                                   // детерміноване місце i-го полароїда
+    let s = (i+7)*2654435761 % 2147483647;
+    const rnd = ()=> (s = s*48271 % 2147483647) / 2147483647;
+    const gx = i % 3, gy = Math.floor(i/3) % 3;            // сітка 3×3 + шум: рівномірно по всьому екрану
+    return {
+      x: W*(0.18 + gx*0.32) + (rnd()-0.5)*W*0.22,
+      y: 70 + (H-150)*((gy + rnd()*0.8)/3) ,
+      rot: (rnd()-0.5)*0.45
+    };
+  };
+  const maxW = Math.max(120, Math.min(210, W-36, (H-120)/0.75));
+  const drawPolaroid = (fr, sp, pop)=>{
+    const img = fr.img, pw = maxW*pop, phh = maxW*0.75*pop;
     ctx.save();
-    ctx.translate(W/2, H/2-6);
-    ctx.rotate((idx%2 ? -1 : 1) * 0.06);
-    ctx.fillStyle = '#f4f0e4';                          // полароїдна рамка
+    ctx.translate(sp.x, sp.y);
+    ctx.rotate(sp.rot);
+    ctx.fillStyle = 'rgba(0,0,0,.35)';                     // тінь, щоб купа читалась шарами
+    ctx.fillRect(-pw/2-3, -phh/2-3, pw+18, phh+30);
+    ctx.fillStyle = '#f4f0e4';                             // полароїдна рамка
     ctx.fillRect(-pw/2-6, -phh/2-6, pw+12, phh+24);
     if(headReady(img)){
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(img, -pw/2, -phh/2, pw, phh);
     }
-    if(fr.cap && pop>0.9){                              // підпис гостя на полароїді
+    if(fr.cap && pop>0.9){                                 // підпис гостя на полароїді
       ctx.fillStyle = '#4a4636'; ctx.font = '9px monospace'; ctx.textAlign='center';
       ctx.fillText('від ' + fr.cap, 0, phh/2+16);
     }
     ctx.restore();
+  };
+  for(let i=0;i<Math.min(idx,n);i++) drawPolaroid(frames[i], sitSpot(i), 1);   // вся купа
+  if(idx < n){
+    const pop = Math.min(1, (t%DUR)/6);                    // нове фото падає зверху з поп-іном
+    drawPolaroid(frames[idx], sitSpot(idx), pop);
   } else {
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'center';                              // титр поверх купи — на підложці
+    ctx.fillStyle = 'rgba(14,12,20,.72)';
+    ctx.fillRect(W/2-130, H/2-30, 260, 58);
     ctx.fillStyle = COL.gold; ctx.font = 'bold 18px monospace';
     ctx.fillText('КАТЯ ♥ ДІМА', W/2, H/2-6);
     ctx.fillStyle = '#d8d4c4'; ctx.font = '9px monospace';
@@ -7114,9 +7132,10 @@ function drawSitcom(){
     ctx.textAlign = 'left';
   }
   // прогрес-сердечка
+  const step = Math.min(14, (W-30)/Math.max(1,n));
   for(let i=0;i<n;i++){
     ctx.fillStyle = i<=idx ? COL.rose : '#3a3646';
-    ctx.fillRect(W/2-n*7+i*14, H-40, 8, 8);
+    ctx.fillRect(W/2-n*step/2+i*step, H-40, 8, 8);
   }
   ctx.fillStyle = 'rgba(216,212,196,.5)'; ctx.font = '7px monospace'; ctx.textAlign='center';
   ctx.fillText(game.watch ? '' : 'тап — наступне фото', W/2, H-28);
