@@ -645,6 +645,20 @@
   </div>
 
   <!-- ВОРОТА: пароль з візитівки або гра гостем (перше, що бачить будь-хто) -->
+  <div id="release-stub" class="overlay hidden" style="background:#0e0c14;gap:14px;z-index:900">
+    <div style="font-size:13px;letter-spacing:3px;color:#e88aa0">♥ ♥ ♥</div>
+    <div style="font-size:22px;font-weight:bold;color:#f4cf5e;letter-spacing:2px;text-align:center">КАТЯ ♥ ДІМА</div>
+    <div style="font-size:13px;color:#f4f0e4;letter-spacing:1px;text-align:center">гра-запрошення виходить</div>
+    <div style="font-size:20px;font-weight:bold;color:#e88aa0;letter-spacing:2px">1.8.2026 · 16:20</div>
+    <div id="stub-count" style="font-family:monospace;font-size:15px;color:#f4f0e4;letter-spacing:2px;background:#1e1b28;border:2px solid #3a3646;padding:8px 16px"></div>
+    <div style="font-size:12px;color:#bcb7a8;letter-spacing:2px">✶ ✦ ✶</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+      <input id="stub-pass" type="text" maxlength="24" placeholder="для розробників…" autocomplete="off"
+        style="font-family:inherit;font-size:13px;padding:.5em;width:170px;text-align:center;background:#f8f8f3;border:3px solid #000;color:#1a1a24">
+      <button class="btn small" id="stub-go" style="background:#1E4E8A">⚙️</button>
+    </div>
+    <div id="stub-err" style="color:#f0a0ac;font-size:11px;min-height:14px"></div>
+  </div>
   <div id="gate-screen" class="overlay hidden" style="background:rgba(10,9,16,.97);gap:13px;z-index:640">
     <div class="s-head">💌 Катя ♥ Діма · 6 вересня 2026<span>запрошення-гра · введи пароль зі своєї візитівки — і гра впізнає тебе</span></div>
     <input id="gate-pass" type="text" maxlength="24" placeholder="пароль з візитівки…" autocomplete="off" autocapitalize="none"
@@ -11133,6 +11147,34 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
     ? '📲 На iPhone/iPad:\n\n1. Тисни кнопку «Поділитись» (квадрат зі стрілкою внизу Safari)\n2. Гортай вниз → «На Початковий екран» / «Add to Home Screen»\n3. «Додати» — і гра буде як застосунок!'
     : '📲 На компʼютері (Chrome/Edge):\n\nВ адресному рядку праворуч — іконка встановлення (монітор зі стрілкою). Натисни її → «Встановити».\n\nНа Android: меню ⋮ → «Додати на головний екран».');
 });
+
+/* ── ЗАГЛУШКА ДО РЕЛІЗУ: 1.8.2026 16:20 за Києвом; до того — вхід лише DEV (K1TANA) ── */
+(function(){
+  const RELEASE_TS = Date.UTC(2026, 7, 1, 13, 20, 0);            // 16:20 Kyiv = 13:20 UTC (літній час)
+  const stub = document.getElementById('release-stub');
+  function released(){ return Date.now() >= RELEASE_TS; }
+  function show(){
+    stub.classList.remove('hidden');
+    const cd = document.getElementById('stub-count');
+    const tick = ()=>{
+      const ms = RELEASE_TS - Date.now();
+      if(ms<=0){ stub.classList.add('hidden'); clearInterval(iv); return; }
+      const d=Math.floor(ms/86400000), h=Math.floor(ms/3600000)%24, m=Math.floor(ms/60000)%60, sec=Math.floor(ms/1000)%60;
+      cd.textContent = d+'д '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+    };
+    tick(); const iv=setInterval(tick, 1000);
+  }
+  function tryDev(){
+    const v = normPass(document.getElementById('stub-pass').value);
+    if(v!==DEV_PASS){ document.getElementById('stub-err').textContent='🙃'; try{sfxScore(180);}catch(_){} return; }
+    DEV_MODE = true; localStorage.setItem('wed-dev','1'); localStorage.setItem('wed-gate-done','dev');
+    devBadge(); updateGateLocks(); stub.classList.add('hidden');
+    try{ sfxScore(880); }catch(_){}
+  }
+  document.getElementById('stub-go').addEventListener('click', tryDev);
+  document.getElementById('stub-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') tryDev(); });
+  if(!released() && !DEV_MODE) show();                            // ?p=K1TANA вже увімкнув DEV вище — заглушки не буде
+})();
 </script>
 </body>
 </html>
