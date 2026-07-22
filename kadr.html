@@ -78,6 +78,20 @@
   .ph{ position:relative; aspect-ratio:1; background:#efe9dc; border:3px solid #fff; box-shadow:0 1px 6px rgba(0,0,0,.12); overflow:hidden }
   .ph img{ width:100%; height:100%; object-fit:cover }
   .ph::after{ content:''; position:absolute; inset:0; box-shadow:inset 0 0 24px rgba(0,0,0,.25); pointer-events:none }
+  /* негатив: до 7.9 усі кадри показуємо як непроявлену плівку */
+  .ph.neg img{ filter:invert(1) hue-rotate(180deg) saturate(.7) contrast(1.05) brightness(.95); }
+  .ph.neg::before{ content:''; position:absolute; inset:0; z-index:1; background:rgba(70,90,60,.16); mix-blend-mode:multiply; pointer-events:none }
+  .rollcap{ max-width:420px; margin:14px auto 4px; font-size:12.5px; line-height:1.55; color:var(--mut); text-align:center }
+  .rollcap.neg{ color:#8a7f6a }  .rollcap b{ color:var(--red) }
+  .rollcap .tag{ display:inline-block; background:#211c28; color:#e7ddc9; font-size:11px; letter-spacing:2px; padding:3px 10px; border-radius:20px; margin-bottom:6px }
+  /* повноекранна галерея «мої кадри» */
+  #galstage{ position:fixed; inset:0; z-index:300; background:#14121a; display:none; flex-direction:column }
+  #galstage.on{ display:flex }
+  #galstage .gtop{ display:flex; align-items:center; gap:10px; padding:12px 14px; color:#f2ead9; background:#1b1822; border-bottom:2px solid #2a2633 }
+  #galstage .gtop b{ font-size:15px } #galstage .gtop .gx{ margin-left:auto; background:#39344a; color:#fff; border:none; font-size:16px; width:38px; height:38px; border-radius:9px }
+  #galstage .gsub{ font-size:12px; color:#b7ad9a; padding:8px 14px 0; line-height:1.5 }
+  #galstage .ggrid{ flex:1; overflow:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:8px; padding:12px 14px 22px }
+  #galstage .ph{ aspect-ratio:3/2 }
 
   /* ── ХАБ ── */
   .tasks{ display:flex; flex-direction:column; gap:10px; margin-top:16px }
@@ -110,7 +124,15 @@
       <input id="newtask" maxlength="32" placeholder="придумай своє завдання…">
       <button class="btn" id="newgo">＋</button>
     </div>
+    <button class="btn" id="btn-gallery" style="width:100%;margin-top:12px;background:#211c28">🎞 переглянути відзняті кадри</button>
     <div class="note">Кожне завдання — своя камера-мильниця на 27 кадрів.<br>Плівку проявимо після весілля 🎞</div>
+  </div>
+
+  <!-- ГАЛЕРЕЯ «мої кадри» (негатив до 7.9, позитив після) -->
+  <div id="galstage">
+    <div class="gtop"><b>🎞 Відзняті кадри</b><button class="gx" id="gal-x">✕</button></div>
+    <div class="gsub" id="gal-sub"></div>
+    <div class="ggrid" id="gal-grid"></div>
   </div>
 
   <!-- КАМЕРА -->
@@ -148,7 +170,7 @@
     <input id="file" type="file" accept="image/*" capture="environment" hidden>
 
     <div id="status"></div>
-    <div class="note" id="cam-note">Знімай усе, що зачепило. <b>Проявлені фото зʼявляться тут після весілля</b> — як зі справжньою плівкою 🎞</div>
+    <div class="note" id="cam-note">Знімай усе, що зачепило. Кадри одразу видно внизу <b>негативом</b> — як непроявлену плівку. Проявимо в позитив <b>7 вересня</b> 🎞</div>
 
     <!-- проявлена плівка / замок -->
     <div id="rollbox"></div>
@@ -221,6 +243,8 @@ async function renderHub(){
   custom.forEach(t=>row(t,'✦',t));
   $('newgo').onclick=()=>{ const v=($('newtask').value||'').trim().slice(0,32); if(v) location.href='kadr?t='+encodeURIComponent(v); };
   $('newtask').addEventListener('keydown',e=>{ if(e.key==='Enter') $('newgo').click(); });
+  $('btn-gallery').onclick=renderGallery;
+  $('gal-x').onclick=()=>$('galstage').classList.remove('on');
 }
 
 /* ── КАМЕРА ── */
@@ -243,21 +267,35 @@ function renderRefs(){
 }
 function renderRoll(){
   const taken=taskCount(T);
-  if(LOCKED){
-    $('grid').style.display='none';
-    const d = new Date(REVEAL_TS);
-    $('rollbox').innerHTML='<div class="roll"><div class="ic">🎞</div>'+
-      '<div class="rt">плівка ще НЕ проявлена</div>'+
-      '<div class="rd">'+ (TEST? 'це тестовий режим — «плівки» ще нема.<br>' : '') +
-      'кадри ('+taken+') сховані до кінця весілля.<br>проявимо й відкриємо <b>вранці 7 вересня</b> — як справжню плівку 🤍</div></div>';
-  } else {
-    $('rollbox').innerHTML='';
-    const grid=$('grid'); grid.style.display='grid'; grid.innerHTML='';
-    kadrDocs().filter(f=>(f.task?f.task.stringValue:'')===T)
-      .sort((a,b)=>(+(b.at?.integerValue||0))-(+(a.at?.integerValue||0)))
-      .forEach(f=>{ const d=document.createElement('div'); d.className='ph';
-        const im=document.createElement('img'); im.src=f.image.stringValue; d.appendChild(im); grid.appendChild(d); });
+  const grid=$('grid');
+  const shots=kadrDocs().filter(f=>(f.task?f.task.stringValue:'')===T)
+    .sort((a,b)=>(+(b.at?.integerValue||0))-(+(a.at?.integerValue||0)));
+  if(!shots.length){
+    grid.style.display='none';
+    $('rollbox').innerHTML='<div class="roll"><div class="ic">🎞</div><div class="rt">ще жодного кадру</div>'+
+      '<div class="rd">натисни спуск — і кадр одразу зʼявиться тут, поки що <b>негативом</b> 🤍</div></div>';
+    return;
   }
+  $('rollbox').innerHTML = LOCKED
+    ? '<div class="rollcap neg"><span class="tag">Н Е Г А Т И В</span><br>знято: '+taken+' · плівка ще не проявлена — покажемо в <b>позитиві вранці 7 вересня</b> 🤍</div>'
+    : '<div class="rollcap">🎞 плівка проявлена — ось ваші кадри 🤍</div>';
+  grid.style.display='grid'; grid.innerHTML='';
+  shots.forEach(f=>{ const d=document.createElement('div'); d.className='ph'+(LOCKED?' neg':'');
+    const im=document.createElement('img'); im.src=f.image.stringValue; im.loading='lazy'; d.appendChild(im); grid.appendChild(d); });
+}
+/* ── повноекранна галерея всіх відзнятих кадрів ── */
+async function renderGallery(){
+  $('galstage').classList.add('on');
+  $('gal-sub').textContent='завантажую…';
+  await loadAll();
+  const shots=kadrDocs().slice().sort((a,b)=>(+(b.at?.integerValue||0))-(+(a.at?.integerValue||0)));
+  $('gal-sub').innerHTML = LOCKED
+    ? 'Усі кадри поки в <b style="color:#e79">негативі</b> — як непроявлена плівка. Проявимо в позитив <b style="color:#e79">вранці 7 вересня</b> 🤍 &nbsp;·&nbsp; знято: '+shots.length
+    : '🎞 плівка проявлена! Усі кадри весілля 🤍 &nbsp;·&nbsp; '+shots.length;
+  const g=$('gal-grid'); g.innerHTML='';
+  if(!shots.length){ g.innerHTML='<div style="color:#b7ad9a;font-size:13px;padding:10px">Ще жодного кадру. Обери камеру й тисни спуск 🙂</div>'; return; }
+  shots.forEach(f=>{ const d=document.createElement('div'); d.className='ph'+(LOCKED?' neg':'');
+    const im=document.createElement('img'); im.src=f.image.stringValue; im.loading='lazy'; d.appendChild(im); g.appendChild(d); });
 }
 const PAL=['#c0303c','#2f7d8a','#d98a2b','#5a6e3a','#8a4a7a','#2f5a8a','#3a8a6a','#a8603a','#7a5aa8','#b0475f','#4a7a9a','#9a6a2f'];
 async function renderCam(){
@@ -300,7 +338,17 @@ function filmFromSource(src, iw, ih){
   g.fillText("'06 09 2026", w-fs*0.6, h-fs*0.55); g.shadowBlur=0;
   return c.toDataURL('image/jpeg',0.58);
 }
-function compress(file){ return new Promise(res=>{ const img=new Image(); img.onload=()=>res(filmFromSource(img,img.width,img.height)); img.src=URL.createObjectURL(file); }); }
+function compress(file){
+  return new Promise(res=>{
+    const viaImg=()=>{ const img=new Image(); img.onload=()=>res(filmFromSource(img,img.width,img.height)); img.src=URL.createObjectURL(file); };
+    // createImageBitmap з imageOrientation:'from-image' коректно застосовує EXIF-поворот
+    if(window.createImageBitmap){
+      createImageBitmap(file,{imageOrientation:'from-image'})
+        .then(bm=>{ res(filmFromSource(bm, bm.width, bm.height)); if(bm.close) bm.close(); })
+        .catch(viaImg);
+    } else viaImg();
+  });
+}
 
 // ── ЖИВА КАМЕРА (getUserMedia) ──
 let camStream=null, camFacing='environment', camLive=false;
@@ -318,9 +366,14 @@ function camFail(){ camLive=false; $('vf').style.display='flex'; $('vf-msg').tex
 function stopCamera(){ if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } camLive=false; }
 function captureFromVideo(){
   const v=$('vid'); if(!v.videoWidth) return null;
-  const vw=v.videoWidth, vh=v.videoHeight, AR=3/2;                 // завжди горизонтальний кадр 3:2
-  let cw=vw, ch=Math.round(vw/AR); if(ch>vh){ ch=vh; cw=Math.round(vh*AR); }
-  const sx=(vw-cw)/2, sy=(vh-ch)/2;
+  const vw=v.videoWidth, vh=v.videoHeight;
+  // кадруємо рівно так, як видно у видошукачі (ландшафтне співвідношення екрана),
+  // тримаючись «плівкового» діапазону — щоб фото не було ані розтягнутим, ані обрізаним інакше, ніж бачить око
+  const sw=window.innerWidth||360, sh=window.innerHeight||640;
+  let AR=Math.max(sw,sh)/Math.min(sw,sh);
+  AR=Math.max(1.4, Math.min(1.85, AR));
+  let cw=vw, ch=Math.round(vw/AR); if(ch>vh){ ch=vh; cw=Math.round(vh*AR); }   // center-crop без спотворення
+  const sx=Math.floor((vw-cw)/2), sy=Math.floor((vh-ch)/2);
   const crop=document.createElement('canvas'); crop.width=cw; crop.height=ch; const cg=crop.getContext('2d');
   if(camFacing==='user'){ cg.translate(cw,0); cg.scale(-1,1); }    // фронталка — дзеркалимо назад
   cg.drawImage(v, sx,sy,cw,ch, 0,0,cw,ch);
@@ -334,7 +387,7 @@ async function saveKadr(data){
   try{
     const body={fields:{ kind:{stringValue:'kadr'}, task:{stringValue:T}, image:{stringValue:data}, at:{integerValue:String(Date.now())} }};
     const r=await fetch(FS+'voice-tracks?key='+FB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok){ await loadAll(); refreshCounter(); renderRoll(); $('status').textContent='📸 клац! кадр знято — проявиться після весілля 🤍'; }
+    if(r.ok){ await loadAll(); refreshCounter(); renderRoll(); $('status').textContent='📸 клац! кадр знято — унизу він уже видно негативом, проявимо 7 вересня 🤍'; }
     else $('status').textContent='не вдалося — спробуй ще раз';
   }catch(err){ $('status').textContent='немає звʼязку — спробуй пізніше'; }
 }
