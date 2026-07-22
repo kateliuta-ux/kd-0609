@@ -319,25 +319,62 @@ async function renderCam(){
   renderRefs(); refreshCounter(); renderRoll();
 }
 
-// ── плівковий ефект (зерно, віньєтка, дата-штамп) з будь-якого джерела ──
+// ── плівковий ефект (мʼяка зернистість, тепла корекція, гало, віньєтка, пил, дата-штамп) ──
 function filmFromSource(src, iw, ih){
   const long=1280, k=Math.min(1, long/Math.max(iw,ih));
   let w=Math.round(iw*k), h=Math.round(ih*k);
-  const sm=document.createElement('canvas'); sm.width=Math.max(1,Math.round(w*0.55)); sm.height=Math.max(1,Math.round(h*0.55));
+  // легка мʼякість «оптики»: зменшуємо й повертаємо
+  const sm=document.createElement('canvas'); sm.width=Math.max(1,Math.round(w*0.6)); sm.height=Math.max(1,Math.round(h*0.6));
   sm.getContext('2d').drawImage(src,0,0,sm.width,sm.height);
   const c=document.createElement('canvas'); c.width=w; c.height=h; const g=c.getContext('2d');
-  g.imageSmoothingQuality='low'; g.filter='saturate(1.32) contrast(1.14) brightness(1.03)';
+  g.imageSmoothingQuality='low'; g.filter='saturate(1.28) contrast(1.12) brightness(1.03)';
   g.drawImage(sm,0,0,w,h); g.filter='none';
+
+  // 1) тепла плівкова кольорокорекція + мʼяке кольорове зерно (легке)
   const id=g.getImageData(0,0,w,h), d=id.data;
-  for(let i=0;i<d.length;i+=4){ const n=(Math.random()*24-12)|0; d[i]+=n; d[i+1]+=n; d[i+2]+=n; }
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i], gg=d[i+1], b=d[i+2];
+    const lum=(r*0.299+gg*0.587+b*0.114)/255;          // 0..1
+    const sh=1-lum;                                     // тіні
+    r += lum*7  - sh*2;                                 // світло тепліше
+    gg+= sh*2.5 + lum*1.5;                              // легка зелень у тінях (плівка)
+    b += sh*7  - lum*8;                                 // тіні холодніші, світло менш синє
+    const n=(Math.random()*16-8);                       // мʼяке зерно яскравості
+    const cn=(Math.random()*8-4);                        // трішки кольорового зерна
+    d[i]  =r+n+cn; d[i+1]=gg+n; d[i+2]=b+n-cn;
+  }
   g.putImageData(id,0,0);
-  const gr=g.createRadialGradient(w/2,h/2,Math.min(w,h)*0.33,w/2,h/2,Math.max(w,h)*0.72);
-  gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(0,0,0,.30)'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+
+  // 2) гало (halation): мʼяке світіння на світлих ділянках — «як на плівці»
+  g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=0.14;
+  g.filter='blur('+Math.max(3,Math.round(w*0.006))+'px) brightness(1.5) saturate(1.2)';
+  g.drawImage(c,0,0,w,h); g.filter='none'; g.restore();
+
+  // 3) світловий підтік у кутку (легкий, теплий)
+  const corner = ((iw+ih)|0)%2 ? [w,0] : [0,0];
+  const ll=g.createRadialGradient(corner[0],corner[1],0, corner[0],corner[1], Math.max(w,h)*0.6);
+  ll.addColorStop(0,'rgba(255,176,90,0.16)'); ll.addColorStop(0.4,'rgba(255,150,70,0.06)'); ll.addColorStop(1,'rgba(255,150,70,0)');
+  g.save(); g.globalCompositeOperation='lighter'; g.fillStyle=ll; g.fillRect(0,0,w,h); g.restore();
+
+  // 4) віньєтка
+  const gr=g.createRadialGradient(w/2,h/2,Math.min(w,h)*0.32,w/2,h/2,Math.max(w,h)*0.7);
+  gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(0,0,0,.34)'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+
+  // 5) пил і поодинокі волосинки-подряпинки (дуже легко)
+  g.save();
+  for(let i=0;i<Math.round(w*h/26000);i++){ g.fillStyle='rgba(255,255,250,'+(0.05+Math.random()*0.12).toFixed(2)+')';
+    g.fillRect((Math.random()*w)|0,(Math.random()*h)|0, 1, Math.random()<0.5?1:2); }
+  const scr=Math.random()<0.6?1:0;
+  for(let s=0;s<scr;s++){ const x=(Math.random()*w)|0; g.strokeStyle='rgba(255,255,250,0.06)'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(x,0); g.lineTo(x+(Math.random()*10-5),h); g.stroke(); }
+  g.restore();
+
+  // 6) дата-штамп (помаранчевий, як на мильниці)
   const fs=Math.max(14,Math.round(h*0.045));
   g.font='bold '+fs+'px "Courier New",monospace'; g.textAlign='right'; g.textBaseline='bottom';
   g.shadowColor='rgba(255,120,0,.7)'; g.shadowBlur=fs*0.5; g.fillStyle='#ff9a2e';
   g.fillText("'06 09 2026", w-fs*0.6, h-fs*0.55); g.shadowBlur=0;
-  return c.toDataURL('image/jpeg',0.58);
+  return c.toDataURL('image/jpeg',0.6);
 }
 function compress(file){
   return new Promise(res=>{
