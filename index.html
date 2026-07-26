@@ -8056,6 +8056,8 @@ function inviteHello(){
 }
 function viberRefresh(){
   const n=inviteName();
+  // стать за іменем гостя → «Дорогенька» (ж) / «Шановний пане» (ч) + відповідний стиль картки
+  if(n && n.toLowerCase()!=='гість'){ viberGender = guestGender(n) || viberGender; }
   document.getElementById('viber-hello').textContent =
     n && n.toLowerCase()!=='гість' ? (vset().hello+', '+n+'!') : vset().hello+'!';
   const vv = viberVenue();
