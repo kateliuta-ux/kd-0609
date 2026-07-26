@@ -292,6 +292,11 @@
     background:#fff6e6;border:2px solid #cbb26a;border-radius:8px;padding:8px 16px;box-shadow:0 2px 0 rgba(181,138,46,.25)}
   .stub-note{font-family:Georgia,serif;font-size:12.5px;color:#7a5f52;max-width:88%;line-height:1.6}
   .stub-note b{color:#a8233c}
+  #stub-info{font-family:Georgia,serif;font-size:13px;color:#6a4f42;line-height:1.7;
+    background:#fff6e6;border:1px solid #e0cfa4;border-radius:9px;padding:10px 16px;max-width:90%}
+  #stub-info .si-row{white-space:nowrap}
+  #stub-info b{color:#a8233c;font-weight:bold}
+  #stub-info .si-em{font-style:normal}
   #release-stub .dev-row{display:none;gap:8px;align-items:center;margin-top:8px;opacity:.72}
   #release-stub .dev-row.show{display:flex}
   .stub-doves{cursor:default}
@@ -758,6 +763,7 @@
       <div class="stub-kicker" style="margin-top:-2px">гра-запрошення відкриється</div>
       <div class="stub-date">1 серпня 2026 · 16:20</div>
       <div id="stub-count"></div>
+      <div id="stub-info"></div>
       <div class="stub-note">Гра, семплер і все-все чекає на вас <b>1 серпня</b> 🤍<br>Ще трішки — доробляємо це свято для вас.</div>
       <div class="stub-band"></div>
       <div class="dev-row">
@@ -10874,6 +10880,7 @@ g1783202872352;Марія R;Н;;0;KORZH1K
 g1789000000001;Льоша Кучма;К;Іванка;0;KAPUSNY4K
 g1789000000002;Женя Поповіченко;К;;0;RYAZHANK4
 g1789000000003;Лєра;К;;0;MEDIVNYK
+g1791000000001;Аліна Ан-Божнюк;К;Олексій Ан-Божнюк;0;PALYAN1TSYA
 g1790000000001;Гість у Софі 1;К;;1;HRECHK4
 g1790000000002;Гість у Софі 2;К;;1;K4SHA
 g1790000000003;Гість у Софі 3;К;;1;PYR1H
@@ -11626,8 +11633,23 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
   const stub = document.getElementById('release-stub');
   function released(){ return Date.now() >= RELEASE_TS; }
   let iv=null;
+  function stubInfo(){
+    const el = document.getElementById('stub-info'); if(!el) return;
+    const s = (PARAMS.get('s')||localStorage.getItem('wed-venue-hint')||'').toLowerCase();
+    const dc = (typeof DRESS_CODE!=='undefined' && DRESS_CODE!=='—') ? DRESS_CODE : '';
+    const dcRow = dc ? '<div class="si-row">👗 Дрес-код: <b>'+dc+'</b></div>' : '';
+    const venue = (emoji,slot)=>'<div class="si-row">📍 <b>'+slot.where+'</b></div>'+
+      '<div class="si-row">'+emoji+' '+slot.when+'</div>'+dcRow;
+    if(s==='sofi')      el.innerHTML = venue('🕦', SLOTS.A);
+    else if(s==='khv')  el.innerHTML = venue('🕓', SLOTS.B);
+    else el.innerHTML =                                     // загальне посилання — обидві локації
+      '<div class="si-row">💒 <b>'+SLOTS.A.where+'</b> · '+SLOTS.A.when.replace('6 вересня 2026 · ','')+'</div>'+
+      '<div class="si-row">🎭 <b>'+SLOTS.B.where+'</b> · '+SLOTS.B.when.replace('6 вересня 2026 · ','')+'</div>'+
+      '<div class="si-row" style="margin-top:2px">🗓 6 вересня 2026</div>'+dcRow;
+  }
   function show(){
     stub.classList.remove('hidden');
+    stubInfo();
     const cd = document.getElementById('stub-count');
     const tick = ()=>{
       const ms = RELEASE_TS - Date.now();
