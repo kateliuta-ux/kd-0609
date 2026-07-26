@@ -399,7 +399,18 @@
   #viber-card .v-wish{font-family:Georgia,serif;font-style:italic;font-size:14px;color:#6a2a5e;line-height:1.5;margin-bottom:10px}
   #viber-card .v-buttons{display:flex;gap:8px;justify-content:center;margin-top:6px}
   #viber-card .v-buttons .btn{padding:8px 14px;font-size:13px}
+  /* до релізу: одразу показуємо лише заглушку — щоб титулка й ворота не блимали при завантаженні */
+  html.pre-release #title-screen, html.pre-release #gate-screen{display:none !important}
 </style>
+<script>
+/* якнайраніше (ще до промальовування тіла) вирішуємо: показувати заглушку чи гру */
+(function(){ try{
+  var REL = Date.UTC(2026, 7, 1, 13, 20, 0);                 // 1.8.2026 16:20 Kyiv
+  var dev = localStorage.getItem('wed-dev') === '1';
+  var p   = (new URLSearchParams(location.search).get('p') || '').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(Date.now() < REL && !dev && p !== 'k1tana') document.documentElement.className += ' pre-release';
+}catch(e){} })();
+</script>
 </head>
 <body>
 <!-- для пошуковиків/AI: чітко хто ми (сховано від очей, але зчитується) -->
@@ -773,6 +784,11 @@
       <div id="stub-err"></div>
     </div>
   </div>
+  <script>
+  /* заглушку показуємо одразу, не чекаючи кінця великого скрипта (інакше блимає титулка) */
+  if(document.documentElement.classList.contains('pre-release'))
+    document.getElementById('release-stub').classList.remove('hidden');
+  </script>
   <div id="gate-screen" class="overlay hidden" style="background:rgba(10,9,16,.97);gap:13px;z-index:640">
     <div class="s-head">💌 Катя ♥ Діма · 6 вересня 2026<span>запрошення-гра · введи пароль зі своєї візитівки — і гра впізнає тебе</span></div>
     <input id="gate-pass" type="text" maxlength="24" placeholder="пароль з візитівки…" autocomplete="off" autocapitalize="none"
@@ -11659,6 +11675,8 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
 (function(){
   const RELEASE_TS = Date.UTC(2026, 7, 1, 13, 20, 0);            // 16:20 Kyiv = 13:20 UTC (літній час)
   const stub = document.getElementById('release-stub');
+  // знімає режим «лише заглушка» (інакше титулка й ворота лишаться схованими через CSS)
+  function exitPreRelease(){ document.documentElement.classList.remove('pre-release'); }
   function released(){ return Date.now() >= RELEASE_TS; }
   let iv=null;
   function stubInfo(){
@@ -11681,7 +11699,7 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
     const cd = document.getElementById('stub-count');
     const tick = ()=>{
       const ms = RELEASE_TS - Date.now();
-      if(ms<=0){ stub.classList.add('hidden'); clearInterval(iv); return; }
+      if(ms<=0){ stub.classList.add('hidden'); exitPreRelease(); clearInterval(iv); return; }
       const d=Math.floor(ms/86400000), h=Math.floor(ms/3600000)%24, m=Math.floor(ms/60000)%60, sec=Math.floor(ms/1000)%60;
       cd.textContent = d+'д '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
     };
@@ -11689,7 +11707,7 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
   }
   // семплер доступний ще до релізу: відкрити, лишивши решту гри під заглушкою
   function openStubSampler(){
-    stub.classList.add('hidden');
+    stub.classList.add('hidden'); exitPreRelease();
     document.getElementById('gate-screen').classList.add('hidden');   // ворота теж ховаємо
     try{ stopChip(); Object.values(bgmEls).forEach(e=>{try{e.pause();}catch(_){}}); }catch(_){}
     elTitle.classList.add('hidden');
@@ -11702,7 +11720,7 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
     const v = normPass(document.getElementById('stub-pass').value);
     if(v!==DEV_PASS){ document.getElementById('stub-err').textContent='🙃'; try{sfxScore(180);}catch(_){} return; }
     DEV_MODE = true; localStorage.setItem('wed-dev','1'); localStorage.setItem('wed-gate-done','dev');
-    devBadge(); updateGateLocks(); stub.classList.add('hidden');
+    devBadge(); updateGateLocks(); stub.classList.add('hidden'); exitPreRelease();
     try{ sfxScore(880); }catch(_){}
   }
   document.getElementById('stub-go').addEventListener('click', tryDev);
