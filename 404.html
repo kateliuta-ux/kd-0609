@@ -7,39 +7,87 @@
 <meta name="description" content="Особиста сторінка весілля Каті та Діми — не агенція. Щось пішло не так на сторінці.">
 <meta name="robots" content="noindex">
 <style>
-  :root{ --red:#c0303c; --ink:#2a2028; --mut:#8a7f78; --cream:#faf6ec; --line:#e3dccb }
-  @media (prefers-color-scheme:dark){ :root{ --red:#ec6a72; --ink:#f2ece0; --mut:#a99fac; --cream:#1e1a24; --line:#3d3547 } }
+  :root{ --red:#a8233c; --ink:#4a3f38; --mut:#9a7a52; --cream:#f6efdf; --card:#fdf8ee;
+         --line:#e0cfa4; --gold:#cbb26a; --rose:#b0596f }
+  @media (prefers-color-scheme:dark){ :root{ --red:#e8788c; --ink:#efe4d4; --mut:#c0a684; --cream:#241c26;
+         --card:#2e2530; --line:#5a4a3c; --gold:#c9ab63; --rose:#e79aae } }
   *{ box-sizing:border-box; margin:0; padding:0 }
   body{ background:var(--cream); color:var(--ink); font-family:Georgia,"Times New Roman",serif;
     min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:24px; -webkit-tap-highlight-color:transparent }
-  .band{ position:fixed; left:0; right:0; height:15px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15'%3E%3Cpath d='M3 3L12 12M12 3L3 12' stroke='%23c0303c' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-    background-repeat:repeat-x; background-position:center; opacity:.85 }
-  .band.top{ top:0 } .band.bot{ bottom:0 }
-  .emo{ font-size:64px; margin-bottom:6px }
-  h1{ color:var(--red); font-size:clamp(28px,7vw,40px); letter-spacing:1px; margin-bottom:14px }
-  p{ font-size:16px; color:var(--ink); max-width:440px; line-height:1.6 }
-  p .mut{ color:var(--mut) }
-  .heart{ color:var(--red) }
-  a.home{ display:inline-block; margin-top:26px; font-family:Georgia,serif; font-size:17px;
-    padding:13px 28px; background:var(--red); color:#fff; border:2px solid var(--ink); border-radius:8px; text-decoration:none }
-  .tiny{ font-size:11px; color:var(--mut); margin-top:34px; max-width:380px; line-height:1.5 }
+    text-align:center; padding:26px 18px; -webkit-tap-highlight-color:transparent }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:26px 20px 24px; max-width:430px; width:100%;
+    box-shadow:0 2px 0 rgba(181,138,46,.18), 0 10px 30px rgba(40,30,20,.07);
+    display:flex; flex-direction:column; align-items:center; gap:11px }
+  .doves{ font-size:26px; letter-spacing:8px; animation:float 3.4s ease-in-out infinite }
+  @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  .band{ height:9px; width:82%;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M0 4.5L3.5 1L7 4.5L10.5 1L14 4.5' stroke='%23a8233c' stroke-width='1.4' fill='none'/%3E%3C/svg%3E");
+    background-repeat:repeat-x; opacity:.75 }
+  .kicker{ font-style:italic; font-size:13px; color:var(--mut); letter-spacing:1px }
+  .names{ font-family:"Snell Roundhand","Savoye LET","Segoe Script","Brush Script MT",cursive;
+    color:var(--rose); font-style:italic; font-size:clamp(30px,10vw,50px); line-height:1; letter-spacing:1px }
+  .date{ font-weight:bold; color:var(--red); font-size:clamp(16px,4.6vw,24px); letter-spacing:2px }
+  #count{ font-size:15px; color:#7a5a2e; letter-spacing:3px; background:#fff6e6;
+    border:2px solid var(--gold); border-radius:8px; padding:8px 16px; box-shadow:0 2px 0 rgba(181,138,46,.25) }
+  @media (prefers-color-scheme:dark){ #count{ background:#3a2f26; color:#e8cf9a } }
+  .info{ font-size:13px; line-height:1.75; color:var(--ink); background:#fff6e6;
+    border:1px solid var(--line); border-radius:9px; padding:10px 16px; max-width:96% }
+  @media (prefers-color-scheme:dark){ .info{ background:#332a35 } }
+  .info b{ color:var(--red) }
+  .oops{ font-size:14px; color:var(--mut); line-height:1.6; max-width:96%; margin-top:2px }
+  .oops .em{ font-size:22px; display:block; margin-bottom:4px }
+  a.home{ display:inline-block; margin-top:6px; font-family:Georgia,serif; font-size:16px; font-weight:bold;
+    padding:12px 26px; background:var(--red); color:#fff; border:2px solid rgba(0,0,0,.25);
+    border-radius:9px; text-decoration:none; box-shadow:0 3px 0 rgba(120,20,40,.35) }
+  .tiny{ font-size:11px; color:var(--mut); margin-top:20px; max-width:390px; line-height:1.5 }
 </style>
 </head>
 <body>
-  <div class="band top"></div>
+  <div class="card">
+    <div class="doves">🕊 ✦ 🕊</div>
+    <div class="band"></div>
 
-  <div class="emo">🙈</div>
-  <h1>Упсік…</h1>
-  <p>
-    А це робила Катя зі штучним інтелектом,<br>бо свого не вистачило 😅<br><br>
-    <span class="mut">Щось на цій сторінці пішло не так — але весілля точно відбудеться <span class="heart">♥</span></span>
-  </p>
-  <a class="home" href="/">← на головну</a>
+    <div class="oops"><span class="em">🙈</span>Такої сторінки немає — але свято на місці.</div>
+
+    <div class="kicker">запрошуємо вас на наше весілля</div>
+    <div class="names">Катя&nbsp;♥&nbsp;Діма</div>
+    <div class="kicker" id="lead">гра-запрошення відкриється</div>
+    <div class="date" id="reldate">1 серпня 2026 · 16:20</div>
+    <div id="count"></div>
+
+    <div class="info">
+      <div>💒 <b>«Бути Софі», Київ</b> · збір об 11:30</div>
+      <div>🎭 <b>«Хвильовий», Київ</b> · 16:20</div>
+      <div style="margin-top:2px">🗓 6 вересня 2026</div>
+      <div>👗 Дрес-код: <b>нео-етно</b></div>
+    </div>
+
+    <a class="home" href="/">← на головну</a>
+    <div class="band"></div>
+  </div>
 
   <p class="tiny">Це особиста сторінка весілля Каті та Діми (6.9.2026, Київ) — не весільна агенція, а приватне запрошення двох людей.</p>
 
-  <div class="band bot"></div>
+<script>
+/* той самий відлік, що й на головній: 1.8.2026, 16:20 за Києвом */
+(function(){
+  var REL = Date.UTC(2026, 7, 1, 13, 20, 0);
+  var cd = document.getElementById('count'), lead = document.getElementById('lead'), rd = document.getElementById('reldate');
+  function tick(){
+    var ms = REL - Date.now();
+    if(ms <= 0){                                   // після релізу — кличемо в гру
+      lead.textContent = 'гра-запрошення вже відкрите';
+      rd.textContent = '6 вересня 2026 · Київ';
+      cd.textContent = 'заходьте гратися 🤍';
+      clearInterval(iv); return;
+    }
+    var d = Math.floor(ms/86400000), h = Math.floor(ms/3600000)%24,
+        m = Math.floor(ms/60000)%60, s = Math.floor(ms/1000)%60;
+    cd.textContent = d + 'д ' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  tick(); var iv = setInterval(tick, 1000);
+})();
+</script>
 </body>
 </html>

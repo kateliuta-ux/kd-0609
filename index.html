@@ -424,8 +424,10 @@
 <div id="lang-btn" title="мова / language" style="position:fixed;top:6px;right:52px;z-index:450;cursor:pointer;
   background:rgba(16,12,22,.85);color:#f4f0e4;font-size:13px;font-weight:bold;padding:6px 9px;border-radius:12px;
   border:1px solid rgba(181,138,46,.55);letter-spacing:1px">EN</div>
-<div id="mute-btn" title="музика вкл/викл" style="position:fixed;top:6px;right:8px;z-index:450;cursor:pointer;
-  font-size:18px;line-height:1;padding:3px 5px;border-radius:8px;background:rgba(20,18,26,.6);user-select:none">🔊</div>
+<!-- звук вимикається БУДЬ-КОЛИ: z-index вище за всі екрани (заглушка 900, збереження 920) -->
+<div id="mute-btn" title="звук вкл/викл — працює на будь-якому екрані" style="position:fixed;top:6px;right:8px;z-index:960;cursor:pointer;
+  font-size:19px;line-height:1;padding:5px 7px;border-radius:9px;background:rgba(20,18,26,.72);
+  border:1px solid rgba(181,138,46,.5);user-select:none;-webkit-tap-highlight-color:transparent">🔊</div>
 <div id="stage">
   <canvas id="game" width="320" height="568"></canvas>
 
@@ -5661,7 +5663,8 @@ function drawBand(){
 let audioCtx = null, musicTimer = null, musicOn = false;
 function ensureAudio(){
   if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==='suspended') audioCtx.resume();
+  // якщо звук вимкнено кнопкою — НЕ будимо контекст (інакше сигнали прорвуться)
+  if(audioCtx.state==='suspended' && !musicMuted) audioCtx.resume();
   return audioCtx;
 }
 let noteBus = null;   // шина всіх нот — щоб запис міг «чути» семплер
@@ -5971,8 +5974,15 @@ document.addEventListener('visibilitychange', ()=>{
 function setMute(m){
   musicMuted = m; localStorage.setItem('wed-mute', m ? '1' : '0');
   const btn = document.getElementById('mute-btn'); if(btn) btn.textContent = m ? '🔇' : '🔊';
-  if(m){ Object.values(bgmEls).forEach(e=>{ try{ e.pause(); }catch(_){} }); }
-  else if(chipKey){ const k = chipKey; chipKey = null; playChip(k); }   // відновити поточний
+  if(m){
+    Object.values(bgmEls).forEach(e=>{ try{ e.pause(); }catch(_){} });
+    // тиша НАСПРАВДІ повна: всі аудіо на сторінці + синтезатор (ефекти, голоси, семплер)
+    document.querySelectorAll('audio,video').forEach(e=>{ try{ e.pause(); }catch(_){} });
+    try{ if(audioCtx && audioCtx.state==='running') audioCtx.suspend(); }catch(_){}
+  } else {
+    try{ if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }catch(_){}
+    if(chipKey){ const k = chipKey; chipKey = null; playChip(k); }      // відновити поточний
+  }
 }
 function toggleMute(){ setMute(!musicMuted); }
 (function(){ const mb=document.getElementById('mute-btn');
