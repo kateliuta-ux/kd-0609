@@ -11809,6 +11809,33 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
     : '📲 На компʼютері (Chrome/Edge):\n\nВ адресному рядку праворуч — іконка встановлення (монітор зі стрілкою). Натисни її → «Встановити».\n\nНа Android: меню ⋮ → «Додати на головний екран».');
 });
 
+/* ── ПРЕВʼЮ ДЛЯ РЕДАКТОРСЬКОЇ: ?preview=<id> відкриває потрібний екран одразу ──
+   Використовується у вкладці «Екрани застосунку»: у картці видно живий екран. */
+(function(){
+  const want = (PARAMS.get('preview')||'').trim(); if(!want) return;
+  const OVL = {'app-stub':'release-stub','app-gate':'gate-screen','app-menu':'title-screen',
+    'app-faq':'dress-screen','app-invite':'end-screen','app-viber':'viber-invite',
+    'app-rsvp':'rsvp-screen','app-sampler':'sampler-screen','app-playlist':'playlist-screen',
+    'app-selfie':'selfie-screen','app-party':'party-screen','app-rating':'rating-screen',
+    'app-ach':'ach-screen','app-quiz':'quiz-screen'};
+  const show = ()=>{
+    try{
+      DEV_MODE = true;                                   // превʼю завжди відкрите
+      document.documentElement.classList.remove('pre-release');
+      document.querySelectorAll('.overlay').forEach(o=>o.classList.add('hidden'));
+      const v=document.getElementById('viber-invite'); if(v) v.classList.add('hidden');
+      const id = OVL[want];
+      if(id){
+        if(want==='app-faq'){ openDressScreen(); }
+        else document.getElementById(id).classList.remove('hidden');
+      } else {                                           // це рівень гри
+        if(typeof startGame==='function') startGame('katya');
+        if(typeof setPhase==='function') setPhase(want);
+      }
+    }catch(e){}
+  };
+  window.addEventListener('load', ()=> setTimeout(show, 260));
+})();
 /* ── ЗАГЛУШКА ДО РЕЛІЗУ: 1.8.2026 16:20 за Києвом; до того — вхід лише DEV (K1TANA) ── */
 (function(){
   const RELEASE_TS = Date.UTC(2026, 7, 1, 13, 20, 0);            // 16:20 Kyiv = 13:20 UTC (літній час)

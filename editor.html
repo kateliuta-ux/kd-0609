@@ -514,6 +514,105 @@ function ensureScenarHost(){
   main.parentNode.insertBefore(scenarHost, main.nextSibling);
   return scenarHost;
 }
+/* ── ТЕКСТИ ЕКРАНІВ ЗАСТОСУНКУ: правляться прямо тут ──
+   Тягнемо живий файл, дістаємо всі текстові рядки контейнера і даємо їх редагувати. */
+const TEXT_SRC = {
+  'app-stub':    ['index.html','#release-stub'],
+  'app-gate':    ['index.html','#gate-screen'],
+  'app-menu':    ['index.html','#title-screen'],
+  'app-faq':     ['index.html','#dress-screen'],
+  'app-invite':  ['index.html','#end-screen'],
+  'app-viber':   ['index.html','#viber-invite'],
+  'app-rsvp':    ['index.html','#rsvp-screen'],
+  'app-sampler': ['index.html','#sampler-screen'],
+  'app-playlist':['index.html','#playlist-screen'],
+  'app-selfie':  ['index.html','#selfie-screen'],
+  'app-party':   ['index.html','#party-screen'],
+  'app-rating':  ['index.html','#rating-screen'],
+  'app-ach':     ['index.html','#ach-screen'],
+  'app-quiz':    ['index.html','#quiz-screen'],
+  'app-404':     ['404.html','body'],
+  'app-info':    ['info.html','body'],
+  'app-stream':  ['stream.html','body'],
+  'app-zbir':    ['zbir.html','body'],
+  'app-kadr':    ['kadr.html','body'],
+  'app-signs':   ['signs.html','body'],
+};
+function appTextDb(){ db.appText = db.appText || {}; return db.appText; }
+async function renderAppText(card, host){
+  const src = TEXT_SRC[card]; if(!src) return;
+  const box=document.createElement('div'); box.className='hint'; box.style.marginTop='12px';
+  box.innerHTML='📝 <b>Текст цього екрана</b> — правь прямо тут. Зміни зберігаються автоматично; '+
+                'коли закінчиш — «⤴ Надіслати правки Клоду» внизу.';
+  host.appendChild(box);
+  const wrap=document.createElement('div'); host.appendChild(wrap);
+  wrap.innerHTML='<div style="color:var(--dim);font-size:12px;padding:8px">завантажую тексти…</div>';
+  try{
+    const r=await fetch(src[0]+'?t='+Date.now()); const html=await r.text();
+    const doc=new DOMParser().parseFromString(html,'text/html');
+    const root=doc.querySelector(src[1]);
+    if(!root){ wrap.innerHTML='<div class="hint">не знайшла цей екран у файлі</div>'; return; }
+    const walker=doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const strings=[]; const seen=new Set();
+    while(walker.nextNode()){
+      const t=walker.currentNode.nodeValue.trim();
+      if(t.length<2 || /^[\s·•|—–-]+$/.test(t)) continue;
+      const p=walker.currentNode.parentNode.nodeName;
+      if(p==='SCRIPT'||p==='STYLE'||p==='OPTION') continue;
+      if(seen.has(t)) continue; seen.add(t); strings.push(t);
+    }
+    wrap.innerHTML='';
+    if(!strings.length){ wrap.innerHTML='<div class="hint">цей екран малюється кодом — опиши правку коментарем вище</div>'; return; }
+    const store=appTextDb(); store[card]=store[card]||{};
+    strings.forEach(orig=>{
+      const row=document.createElement('div');
+      row.style.cssText='margin:6px 0;padding:8px;border:2px solid var(--line);background:#12101a';
+      const o=document.createElement('div');
+      o.style.cssText='font-size:11px;color:var(--dim);margin-bottom:5px;white-space:pre-wrap';
+      o.textContent=orig;
+      const inp=document.createElement('textarea');
+      inp.value = store[card][orig] != null ? store[card][orig] : orig;
+      inp.rows = Math.min(4, Math.ceil(orig.length/46));
+      inp.style.cssText='width:100%;background:#0f0d16;color:var(--ink);border:2px solid var(--line);'+
+        'font-family:inherit;font-size:13px;padding:7px;resize:vertical';
+      inp.addEventListener('input', ()=>{
+        const s=appTextDb(); s[card]=s[card]||{};
+        if(inp.value===orig) delete s[card][orig]; else s[card][orig]=inp.value;
+        row.style.borderColor = inp.value===orig ? 'var(--line)' : 'var(--gold)';
+        touch('at:'+card); persistSoon();
+      });
+      if(inp.value!==orig) row.style.borderColor='var(--gold)';
+      row.appendChild(o); row.appendChild(inp); wrap.appendChild(row);
+    });
+  }catch(e){ wrap.innerHTML='<div class="hint">не вдалось завантажити тексти ('+e.message+')</div>'; }
+}
+/* Живий екран, про який пишемо правки — щоб було видно, що саме правиш */
+function livePreview(card){
+  const box=document.createElement('div');
+  box.style.cssText='margin:8px 0 12px;border:2px solid var(--line);background:#0f0d16;padding:8px';
+  const head=document.createElement('div');
+  head.style.cssText='display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px';
+  head.innerHTML='<span style="font-size:12px;color:var(--gold)">📱 ось цей екран</span>';
+  box.title='це живий екран застосунку — щоб потикати, тисни «відкрити в грі»';
+  const openb=document.createElement('a');
+  openb.href='index.html?preview='+encodeURIComponent(card)+'&p=K1TANA';
+  openb.target='_blank'; openb.textContent='відкрити в грі ↗';
+  openb.style.cssText='font-size:12px;color:var(--rose);text-decoration:none';
+  head.appendChild(openb); box.appendChild(head);
+  const shell=document.createElement('div');
+  shell.style.cssText='width:100%;max-width:340px;margin:0 auto;aspect-ratio:320/568;overflow:hidden;border:2px solid #2b2838';
+  const fr=document.createElement('iframe');
+  fr.src='index.html?preview='+encodeURIComponent(card)+'&p=K1TANA';
+  fr.loading='lazy';
+  // некликабельне: щоб прокрутка редактора не «залипала» всередині екрана
+  fr.style.cssText='width:320px;height:568px;border:0;transform-origin:top left;background:#14121c;pointer-events:none';
+  fr.setAttribute('scrolling','no');
+  shell.appendChild(fr); box.appendChild(shell);
+  // вписати 320px-екран у ширину картки
+  requestAnimationFrame(()=>{ const k=shell.clientWidth/320;
+    fr.style.transform='scale('+k+')'; shell.style.height=(568*k)+'px'; });
+  return box;
+}
 /* Один екран на сцену: статус + коментарі + малюнки + саме її текст зі сценарію */
 function renderFocus(){
   const inGame = GAME_SCENES.find(s=>s[0]===focusScene);
@@ -536,10 +635,12 @@ function renderFocus(){
     main.appendChild(e); return;
   }
   const h=document.createElement('div'); h.className='hint';
-  h.innerHTML='✎ <b>'+row[1]+'</b> — усе про цю сцену в одному місці: статус, твої коментарі, '+
-              'малюнки та її текст зі сценарію (правиться прямо тут).';
+  h.innerHTML='✎ <b>'+row[1]+'</b> — усе про цю сцену в одному місці: живий екран, статус, '+
+              'твої коментарі, малюнки і текст (правиться прямо тут).';
   main.appendChild(h);
+  main.appendChild(livePreview(focusScene));
   main.appendChild(sceneCard(row[0], row[1], row[2], !!inNovel));
+  if(inApp) renderAppText(focusScene, main);
 
   const sec = SCENE2SEC[focusScene];
   if(sec){
@@ -1133,7 +1234,10 @@ function renderRefPhotos(){
 document.getElementById('btn-send').addEventListener('click', async ()=>{
   const notes=Object.keys(db.notes).filter(k=>db.notes[k] && db.notes[k]!==db['_sentNotes_'+k]);
   const items=db.items.filter(i=>!i.sent);
-  if(!notes.length && !items.length){ toast('нових правок нема — все вже надіслано ✓'); return; }
+  // правки текстів екранів застосунку
+  const at=db.appText||{};
+  const texts=Object.keys(at).filter(k=> Object.keys(at[k]||{}).length);
+  if(!notes.length && !items.length && !texts.length){ toast('нових правок нема — все вже надіслано ✓'); return; }
   toast('надсилаю…', 60000);
   let ok=0, fail=0;
   for(const k of notes){
@@ -1146,6 +1250,11 @@ document.getElementById('btn-send').addEventListener('click', async ()=>{
     if(await fsPush({ scene:{stringValue:it.scene}, kind:{stringValue:it.kind},
       image:{stringValue:it.img||''}, at:{integerValue:String(it.at)} }))
       { it.sent=true; ok++; } else fail++;
+  }
+  for(const k of texts){                                   // «було → стало» по кожному рядку
+    const body=Object.keys(at[k]).map(o=>'БУЛО: '+o+'\nСТАЛО: '+at[k][o]).join('\n\n');
+    if(await fsPush({ scene:{stringValue:k}, kind:{stringValue:'apptext'},
+      text:{stringValue:body}, at:{integerValue:String(Date.now())} })) ok++; else fail++;
   }
   persist(); render();
   toast(fail ? '⚠️ надіслано '+ok+', не пройшло '+fail+' (великий малюнок? збережи файлом)' : '✓ надіслано '+ok+' — Клод забере');
