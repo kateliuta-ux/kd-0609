@@ -912,7 +912,7 @@ const TITLE_Y = HUD_Y + (PORTRAIT_MODE ? 58 : 12);   // плашки-поясн�
 const W = 320, H = PORTRAIT_MODE ? 568 : 180;
 const LEVEL_W = 560;
 const FLOOR_Y = PORTRAIT_MODE ? 420 : 152;
-const SET_TAKES = 5;                 // зйомка ШТОРМНАДО: скільки дублів треба зловити
+const SET_TAKES = 3;                 // зйомка ШТОРМНАДО: 3 дублі (правка Каті — «можна лишити 3 дублі»)
 const GY = FLOOR_Y - 152;        // зсув «підлого-прив'язаного» декору (0 у ландшафті)
 const PSCALE = 1.4;              // масштаб персонажів (більші, «сегівські»)
 cv.width = W; cv.height = H;
@@ -7368,8 +7368,11 @@ function drawSitcom(){
     ctx.fillStyle = '#f4f0e4';                             // полароїдна рамка
     ctx.fillRect(-pw/2-6, -phh/2-6, pw+12, phh+24);
     if(headReady(img)){
-      ctx.imageSmoothingEnabled = false;
+      // мʼяке масштабування: фото маленькі (96×72), без згладжування виглядали «зіпсованими»
+      ctx.imageSmoothingEnabled = true;
+      try{ ctx.imageSmoothingQuality = 'high'; }catch(_){}
       ctx.drawImage(img, -pw/2, -phh/2, pw, phh);
+      ctx.imageSmoothingEnabled = false;                   // далі знову піксель-арт
     }
     if(fr.cap && pop>0.9){                                 // підпис гостя на полароїді
       ctx.fillStyle = '#4a4636'; ctx.font = '9px monospace'; ctx.textAlign='center';
