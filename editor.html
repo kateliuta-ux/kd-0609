@@ -426,8 +426,28 @@ function renderElements(){
   main.appendChild(add);
 }
 
+/* Сценарій живе в окремому контейнері ПОЗА main — щоб перемикання вкладок
+   не знищувало iframe разом із незбереженими правками Каті */
+let scenarHost=null;
+function ensureScenarHost(){
+  if(scenarHost) return scenarHost;
+  scenarHost=document.createElement('div'); scenarHost.id='scenar-host';
+  const h=document.createElement('div'); h.className='hint';
+  h.innerHTML='Повний сценарій гри — усі репліки й картинки-кадри. Редагуй прямо в тексті; ✂ — вирізати рядок або цілу сцену; ▾ — згорнути. Унизу кнопка «⤴ Надіслати правки сценарію». <b>Текст актуальний</b> — збігається з грою. Правки зберігаються автоматично: навіть якщо вкладка закриється, при поверненні запропоную відновити.';
+  scenarHost.appendChild(h);
+  const openb=document.createElement('a'); openb.href='scenar.html'; openb.target='_blank';
+  openb.className='tbtn'; openb.textContent='↗ Відкрити на весь екран';
+  openb.style.cssText='display:inline-block;background:var(--rose);color:#fff;border-color:#d8899a;margin-bottom:8px;text-decoration:none';
+  scenarHost.appendChild(openb);
+  const fr=document.createElement('iframe'); fr.src='scenar.html';
+  fr.style.cssText='width:100%;height:72vh;border:2px solid var(--line);background:#0f0d16';
+  scenarHost.appendChild(fr);
+  main.parentNode.insertBefore(scenarHost, main.nextSibling);
+  return scenarHost;
+}
 function render(){
   main.innerHTML='';
+  if(scenarHost) scenarHost.style.display='none';
   if(tab==='mech' || tab==='novel'){
     const list = tab==='mech' ? GAME_SCENES : NOVEL_SCENES;
     const h=document.createElement('div'); h.className='hint';
@@ -438,18 +458,7 @@ function render(){
     main.appendChild(h);
     list.forEach(([id,t,d])=> main.appendChild(sceneCard(id,t,d,tab==='novel')));
   }
-  if(tab==='scenar'){
-    const h=document.createElement('div'); h.className='hint';
-    h.innerHTML='Повний сценарій гри — усі репліки й картинки-кадри. Редагуй прямо в тексті; ✂ — вирізати рядок або цілу сцену; ▾ — згорнути. Унизу редактора кнопка «⤴ Надіслати правки сценарію». <b>Текст — знімок від 21.07</b> (найсвіжіші зміни викупу/дощечки можу оновити).';
-    main.appendChild(h);
-    const openb=document.createElement('a'); openb.href='scenar.html'; openb.target='_blank';
-    openb.className='tbtn'; openb.textContent='↗ Відкрити на весь екран';
-    openb.style.cssText='display:inline-block;background:var(--rose);color:#fff;border-color:#d8899a;margin-bottom:8px;text-decoration:none';
-    main.appendChild(openb);
-    const fr=document.createElement('iframe'); fr.src='scenar.html';
-    fr.style.cssText='width:100%;height:72vh;border:2px solid var(--line);background:#0f0d16';
-    main.appendChild(fr);
-  }
+  if(tab==='scenar'){ ensureScenarHost().style.display=''; }
   if(tab==='guests'){ renderGuests(); }
   if(tab==='elements'){ renderElements(); }
   if(tab==='refphoto'){ renderRefPhotos(); }
@@ -784,13 +793,37 @@ let GUESTS = parseGuests(GUEST_BASE);
 let guestFilter='';
 let guestDirty=false;
 
+/* ── чернетка списку гостей: щоб правки імен і паролів не зникали при F5 ── */
+const GDKEY='wed-guests-draft';
+let gSaveTimer=null;
+function guestDraftSave(){
+  clearTimeout(gSaveTimer);
+  gSaveTimer=setTimeout(()=>{
+    try{ localStorage.setItem(GDKEY, JSON.stringify({t:Date.now(), g:GUESTS})); }catch(e){}
+  }, 400);
+}
+function guestDraftLoad(){
+  try{
+    const raw=localStorage.getItem(GDKEY); if(!raw) return false;
+    const d=JSON.parse(raw); if(!d || !Array.isArray(d.g) || d.g.length<10) return false;
+    const when=new Date(d.t).toLocaleString('uk-UA',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+    if(confirm('Знайдено незбережені правки гостей від '+when+'.\nВідновити їх?')){
+      GUESTS=d.g; guestDirty=true; return true;
+    }
+    localStorage.removeItem(GDKEY);
+  }catch(e){}
+  return false;
+}
 async function loadGuestOverride(){
   try{
     const r=await fetch(FS_BASE+'voice-tracks/wed-guestlist?key='+FB.apiKey);
     if(!r.ok) return;
     const j=await r.json();
     const s=j.fields && j.fields.list && j.fields.list.stringValue;
-    if(s){ const arr=parseGuests(s); if(arr.length>=50){ GUESTS=arr; if(tab==='guests') renderGuests(); } }
+    if(s){ const arr=parseGuests(s);
+      // якщо Катя вже щось правила — НЕ затираємо її роботу списком із бази
+      if(arr.length>=50 && !guestDirty){ GUESTS=arr; if(tab==='guests') renderGuests(); }
+    }
   }catch(e){}
 }
 
@@ -829,13 +862,13 @@ function renderGuests(){
       (ven==='Софі'?'background:#3a2b1a;color:#e0b23a':'background:#2a1a2a;color:#c96f8a');
     const nm=document.createElement('input'); nm.value=g.name; nm.title='ім\'я';
     nm.style.cssText='flex:2;min-width:120px;background:#0f0d16;color:var(--ink);border:2px solid var(--line);font-family:inherit;font-size:13px;padding:6px';
-    nm.addEventListener('input',()=>{ g.name=nm.value; guestDirty=true; });
+    nm.addEventListener('input',()=>{ g.name=nm.value; guestDirty=true; guestDraftSave(); });
     const pw=document.createElement('input'); pw.value=g.pass; pw.title='пароль';
     pw.style.cssText='flex:1;min-width:90px;background:#0f0d16;color:var(--gold);border:2px solid var(--line);font-family:inherit;font-size:13px;padding:6px;text-transform:uppercase;letter-spacing:1px';
-    pw.addEventListener('input',()=>{ g.pass=pw.value.trim(); guestDirty=true; });
+    pw.addEventListener('input',()=>{ g.pass=pw.value.trim(); guestDirty=true; guestDraftSave(); });
     const del=document.createElement('button'); del.textContent='✕'; del.className='tbtn'; del.title='видалити';
     del.style.cssText='background:#5a2430;border-color:var(--red);color:#f0a0ac;padding:6px 9px';
-    del.addEventListener('click',()=>{ if(confirm('Видалити «'+g.name+'»?')){ GUESTS.splice(idx,1); guestDirty=true; renderGuests(); } });
+    del.addEventListener('click',()=>{ if(confirm('Видалити «'+g.name+'»?')){ GUESTS.splice(idx,1); guestDirty=true; guestDraftSave(); renderGuests(); } });
     row.appendChild(vpill); row.appendChild(nm); row.appendChild(pw); row.appendChild(del);
     c.appendChild(row);
     wrap.appendChild(c);
@@ -871,11 +904,16 @@ async function saveGuests(){
       {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(!r.ok){ r=await fetch(FS_BASE+'voice-tracks?documentId=wed-guestlist&key='+FB.apiKey,
       {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); }
-    if(r.ok){ guestDirty=false; toast('✓ збережено — гра підхопить зміни'); renderGuests(); }
+    if(r.ok){ guestDirty=false; try{ localStorage.removeItem(GDKEY); }catch(e){}
+      toast('✓ збережено — гра підхопить зміни'); renderGuests(); }
     else toast('⚠️ не вдалось зберегти в базу — натисни «⬇︎ .txt» і надішли мені файл');
   }catch(e){ toast('⚠️ помилка мережі — збережи «⬇︎ .txt»'); }
 }
-loadGuestOverride();
+guestDraftLoad();          // якщо лишились незбережені правки — пропонуємо відновити
+loadGuestOverride();       // (не затре їх: перевіряє guestDirty)
+
+/* попередження, якщо йдемо зі сторінки з незбереженими правками гостей */
+window.addEventListener('beforeunload', e=>{ if(guestDirty){ e.preventDefault(); e.returnValue=''; } });
 
 /* ───────────────────────── надсилання ───────────────────────── */
 const FB={ apiKey:'AIzaSyAtHp8tsubQ_v4iSi2zkfCZTgKKMjm2VGA', projectId:'wedding-6e47f' };

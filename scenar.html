@@ -277,37 +277,189 @@ function saveEdits(){
      padding:10px;background:rgba(14,12,20,.96);border-top:3px solid #3a3646">
   <button id="sc-send" style="font:bold 13px system-ui;padding:10px 16px;background:#A8505F;color:#fff;border:2px solid #d8899a;cursor:pointer">⤴ Надіслати правки сценарію Клоду</button>
   <button id="sc-copy" style="font:bold 13px system-ui;padding:10px 16px;background:#2b2838;color:#fff;border:2px solid #3a3646;cursor:pointer">📋 Копіювати</button>
+  <button id="sc-who" title="хто зараз править — щоб ваші правки не затирали одна одну"
+    style="font:12px system-ui;padding:9px 12px;background:#1E4E8A;color:#fff;border:2px solid #4a7ec0;cursor:pointer">✍️ править: Катя</button>
+  <button id="sc-clear" title="стерти збережену чернетку"
+    style="font:12px system-ui;padding:9px 11px;background:#2b2838;color:#9a94a8;border:2px solid #3a3646;cursor:pointer">🗑</button>
+  <span id="sc-draft" style="align-self:center;color:#7fbf7f;font:11px system-ui"></span>
   <span id="sc-status" style="align-self:center;color:#bcb7a8;font:12px system-ui"></span>
 </div>
 <script>
 (function(){
   var FB={apiKey:'AIzaSyAtHp8tsubQ_v4iSi2zkfCZTgKKMjm2VGA'};
   var BASE='https://firestore.googleapis.com/v1/projects/wedding-6e47f/databases/(default)/documents/';
+  var DKEY='wed-scenar-draft', AKEY='wed-scenar-author';
+  var dirty=false;
+
+  /* ── стабільні id рядків: щоб правку можна було зіставити однозначно
+       (у сценарії є майже однакові блоки для ПОВ Каті й Діми) ── */
+  function assignIds(){
+    document.querySelectorAll('section').forEach(function(sec){
+      sec.querySelectorAll('.ln').forEach(function(ln,i){
+        if(!ln.dataset.id) ln.dataset.id = (sec.id||'x') + '-' + String(i+1).padStart(2,'0');
+      });
+    });
+    var i=0;
+    document.querySelectorAll('.ln:not([data-id])').forEach(function(ln){ ln.dataset.id='free-'+(++i); });
+  }
+  function lnTexts(ln){ return Array.from(ln.querySelectorAll('.tx')).map(function(x){ return x.innerHTML; }); }
+
+  /* ── ЧЕРНЕТКА: усе, що наредаговано, лежить у localStorage ── */
+  var saveTimer=null;
+  function snapshot(){
+    var lines={};
+    document.querySelectorAll('.ln').forEach(function(ln){
+      var t=lnTexts(ln), cut=ln.classList.contains('cut')?1:0, pos=ln.dataset.pos||'';
+      if(t.length || cut || pos) lines[ln.dataset.id]={t:t,cut:cut,pos:pos};
+    });
+    var secs=[];
+    document.querySelectorAll('section.cutsec').forEach(function(s){ secs.push(s.id); });
+    var ed=[];
+    document.querySelectorAll('.tx.edited').forEach(function(x){
+      var ln=x.closest('.ln'); if(!ln) return;
+      var i=Array.prototype.indexOf.call(ln.querySelectorAll('.tx'), x);
+      ed.push(ln.dataset.id+'#'+i);                     // точний .tx, а не весь рядок
+    });
+    return {t:Date.now(), lines:lines, secs:secs, edited:ed};
+  }
+  function saveDraft(){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(function(){
+      try{ localStorage.setItem(DKEY, JSON.stringify(snapshot())); draftBadge(); }
+      catch(e){ setStatus('⚠️ памʼять браузера повна — тисни «💾 Зберегти правки»'); }
+    }, 400);
+  }
+  function draftBadge(){
+    var b=document.getElementById('sc-draft'); if(!b) return;
+    b.textContent='💾 чернетку збережено ' + new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+  }
+  function restoreDraft(d){
+    (d.secs||[]).forEach(function(id){
+      var s=document.getElementById(id); if(!s) return;
+      s.classList.add('cutsec'); s.dataset.cut='1';
+      var b=s.querySelector('.cutall'); if(b) b.textContent='↩ повернути сцену';
+    });
+    Object.keys(d.lines||{}).forEach(function(id){
+      var ln=document.querySelector('.ln[data-id="'+id+'"]'); if(!ln) return;
+      var rec=d.lines[id], tx=ln.querySelectorAll('.tx');
+      (rec.t||[]).forEach(function(html,i){ if(tx[i]) tx[i].innerHTML=html; });
+      if(rec.cut){ ln.classList.add('cut'); ln.dataset.cut='1'; }
+      if(rec.pos){ ln.dataset.pos=rec.pos;
+        var sel=ln.querySelector('.pos'); if(sel){ sel.value=rec.pos;
+          [].forEach.call(sel.options,function(o){ o.toggleAttribute('selected', o.value===rec.pos); }); } }
+    });
+    (d.edited||[]).forEach(function(key){
+      var p=String(key).split('#'), ln=document.querySelector('.ln[data-id="'+p[0]+'"]');
+      if(!ln) return;
+      var tx=ln.querySelectorAll('.tx'), i=p.length>1?+p[1]:0;
+      if(tx[i]) tx[i].classList.add('edited');
+    });
+    if(typeof recount==='function') recount();
+  }
+  function askRestore(d){
+    var bar=document.createElement('div');
+    bar.style.cssText='position:fixed;left:0;right:0;top:0;z-index:10000;background:#7a2f8a;color:#fff;'+
+      'font:13px/1.5 system-ui;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap';
+    var when=new Date(d.t).toLocaleString('uk-UA',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+    var cnt=Object.keys(d.lines||{}).length;
+    bar.innerHTML='<b>Знайдено твою чернетку</b> від '+when+' — правок у ній: '+cnt+
+      '<button id="dr-yes" style="font:bold 13px system-ui;padding:7px 14px;background:#fff;color:#7a2f8a;border:0;border-radius:6px;cursor:pointer">Відновити</button>'+
+      '<button id="dr-no" style="font:13px system-ui;padding:7px 12px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:6px;cursor:pointer">Почати заново</button>';
+    document.body.appendChild(bar);
+    document.body.style.paddingTop='52px';
+    document.getElementById('dr-yes').onclick=function(){ restoreDraft(d); bar.remove(); document.body.style.paddingTop=''; setStatus('чернетку відновлено ✓'); };
+    document.getElementById('dr-no').onclick=function(){ localStorage.removeItem(DKEY); bar.remove(); document.body.style.paddingTop=''; };
+  }
+  function setStatus(t){ var s=document.getElementById('sc-status'); if(s) s.textContent=t; }
+
+  /* ── збір правок для мене: зі спікерами, сценами, вирізаним і id ── */
+  function secTitle(sec){
+    var h=sec.querySelector('h2'); if(!h) return '';
+    return h.textContent.replace(/[▾▸]/g,'').replace(/✂\s*вирізати всю сцену/,'')
+             .replace(/↩\s*повернути сцену/,'').trim();
+  }
+  function lineOut(ln){
+    var who='', b=ln.querySelector('b');
+    if(b) who=b.textContent.replace(/:\s*$/,'').trim();
+    var t=Array.from(ln.querySelectorAll('.tx')).map(function(x){
+      return x.innerText.replace(/\s*\n\s*/g,' / ').trim(); }).join('  ·  ');
+    if(!t) t=ln.innerText.replace(/^✂/,'').trim();
+    if(!t) return '';
+    var marks=[];
+    if(ln.classList.contains('cut')) marks.push('✂ВИРІЗАНО');
+    if(ln.dataset.pos) marks.push('📍'+ln.dataset.pos);
+    if(ln.querySelector('.tx.edited')) marks.push('✏️ЗМІНЕНО');
+    return '['+ln.dataset.id+'] '+(marks.length?marks.join(' ')+' ':'')+(who?who+': ':'')+t;
+  }
   function collect(){
-    var out=[], cur='';
-    document.querySelectorAll('h1,h2,h3,.ln').forEach(function(el){
-      if(/H[123]/.test(el.tagName)){ cur=el.innerText.replace(/[▾▸✂].*$/,'').replace(/вирізати.*$/,'').trim(); if(cur) out.push('\n### '+cur); return; }
-      var cut=el.classList.contains('cut')||el.querySelector('.cut');
-      var t=Array.from(el.querySelectorAll('.tx')).map(function(x){return x.innerText.trim();}).join('  ·  ') || el.innerText.trim();
-      if(t) out.push((cut?'[ВИРІЗАНО] ':'')+t);
+    assignIds();
+    var out=['# ПРАВКИ СЦЕНАРІЮ · автор: '+authorName()+' · '+new Date().toLocaleString('uk-UA'),
+             '# позначки: ✂ВИРІЗАНО · 📍позиція · ✏️ЗМІНЕНО · [id] — номер рядка для точного зіставлення'];
+    document.querySelectorAll('section').forEach(function(sec){
+      var cut=sec.classList.contains('cutsec');
+      out.push('\n### '+(cut?'[✂ ВИРІЗАНО ВСЮ СЦЕНУ] ':'')+secTitle(sec));
+      sec.querySelectorAll('.ln').forEach(function(ln){ var s=lineOut(ln); if(s) out.push(s); });
     });
     return out.join('\n');
   }
+  function author(){ return localStorage.getItem(AKEY)==='dima' ? 'dima' : 'katya'; }
+  function authorName(){ return author()==='dima' ? 'Діма' : 'Катя'; }
+  function paintAuthor(){
+    var b=document.getElementById('sc-who');
+    if(b) b.textContent='✍️ править: '+authorName()+' (змінити)';
+  }
+
   document.getElementById('sc-copy').addEventListener('click',function(){
     navigator.clipboard&&navigator.clipboard.writeText(collect());
-    document.getElementById('sc-status').textContent='скопійовано ✓';
+    setStatus('скопійовано ✓');
   });
   document.getElementById('sc-send').addEventListener('click',async function(){
-    var st=document.getElementById('sc-status'); st.textContent='надсилаю…';
+    setStatus('надсилаю…');
+    var txt=collect().slice(0,900000), now=Date.now();
     var body={fields:{redaktorska:{stringValue:'1'},kind:{stringValue:'scenar'},
-      text:{stringValue:collect().slice(0,900000)},at:{integerValue:String(1)}}};
+      author:{stringValue:author()}, text:{stringValue:txt}, at:{integerValue:String(now)}}};
+    var doc='wed-scenar-'+author();                       // окремий документ на кожного — не затираємо одне одного
     try{
-      var r=await fetch(BASE+'voice-tracks/wed-scenar?key='+FB.apiKey,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if(!r.ok) r=await fetch(BASE+'voice-tracks?documentId=wed-scenar&key='+FB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      st.textContent=r.ok?'✓ надіслано — Клод забере':'⚠️ не вдалось — тисни «Копіювати» і кинь мені текст';
-    }catch(e){ st.textContent='⚠️ мережа — тисни «Копіювати»'; }
+      var r=await fetch(BASE+'voice-tracks/'+doc+'?key='+FB.apiKey,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(!r.ok) r=await fetch(BASE+'voice-tracks?documentId='+doc+'&key='+FB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      // додатково — незмінна копія в історію, щоб нічого не губилось назавжди
+      try{ await fetch(BASE+'voice-tracks?key='+FB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({fields:Object.assign({},body.fields,{kind:{stringValue:'scenar-history'}})})}); }catch(e){}
+      if(r.ok){ dirty=false; setStatus('✓ надіслано ('+authorName()+') — Клод забере'); }
+      else setStatus('⚠️ не вдалось — тисни «Копіювати» і кинь мені текст');
+    }catch(e){ setStatus('⚠️ мережа — тисни «Копіювати»'); }
   });
-  document.body.style.paddingBottom='64px';
+
+  window.addEventListener('DOMContentLoaded', function(){
+    assignIds(); paintAuthor();
+    var raw=null; try{ raw=localStorage.getItem(DKEY); }catch(e){}
+    if(raw){ try{ var d=JSON.parse(raw); if(d && d.lines) askRestore(d); }catch(e){} }
+    // будь-яка правка → чернетка + попередження при виході
+    document.addEventListener('input', function(e){
+      if(e.target.classList && e.target.classList.contains('tx')){ dirty=true; saveDraft(); }
+    });
+    ['cutLine','cutSection','posPick'].forEach(function(fn){
+      var orig=window[fn]; if(typeof orig!=='function') return;
+      window[fn]=function(){ var r=orig.apply(this,arguments); dirty=true; saveDraft(); return r; };
+    });
+    var who=document.getElementById('sc-who');
+    if(who) who.addEventListener('click', function(){
+      localStorage.setItem(AKEY, author()==='katya' ? 'dima' : 'katya'); paintAuthor();
+    });
+    var clr=document.getElementById('sc-clear');
+    if(clr) clr.addEventListener('click', function(){
+      if(confirm('Стерти збережену чернетку? Поточні правки на екрані лишаться.')){
+        localStorage.removeItem(DKEY); setStatus('чернетку стерто');
+      }
+    });
+  });
+  window.addEventListener('beforeunload', function(e){
+    if(!dirty) return;
+    e.preventDefault(); e.returnValue='';               // браузер спитає «точно піти?»
+  });
+  document.body.style.paddingBottom='84px';
+  // невеликий хук для діагностики (нічого не змінює у вигляді сторінки)
+  window.__scenar = {snapshot:snapshot, restore:restoreDraft, ask:askRestore, collect:collect, save:saveDraft};
 })();
 </script>
 </body></html>
