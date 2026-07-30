@@ -11155,7 +11155,8 @@ function devBadge(){
 }
 /* ГОСТЬОВИЙ РЕЖИМ (без пароля): лише гра й «Історія без ігор».
    Ні запрошення, ні часу-місця, ні тіндера, ні фото, ні семплера, ні рейтингу. */
-const GUEST_HIDE = ['btn-viber-title','btn-sampler','btn-selfie','btn-memory','btn-party',
+// семплер лишаємо гостям — хай грають музику й без пароля
+const GUEST_HIDE = ['btn-viber-title','btn-selfie','btn-memory','btn-party',
                     'btn-faq','ach-btn','rating-btn'];
 function updateGateLocks(){
   const lock = !isAuthed();
