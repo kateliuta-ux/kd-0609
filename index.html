@@ -1053,7 +1053,7 @@ const FACE_OVR = {katya:null, dima:null};
 /* ── РУКОПИСНІ написи Каті (графічний планшет) ── */
 const ART = {};
 ['title_kandd','part_vechornytsi','part_zhenykhannia','part_svatannia','part_zaruchyny',
- 'part_rozpys','part_vesillia','part_vykup','part_perezva',
+ 'part_rozpys','part_vesillia','part_perezva',
  'txt_match','txt_kiss','txt_hirko','txt_tak','date_0609','zaproshuemo_vesillia'
 ].forEach(n=>{ const i=new Image(); i.src='art/'+n+'.png'; ART[n]=i; });
 const artReady = n => ART[n] && ART[n].complete && ART[n].naturalWidth>0;
@@ -1083,7 +1083,7 @@ function drawArt(n, cx, cy, maxW, maxH, alpha){
   return true;
 }
 const PART_ART = {'ВЕЧОРНИЦІ':'part_vechornytsi','ЖЕНИХАННЯ':'part_zhenykhannia','СВАТАННЯ':'part_svatannia',
-  'ЗАРУЧИНИ':'part_zaruchyny','РОЗПИС':'part_rozpys','ВЕСІЛЛЯ':'part_vesillia','ВИКУП':'part_vykup','ПЕРЕЗВА':'part_perezva'};
+  'ЗАРУЧИНИ':'part_zaruchyny','РОЗПИС':'part_rozpys','ВЕСІЛЛЯ':'part_vesillia','ПЕРЕЗВА':'part_perezva'};
 function partArtFor(s){
   if(LANG==='en' || !s) return null;
   for(const k in PART_ART) if(s.indexOf(k)>=0) return PART_ART[k];
@@ -7725,7 +7725,7 @@ function lazyToEnd(){
 function finishGame(){
   stopMusic(); stopChip(); stopBandSong(); stopShtolnya();
   game.state = 'end';
-  maybeAskEmail();
+  // пошта питається один раз — у черзі фінальних вікон нижче
   if(!game.watch){
     localStorage.setItem('wed-done-'+game.pov, '1');
     if(localStorage.getItem('wed-done-katya') && localStorage.getItem('wed-done-dima')) achUnlock('both');
@@ -7779,28 +7779,36 @@ function finishGame(){
   }
   stopChip(); if(!musicMuted) playChip('horila');    // фінальна музика — весільна традиційна
   // автолист із запрошенням на пошту гостя (в кінці гри)
-  const rsvpNext = ()=>{ if(!coupleMode && !rsvp.sent && !rsvpAutoShown){ rsvpAutoShown = true; setTimeout(openRsvp, 700); } };
-  setTimeout(async ()=>{
+  /* ── ЧЕРГА ФІНАЛЬНИХ ВІКОН: строго одне за одним, нічого не вискакує поверх ──
+     1) запрошення на екрані → 2) питання про пошту → 3) анкета. */
+  const mailNote = txt => { const b=document.getElementById('inv-body');
+    if(b) b.innerHTML += '<br><span style="color:#8fd07a;font-size:.9em">'+txt+'</span>'; };
+  const stepRsvp = ()=>{
+    if(coupleMode || rsvp.sent || rsvpAutoShown) return;
+    if(document.querySelector('.overlay:not(.hidden)#email-screen')) return;   // пошта ще відкрита
+    rsvpAutoShown = true; setTimeout(openRsvp, 500);
+  };
+  const stepEmail = async ()=>{
     if(coupleMode) return;                                // молодятам не шлемо лист і не питаємо пошту
+    const es=document.getElementById('email-screen');
     if(!localStorage.getItem('wed-email') && !localStorage.getItem('wed-invite-mailed')){
-      const es=document.getElementById('email-screen');
       es.querySelector('.s-head').innerHTML='📮 Куди надіслати запрошення?<span>лист прилетить одразу — з місцем, часом і посиланням</span>';
       es.classList.remove('hidden');
-      document.getElementById('email-go').addEventListener('click', ()=>{
-        setTimeout(async ()=>{ es.classList.add('hidden');
-          const res=await sendInvitationEmail();
-          if(res==='sent') alert('✉️ Запрошення вже летить на твою пошту!');
-          rsvpNext();
-        }, 1500);
-      }, {once:true});
-      document.getElementById('email-skip').addEventListener('click', ()=>{ setTimeout(rsvpNext, 300); }, {once:true});
+      const finish = async (send)=>{
+        es.classList.add('hidden');                       // спершу ЗАКРИВАЄМО вікно
+        if(send){ const res=await sendInvitationEmail();
+          if(res==='sent') mailNote('✉️ запрошення вже летить на твою пошту'); }
+        stepRsvp();                                       // і лише тоді наступне
+      };
+      document.getElementById('email-go').addEventListener('click', ()=> setTimeout(()=>finish(true), 900), {once:true});
+      document.getElementById('email-skip').addEventListener('click', ()=> finish(false), {once:true});
     } else {
       const res = await sendInvitationEmail();
-      if(res==='sent'){ const b=document.getElementById('inv-body');
-        if(b) b.innerHTML += '<br><span style="color:#8fd07a;font-size:.9em">✉️ копія запрошення надіслана на твою пошту</span>'; }
-      rsvpNext();
+      if(res==='sent') mailNote('✉️ копія запрошення надіслана на твою пошту');
+      stepRsvp();
     }
-  }, 1200);
+  };
+  setTimeout(stepEmail, 1400);
   elEnd.classList.remove('hidden');
   elHud.classList.add('hidden');
   document.getElementById('watch-hint').classList.add('hidden');
@@ -8593,7 +8601,7 @@ function skipScene(){
     capS:'cap6', secret:'cap6',
     cap6:'cap7', prop:'cap7',
     cap7:'cap8', diia:'cap8',
-    vykup:'wed', wed:'capP', capP:'credits',
+    wed:'capP', capP:'credits',
   };
   const t = M[game.phase]; if(!t) return false;
   // свіжий старт наступної фази — прибираємо стан мінігор
@@ -8612,7 +8620,7 @@ function openPause(){
   document.getElementById('pause-menu').classList.remove('hidden');
   try{ stopMusic(); }catch(_){}
 }
-function skipTargetExists(){ return ['prolog','sitcom','cap1','set','capMont','montage','capBand','band','cap2','tinder','swipe','match','chat','cap3','date','beer','battle','cap4','run','capK','kitana','cap5','svat','capS','secret','cap6','prop','cap7','diia','vykup','wed','capP'].includes(game.phase); }
+function skipTargetExists(){ return ['prolog','sitcom','cap1','set','capMont','montage','capBand','band','cap2','tinder','swipe','match','chat','cap3','date','beer','battle','cap4','run','capK','kitana','cap5','svat','capS','secret','cap6','prop','cap7','diia','wed','capP'].includes(game.phase); }
 function resumePause(){
   game.paused = false;
   document.getElementById('pause-menu').classList.add('hidden');
@@ -8933,7 +8941,7 @@ function update(){
         if(typeof coupleMode!=='undefined' && coupleMode){ game.wedBoth = true; }
         else if(GUEST){ game.wedBoth = GUEST.slot==='B'; }    // вечірні гості — далі у Хвильовий
         else { game.wedBoth = vByName !== 'sofi'; }           // Софі-список лишається в Софі, решта — обидві
-        if(game.watch) setPhase('wed'); else startVykup();                         // музика — «Горіла сосна» (через chipForPhase)
+        setPhase('wed');                     // викуп прибрано з гри — одразу весілля
       }
       break;
 
@@ -11354,7 +11362,6 @@ function rsvpResponse(){
 /* ================= RSVP: питання гостям ================= */
 const RSVP_QUESTIONS = [
   {q:'Ти з нами 6 вересня?', opts:['Звісно! 🥂','Дуже постараюсь','Ніяк 😢']},
-  {q:'Скільки вас буде?', opts:['Я','Я +1','Ми сім’єю']},
   {q:'Пʼєш алкоголь?', opts:['Так 🥂','Ні, безалко']},
   {q:'Пісня, під яку ти точно танцюєш?', input:true},
 ];
@@ -11420,10 +11427,6 @@ function rsvpShow(){
     return;
   }
   // не питаємо про +1 тих, чий +1 уже вписаний у списку — авто-відповідь
-  if(rsvp.idx===1 && rsvp.pickedGuest && rsvp.pickedGuest.plus1){
-    rsvp.answers[1] = 'Я + ' + rsvp.pickedGuest.plus1;
-    rsvp.idx = 2;
-  }
   const item = RSVP_QUESTIONS[rsvp.idx];
   elRsvpSummary.classList.add('hidden');
   elRsvpDots.textContent = RSVP_QUESTIONS.map((_,i)=> i===rsvp.idx?'●':(i<rsvp.idx?'✓':'○')).join(' ');
