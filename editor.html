@@ -288,12 +288,26 @@ if(sessionStorage.getItem('wed-editor-auth')) document.getElementById('gate').cl
 
 /* ───────────────────────── вкладки і картки ───────────────────────── */
 const main = document.getElementById('main');
+/* ── ФОКУС НА ОДНІЙ СЦЕНІ: ?scene=<id> з гри («✎ ця сцена») ──
+   Показуємо саме цю сцену: її статус, коментарі, малюнки — і її текст зі сценарію. */
+const SCENE2SEC = {                       // сцена гри → секція сценарію
+  prolog:'sec0', sitcom:'sec0', set:'sec1', montage:'sec2', band:'sec3',
+  tinder:'sec4', chat:'sec4', date:'sec6', beer:'sec6', walkline:'sec6',
+  battle:'sec7', tetris:'sec8', ping:'sec8', kitana:'sec9', svat:'sec10',
+  secret:'sec11', prop:'sec12', chess:'sec12', fingers:'sec12', rummage:'sec11',
+  diia:'sec13', vykup:'sec14', wed:'sec15', credits:'sec16', invite:'sec16', quiz:'sec17',
+  // «Історія без ігор» — ті самі сцени, свої картки
+  'n-gbvisual':'sec18', 'n-cap1':'sec1', 'n-tinder':'sec4', 'n-date':'sec6', 'n-kitana':'sec9',
+  'n-svat':'sec10', 'n-prop':'sec12', 'n-diia':'sec13', 'n-vykup':'sec14', 'n-wed':'sec15',
+  'n-credits':'sec16'
+};
+let focusScene = (new URLSearchParams(location.search).get('scene')||'').trim();
 const VALID_TABS=['mech','novel','scenar','guests','elements','refphoto','sent'];
 let tab = (new URLSearchParams(location.search).get('tab')||'mech');
 if(!VALID_TABS.includes(tab)) tab='mech';
 function setActiveNav(){ document.querySelectorAll('nav button').forEach(x=> x.classList.toggle('on', x.dataset.tab===tab)); }
 document.querySelectorAll('nav button').forEach(b=> b.addEventListener('click', ()=>{
-  tab=b.dataset.tab; setActiveNav();
+  tab=b.dataset.tab; focusScene=''; setActiveNav();      // клік по вкладці — виходимо з фокусу
   try{ history.replaceState(null,'', 'editor?tab='+tab); }catch(_){}   // кожна вкладка — своє посилання
   render();
 }));
@@ -475,9 +489,52 @@ function ensureScenarHost(){
   main.parentNode.insertBefore(scenarHost, main.nextSibling);
   return scenarHost;
 }
+/* Один екран на сцену: статус + коментарі + малюнки + саме її текст зі сценарію */
+function renderFocus(){
+  const inGame = GAME_SCENES.find(s=>s[0]===focusScene);
+  const inNovel = NOVEL_SCENES.find(s=>s[0]===focusScene);
+  const row = inGame || inNovel;
+  const back=document.createElement('button'); back.className='tbtn';
+  back.textContent='← усі сцени';
+  back.style.cssText='margin-bottom:10px;background:var(--line)';
+  back.addEventListener('click', ()=>{
+    focusScene=''; tab = inNovel ? 'novel' : 'mech'; setActiveNav();
+    try{ history.replaceState(null,'','editor?tab='+tab); }catch(_){}
+    render();
+  });
+  main.appendChild(back);
+
+  if(!row){
+    const e=document.createElement('div'); e.className='hint';
+    e.textContent='Сцену «'+focusScene+'» не знайдено — відкрий список і вибери потрібну.';
+    main.appendChild(e); return;
+  }
+  const h=document.createElement('div'); h.className='hint';
+  h.innerHTML='✎ <b>'+row[1]+'</b> — усе про цю сцену в одному місці: статус, твої коментарі, '+
+              'малюнки та її текст зі сценарію (правиться прямо тут).';
+  main.appendChild(h);
+  main.appendChild(sceneCard(row[0], row[1], row[2], !!inNovel));
+
+  const sec = SCENE2SEC[focusScene];
+  if(sec){
+    const t=document.createElement('div'); t.className='hint';
+    t.style.marginTop='12px';
+    t.innerHTML='📝 <b>Текст цієї сцени.</b> Правки зберігаються автоматично; '+
+                'коли пройдеш усе — тисни «⤴ Надіслати правки» внизу.';
+    main.appendChild(t);
+    const fr=document.createElement('iframe'); fr.src='scenar.html?only='+encodeURIComponent(sec);
+    fr.style.cssText='width:100%;height:62vh;border:2px solid var(--line);background:#0f0d16';
+    main.appendChild(fr);
+  } else {
+    const t=document.createElement('div'); t.className='hint'; t.style.marginTop='12px';
+    t.textContent='(у цієї сцени немає окремого тексту в сценарії — лише механіка й картинки)';
+    main.appendChild(t);
+  }
+}
 function render(){
   main.innerHTML='';
   if(scenarHost) scenarHost.style.display='none';
+  if(focusScene){ renderFocus(); return; }
   if(tab==='mech' || tab==='novel'){
     const list = tab==='mech' ? GAME_SCENES : NOVEL_SCENES;
     const h=document.createElement('div'); h.className='hint';

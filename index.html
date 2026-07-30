@@ -493,7 +493,7 @@
     <h1 id="title-h1"><img src="art/title_kandd.png" alt="Катя &amp; Діма — запрошуємо на весілля"
       style="width:min(72vw,340px);image-rendering:auto;filter:drop-shadow(0 2px 0 rgba(255,255,255,.65)) drop-shadow(0 3px 6px rgba(150,80,110,.25))"
       onerror="this.parentNode.innerHTML='Катя <span class=amp>&amp;</span> Діма'"></h1>
-    <div class="sub">6 вересня 2026 · Київ</div>
+    <div class="sub" id="title-date">6 вересня 2026 · Київ</div>
     <div class="menu" id="main-menu">
       <button class="btn" id="btn-viber-title">💌 Моє запрошення</button>
       <button class="btn katya" id="btn-newgame">Нова гра</button>
@@ -7754,6 +7754,22 @@ function finishGame(){
   // персональне запрошення
   const title = document.getElementById('inv-title');
   const body = document.getElementById('inv-body');
+  // ГІСТЬ БЕЗ ПАРОЛЯ: нічого про час і місце — лише подяка й запрошення ввести пароль
+  if(!isAuthed()){
+    title.textContent = LANG==='en' ? 'THE END 🤍' : 'КІНЕЦЬ 🤍';
+    body.innerHTML = LANG==='en'
+      ? '<i style="opacity:.92">Thank you for playing our story 🤍</i><br><br>'+
+        '<span style="opacity:.75;font-size:.92em">The invitation with the time and place opens<br>with the password from your card.</span>'
+      : '<i style="opacity:.92">Дякуємо, що пройшов нашу історію 🤍</i><br><br>'+
+        '<span style="opacity:.75;font-size:.92em">Запрошення з часом і місцем відкривається<br>паролем із твоєї візитівки.</span>';
+    ['btn-rsvp','btn-save-inv','btn-ics','btn-stream','btn-viber'].forEach(id=>{
+      const b=document.getElementById(id); if(b) b.style.display='none'; });
+    const dt=document.querySelector('#end-screen .date'); if(dt) dt.style.display='none';
+    return;
+  }
+  ['btn-rsvp','btn-save-inv','btn-ics','btn-stream','btn-viber'].forEach(id=>{
+    const b=document.getElementById(id); if(b) b.style.display=''; });
+  { const dt=document.querySelector('#end-screen .date'); if(dt) dt.style.display=''; }
   const surn = '';                                     // прізвище в запрошенні не показуємо (прохання Каті)
   // коротко на екрані: тепла формула + місце/час; решта деталей — у збереженому запрошенні
   const zaprosyny =
@@ -11124,23 +11140,33 @@ function devBadge(){
   es.title='редагувати ЦЮ сцену в Редакторській';
   es.addEventListener('click', ev=>{
     ev.preventDefault();
-    let tab='mech', open='';
+    // відкриваємо РЕДАКЦІЮ САМЕ ЦІЄЇ СЦЕНИ: її коментарі, текст і картинки
+    let scene='';
     try{
-      const AL={tetris:'secret', chess:'prop', fingers:'prop', rummage:'prop'};
-      if(game && game.watch){ tab='novel'; }
-      else if(game && game.phase){ open=AL[game.phase]||game.phase; }
-      else { open='menu'; }
+      // глава новели → відповідна картка редактора
+      const NOV=['n-cap1','n-tinder','n-date','n-tinder','n-kitana','n-svat','n-prop','n-prop','n-wed'];
+      if(game && game.watch) scene = NOV[(game.nov&&game.nov.ch)|0] || 'n-cap1';
+      else if(game && game.phase) scene = game.phase;
+      else scene = 'menu';
     }catch(_){}
-    window.open('editor?tab='+tab+(open?('&open='+encodeURIComponent(open)):''), '_blank');
+    window.open('editor?scene='+encodeURIComponent(scene), '_blank');
   });
   document.body.appendChild(es);
 }
+/* ГОСТЬОВИЙ РЕЖИМ (без пароля): лише гра й «Історія без ігор».
+   Ні запрошення, ні часу-місця, ні тіндера, ні фото, ні семплера, ні рейтингу. */
+const GUEST_HIDE = ['btn-viber-title','btn-sampler','btn-selfie','btn-memory','btn-party',
+                    'btn-faq','ach-btn','rating-btn'];
 function updateGateLocks(){
   const lock = !isAuthed();
-  ['btn-party','btn-selfie'].forEach(id=>{
+  GUEST_HIDE.forEach(id=>{
     const b = document.getElementById(id);
-    if(b){ b.style.opacity = lock ? .55 : 1; b.dataset.locked = lock ? '1' : ''; }
+    if(b){ b.style.display = lock ? 'none' : ''; b.dataset.locked = lock ? '1' : ''; }
   });
+  const hint = document.getElementById('guest-hint');
+  if(hint) hint.style.display = lock ? '' : 'none';
+  const td = document.getElementById('title-date');       // дата й місто — теж лише для впізнаних
+  if(td) td.style.display = lock ? 'none' : '';
 }
 function gateLockedMsg(kind){
   const gs = document.getElementById('gate-screen');

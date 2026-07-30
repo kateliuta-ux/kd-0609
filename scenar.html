@@ -237,6 +237,21 @@ document.addEventListener('input', e=>{
     recount();
   }
 });
+/* ?only=secN — показати ЛИШЕ одну сцену (перехід «✎ ця сцена» з гри) */
+window.addEventListener('DOMContentLoaded', ()=>{
+  const only = new URLSearchParams(location.search).get('only');
+  if(!only) return;
+  document.querySelectorAll('section').forEach(s=>{ if(s.id!==only) s.style.display='none'; });
+  const tgt = document.getElementById(only);
+  if(tgt){
+    const b = document.createElement('div');
+    b.style.cssText='background:#e8c86a;color:#3a2a12;font:bold 12px system-ui;padding:7px 12px;'+
+      'border-radius:8px;margin:8px 0;display:flex;gap:10px;align-items:center;justify-content:space-between';
+    b.innerHTML='<span>✎ показано лише цю сцену</span>'+
+      '<a href="?" style="color:#3a2a12;font:bold 12px system-ui">показати весь сценарій ↗</a>';
+    tgt.parentNode.insertBefore(b, tgt);
+  }
+});
 window.addEventListener('DOMContentLoaded', ()=>{
   const nav = document.getElementById('nav');
   document.querySelectorAll('section').forEach(sec=>{
