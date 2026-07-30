@@ -679,28 +679,17 @@
         (вона сама запитає) або написати координаторці своєї локації.</div>
 
       <div class="faq-q">👶 Чи можна з дітьми?</div>
-      <div class="faq-a">У <b>«Бути Софі»</b> вдень — так, залюбки 🤍<br>
-        <b>«Хвильовий»</b> ввечері — вечірка <b>18+</b>: гучна музика й святкування до ночі.</div>
+      <div class="faq-a" id="faq-kids"></div>
 
       <div class="faq-q">🐾 Чи можна з тваринками?</div>
       <div class="faq-a">Можна — але напишіть заздалегідь координаторці, щоб ми все підготували.
         Кітана перевірятиме особисто 🐈</div>
 
       <div class="faq-q">📞 До кого писати, якщо щось?</div>
-      <div class="faq-a">
-        <div class="faq-c"><b>💒 «Бути Софі»</b> · день, 11:30<br>
-          Марія — <a href="tel:+380677989280">+380 67 798 92 80</a> ·
-          <a href="https://t.me/mariiyka_ua" target="_blank" rel="noopener">@mariiyka_ua</a></div>
-        <div class="faq-c"><b>🎭 «Хвильовий»</b> · вечір, 16:20<br>
-          Аліса — <a href="tel:+380632697004">+380 63 269 70 04</a> ·
-          <a href="https://t.me/AlisaKisaa" target="_blank" rel="noopener">@AlisaKisaa</a></div>
-      </div>
+      <div class="faq-a" id="faq-contacts"></div>
 
       <div class="faq-q">📍 Де і коли?</div>
-      <div class="faq-a"><b>6 вересня 2026</b><br>
-        💒 «Бути Софі», Київ — збір об 11:30<br>
-        🎭 «Хвильовий», Київ — 16:20<br>
-        <span style="color:#a89ab0">у твоєму запрошенні вказано, куди саме чекаємо тебе</span></div>
+      <div class="faq-a" id="faq-where"></div>
     </div>
 
     <button class="btn" id="dress-close" style="background:#55515f;margin-top:14px">Закрити</button>
@@ -7927,8 +7916,40 @@ function drawDressFig(g,x0,yy,px,o){
   else { P([[1,10,2,4]],'#3a3a4a'); P([[5,10,2,4]],'#3a3a4a'); }
   P([[1,14,2,1]],'#7a4a2a'); P([[5,14,2,1]],'#7a4a2a');
 }
+/* FAQ показує ЛИШЕ локацію цього гостя: у Хвильовому не видно нічого про Софі, і навпаки.
+   Якщо гість не впізнаний (загальне посилання) — показуємо обидві локації. */
+function faqFill(){
+  const v = (typeof venuePick==='function') ? venuePick() : null;      // 'sofi' | 'khv' | null
+  const SOFI = {c:'<div class="faq-c"><b>💒 «Бути Софі»</b> · день, збір об 11:30<br>Марія — '+
+      '<a href="tel:+380677989280">+380 67 798 92 80</a> · '+
+      '<a href="https://t.me/mariiyka_ua" target="_blank" rel="noopener">@mariiyka_ua</a></div>',
+    w:'💒 «Бути Софі», Київ — збір об 11:30'};
+  const KHV  = {c:'<div class="faq-c"><b>🎭 «Хвильовий»</b> · вечір, 16:20<br>Аліса — '+
+      '<a href="tel:+380632697004">+380 63 269 70 04</a> · '+
+      '<a href="https://t.me/AlisaKisaa" target="_blank" rel="noopener">@AlisaKisaa</a></div>',
+    w:'🎭 «Хвильовий», Київ — 16:20'};
+  const set=(id,html)=>{ const e=document.getElementById(id); if(e) e.innerHTML=html; };
+
+  if(v==='khv'){
+    set('faq-kids','Наш вечір у <b>«Хвильовому»</b> — вечірка <b>18+</b>: гучна музика '+
+      'і святкування до ночі, тож дітей цього разу лишаємо вдома 🤍');
+    set('faq-contacts', KHV.c);
+    set('faq-where','<b>6 вересня 2026</b><br>'+KHV.w);
+  } else if(v==='sofi'){
+    set('faq-kids','Так, залюбки 🤍 Удень у <b>«Бути Софі»</b> дітям раді — місця вистачить усім.');
+    set('faq-contacts', SOFI.c);
+    set('faq-where','<b>6 вересня 2026</b><br>'+SOFI.w);
+  } else {
+    set('faq-kids','Удень у <b>«Бути Софі»</b> — так, залюбки 🤍<br>'+
+      'Увечері у <b>«Хвильовому»</b> — вечірка <b>18+</b>.');
+    set('faq-contacts', SOFI.c + KHV.c);
+    set('faq-where','<b>6 вересня 2026</b><br>'+SOFI.w+'<br>'+KHV.w+
+      '<br><span style="color:#a89ab0">у твоєму запрошенні вказано, куди саме чекаємо тебе</span>');
+  }
+}
 function openDressScreen(){
   document.getElementById('dress-screen').classList.remove('hidden');
+  faqFill();
   const cv=document.getElementById('dress-canvas'); const g2=cv.getContext('2d');
   g2.clearRect(0,0,cv.width,cv.height); g2.imageSmoothingEnabled=false;
   const px=9, fw=8*px, gap=(cv.width-4*fw-2*16)/3;
