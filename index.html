@@ -399,6 +399,16 @@
   #viber-card .v-wish{font-family:Georgia,serif;font-style:italic;font-size:14px;color:#6a2a5e;line-height:1.5;margin-bottom:10px}
   #viber-card .v-buttons{display:flex;gap:8px;justify-content:center;margin-top:6px}
   #viber-card .v-buttons .btn{padding:8px 14px;font-size:13px}
+  /* кнопка «Часті питання» — помітна: золота обводка + мʼяке пульсування */
+  #title-screen .btn.faq-btn, #end-screen .btn.faq-btn, #viber-invite .btn.faq-btn, .btn.faq-btn{
+    background:linear-gradient(180deg,#b8586a,#8e3f52) !important;
+    border:2px solid #e8c86a !important;color:#fff9e8 !important;font-weight:bold;
+    box-shadow:0 0 0 0 rgba(232,200,106,.65);animation:faqPulse 2.6s ease-out infinite}
+  @keyframes faqPulse{
+    0%{box-shadow:0 0 0 0 rgba(232,200,106,.6)}
+    70%{box-shadow:0 0 0 9px rgba(232,200,106,0)}
+    100%{box-shadow:0 0 0 0 rgba(232,200,106,0)} }
+  @media (prefers-reduced-motion:reduce){ .btn.faq-btn{animation:none} }
   /* ── ЧАСТІ ПИТАННЯ: виділена золото-теракотова картка ── */
   .faq-wrap{width:min(92vw,420px);text-align:left;background:linear-gradient(180deg,#241c2c,#1c1622);
     border:1px solid rgba(203,178,106,.45);border-radius:12px;padding:14px 16px 16px;
@@ -498,7 +508,7 @@
       </div>
       <div class="btn-row">
         <button class="btn small" id="btn-party">Тіндер</button>
-        <button class="btn small" id="btn-faq" style="background:#a8505f">❓ Часті питання</button>
+        <button class="btn small faq-btn" id="btn-faq">❓ Часті питання</button>
         <button class="btn small" id="btn-install" style="background:#6a5cff">📲 На робочий стіл</button>
       </div>
     </div>
@@ -645,7 +655,7 @@
       <div class="v-wish">Нехай ваша присутність<br>принесе нам щастя й любов!<br>З любов'ю та повагою</div>
       <div class="v-bottom">❧&nbsp;⋆&nbsp;✿&nbsp;⋆&nbsp;❧</div>
       <div class="v-buttons">
-        <button class="btn" id="viber-dress" style="background:#a8505f">❓ Часті питання</button>
+        <button class="btn faq-btn" id="viber-dress">❓ Часті питання</button>
         <button class="btn" id="viber-save" style="background:#c02a7a">Зберегти</button>
         <button class="btn" id="viber-close" style="background:#55515f">Закрити</button>
       </div>
