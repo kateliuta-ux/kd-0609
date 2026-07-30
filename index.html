@@ -497,7 +497,6 @@
     <div class="menu" id="main-menu">
       <button class="btn" id="btn-viber-title">💌 Моє запрошення</button>
       <button class="btn katya" id="btn-newgame">Нова гра</button>
-      <button class="btn watch" data-pov="watch">Історія без ігор</button>
 
       <div class="btn-row">
         <button class="btn small" id="btn-sampler">Семплер</button>
@@ -518,12 +517,6 @@
       <button class="btn dima" data-pov="dima">🤵 З боку нареченого<br><span style="font-weight:normal;font-size:.8em;opacity:.85">граєте за Діму</span></button>
       <button class="btn small" id="play-pov-back" style="background:#55515f">← Назад</button>
     </div>
-    <div class="menu hidden" id="watch-pov-menu">
-      <div class="sub" style="margin-bottom:2px">Чию історію дивитись?</div>
-      <button class="btn katya" data-watch-pov="katya">🍿 Очима Каті</button>
-      <button class="btn dima" data-watch-pov="dima">🍿 Очима Діми</button>
-      <button class="btn" id="watch-pov-back" style="background:#55515f">← Назад</button>
-    </div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
       <div id="ach-btn" style="color:#f4cf5e;cursor:pointer;font-size:clamp(11px,2.4cqw,15px);letter-spacing:1px;background:rgba(16,12,22,.9);padding:5px 13px;border-radius:12px;border:1px solid rgba(181,138,46,.55)">🏆 0/8</div>
       <div id="rating-btn" style="color:#f4cf5e;cursor:pointer;font-size:clamp(11px,2.4cqw,15px);letter-spacing:1px;background:rgba(16,12,22,.9);padding:5px 13px;border-radius:12px;border:1px solid rgba(181,138,46,.55)">📊 Рейтинг</div>
@@ -531,7 +524,7 @@
   </div>
 
   <div id="rating-screen" class="overlay hidden" style="background:#14121c;gap:2%;justify-content:flex-start;overflow-y:auto;padding:20px 0">
-    <div class="s-head">📊 РЕЙТИНГ ГРАВЦІВ <span>бал = 🏆 за кожне досягнення (їх видно на тайтлі) + 3 за обидві історії · найбільше балів = супер-приз на весіллі 🎁</span></div>
+    <div class="s-head">📊 РЕЙТИНГ ГРАВЦІВ <span>бал = 🏆 за кожне досягнення (їх видно на тайтлі) · найбільше балів = супер-приз на весіллі 🎁</span></div>
     <div id="rating-list" style="display:flex;flex-direction:column;gap:5px;width:min(88%,420px);max-height:62%;overflow-y:auto"></div>
     <div id="rating-status" style="color:#bcb7a8;font-size:12.5px"></div>
     <button class="btn s-btn" id="rating-back" style="background:#55515f">НАЗАД</button>
@@ -6580,7 +6573,6 @@ function startNovel(pov){
   elTitle.classList.add('hidden');
   document.getElementById('pause-btn').classList.remove('hidden');   // вихід у меню з історії
   document.getElementById('home-btn').classList.remove('hidden');    // ⌂ прямий вихід у меню
-  document.getElementById('watch-pov-menu').classList.add('hidden');
   elHud.classList.add('hidden');
 }
 function updateNovel(){
@@ -7703,7 +7695,6 @@ function lazyToEnd(){
   game.state = 'play'; game.watch = true; game.pov = 'katya';
   game.t = 0; game.dialog = null; game.onDialogEnd = null;
   dragTarget = null; eggParticles.length = 0; heartRain = false; stopMusic(); stopChip();
-  document.getElementById('watch-pov-menu').classList.add('hidden');
   finishGame();                       // прямо на екран запрошення
 }
 
@@ -8362,10 +8353,6 @@ document.querySelectorAll('#title-screen .btn[data-pov]').forEach(b=>{
   b.addEventListener('click', ()=>{
     const p = b.dataset.pov;
     tryFullscreen();
-    if(p==='watch'){ LANG='ua';                       // спершу — чию історію читати
-      document.getElementById('main-menu').classList.add('hidden');
-      document.getElementById('watch-pov-menu').classList.remove('hidden');
-      return; }
     startFromSide(p);               // сторона обрана → спершу назвись
   });
 });
@@ -8400,7 +8387,6 @@ function pickGuestAndPlay(g){
 function resetTitleMenus(){
   document.getElementById('main-menu').classList.remove('hidden');
   document.getElementById('play-pov-menu').classList.add('hidden');
-  const wm = document.getElementById('watch-pov-menu'); if(wm) wm.classList.add('hidden');
 }
 function applyLang(){
   const map = {
@@ -8429,10 +8415,7 @@ function applyLang(){
   const ng=document.getElementById('name-go'); if(ng) ng.textContent = E?'PLAY ▶':'ГРАТИ ▶';
   const nb=document.getElementById('name-bride'); if(nb) nb.textContent = E?'👰 I am Katya':'👰 Я Катя';
   const ngr=document.getElementById('name-groom'); if(ngr) ngr.textContent = E?'🤵 I am Dima':'🤵 Я Діма';
-  const wsub=document.querySelector('#watch-pov-menu .sub'); if(wsub) wsub.textContent = E?'Whose story to watch?':'Чию історію дивитись?';
-  const wk=document.querySelector('[data-watch-pov="katya"]'); if(wk) wk.textContent = E?'🍿 Through Katya\'s eyes':'🍿 Очима Каті';
-  const wd=document.querySelector('[data-watch-pov="dima"]'); if(wd) wd.textContent = E?'🍿 Through Dima\'s eyes':'🍿 Очима Діми';
-  ['watch-pov-back','play-pov-back'].forEach(id=>{ const b=document.getElementById(id); if(b) b.textContent = E?'← Back':'← Назад'; });
+  ['play-pov-back'].forEach(id=>{ const b=document.getElementById(id); if(b) b.textContent = E?'← Back':'← Назад'; });
   const bmap2 = {
     'btn-rsvp':      ['✍️ Відповісти','✍️ RSVP'],
     'btn-save-inv':  ['💾 Зберегти запрошення','💾 Save the invitation'],
@@ -8466,8 +8449,6 @@ function applyLang(){
   const wp=document.getElementById('watch-play'); if(wp) wp.textContent = E?'▶ PLAY IT MYSELF':'▶ ГРАТИ САМ';
   const ed=document.querySelector('#end-screen .date'); if(ed) ed.textContent = E?'06 · 09 · 2026 — KYIV':'06 · 09 · 2026 — КИЇВ';
   const ts=document.querySelector('#title-screen .sub'); if(ts) ts.textContent = E?'September 6, 2026 · Kyiv':'6 вересня 2026 · Київ';
-  const wbtn = document.querySelector('#title-screen .btn.watch[data-pov="watch"]');
-  if(wbtn) wbtn.textContent = LANG==='en' ? 'Story without games' : 'Історія без ігор';
   const povK = document.querySelector('#play-pov-menu .btn[data-pov="katya"]');
   const povD = document.querySelector('#play-pov-menu .btn[data-pov="dima"]');
   if(povK) povK.innerHTML = LANG==='en'
@@ -8492,16 +8473,6 @@ document.getElementById('btn-newgame').addEventListener('click', ()=>{
   document.getElementById('play-pov-menu').classList.remove('hidden');
 });
 document.getElementById('play-pov-back').addEventListener('click', resetTitleMenus);
-document.querySelectorAll('#watch-pov-menu .btn[data-watch-pov]').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    document.getElementById('watch-pov-menu').classList.add('hidden');
-    startNovel(b.dataset.watchPov);
-  });
-});
-document.getElementById('watch-pov-back').addEventListener('click', ()=>{
-  document.getElementById('watch-pov-menu').classList.add('hidden');
-  document.querySelector('#title-screen .menu').classList.remove('hidden');
-});
 /* кнопку «До запрошення» прибрано з меню — є «Гарне запрошення» */
 function nameSubmit(){
   const v = document.getElementById('name-input').value.trim();
