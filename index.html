@@ -1092,17 +1092,20 @@ const DIMA_2021 = {hair:'#8a7048', hi:'#ecdca0', top:'#f4f2ec', topD:'#d8d4c8', 
    Один скрипт — і для гри, і для автопроходження. */
 function setScript(pov){
   // ПОВ реально різні: Катя — режисерка за камерою, Діма — гість у кадрі
+  // рядки — точно за сценарієм Діми (docx), розбиті на рядки для читабельності
+  const znyato = {who:null, emo:null,
+    text:'ЗНЯТО! Той сезон так і не вийшов у ефір,\nа молодята забули одне про одного…\nІ розійшлися різними доріжками.'};
   if(pov==='katya') return [
-    {who:'katya', emo:'tired',  text:'Той, у білому поло. В камеру. Дубль три!'},
+    {who:'katya', emo:'tired',  text:'… Дубль три!'},
     {who:'dima',  emo:'happy',  text:'А куди дивитись — в камеру\nчи на режисерку?)'},
     {who:'katya', emo:'shy',    text:'В камеру, Дімо.'},
-    {who:null,    emo:null,     text:'(Той сезон так і не вийшов у ефір, —\nале то потім. Поки в кадрі — мир.)'},
+    znyato,
   ];
   return [
-    {who:null,   emo:null,   text:'Офіс, зйомка, звичайнісінький день, —\nа вийшло: перший розділ цих пісень.'},
     {who:'guy',  emo:'normal',text:'Ну що, штормимо? Година пішла.'},
     {who:'dima', emo:'happy', text:'А куди дивитись — в камеру\nчи на режисерку?)'},
-    {who:null,   emo:null,   text:'Імені не спитав. Але лишилась\nрежисерка-блондинка — й не забулась.'},
+    {who:'katya',emo:'shy',   text:'В камеру, Дімо.'},
+    znyato,
   ];
 }
 function chatScript(pov){
@@ -1479,14 +1482,9 @@ function propChessOutroScript(pov){
   ];
 }
 function propBoxScript(pov){
-  const voice = pov==='katya'
-    ? {who:null, emo:null, text:'Ти знала ще зранку. Та серце — овва! —\nгупає так, що аж чути слова.'}
-    : {who:null, emo:null, text:'Вона все знає — думає, що ні.\nБайдуже: вперед, у ці зимові дні.'};
+  // за сценарієм Діми: одна репліка-освідчення + рядок наратора
   return [
-    voice,
-    {who:'dima', emo:'shy', text:'Хочу, щоб ти стала… Катериною Лютою.'},
-    {who:'dima', emo:'shy', text:'І попри те, що ти мене часом бісиш —\nхочу з тобою жити.'},
-    {who:null,   emo:null,  text:'Слова прості — ну і хай:\nу них вмістився цілий рай.'},
+    {who:'dima', emo:'shy', text:'Хочу, щоб ти стала… Катериною Лютою.\nІ попри те, що ти мене часом бісиш —\nхочу з тобою жити.'},
     {who:null,   emo:null,  text:'І вона сказала «Так»'},
   ];
 }
@@ -5490,7 +5488,6 @@ function montageIntroScript(){
 function montageOutroScript(){
   return [
     {who:'katya', emo:'happy', text:'Ідеально'},
-    {who:null,    emo:null,     text:'(Цей випуск Катя так і не монтувала, —\nа гра змонтує все, чого бракувало.)'},
   ];
 }
 function startMontage(){
@@ -5549,7 +5546,7 @@ function drawMontage(){
 function bandIntroScript(){
   return [
     {who:'dima', emo:'happy', text:'нада написать якийсь трек…'},
-    {who:null,   emo:null,    text:'Лови ноти на лінії — і пісня грає.\nПроґавив — тиша. (тап у колонці / A S D)'},
+    {who:null,   emo:null,    text:'Лови ноти на лінії, щоб написати пісню\n(тап у колонці / A S D)'},
   ];
 }
 function bandOutroScript(){
