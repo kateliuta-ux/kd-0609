@@ -226,6 +226,10 @@ function mergeDb(mine, other){
   [...(mine.items||[]),...(other.items||[])].forEach(it=>{ if(it&&!seen.has(it.id)){ seen.add(it.id); out.items.push(it); } });
   const se=new Set();
   [...(mine.customElements||[]),...(other.customElements||[])].forEach(e=>{ if(e&&!se.has(e.id)){ se.add(e.id); out.customElements.push(e); } });
+  // зберегти решту ключів (насамперед мітки «_sentNotes_*»), інакше кожне
+  // надсилання створює дублікати всіх нотаток
+  [other, mine].forEach(src=>{ if(!src) return;
+    Object.keys(src).forEach(k=>{ if(!(k in out)) out[k]=src[k]; }); });
   return out;
 }
 function persist(){
@@ -233,7 +237,33 @@ function persist(){
     const raw=localStorage.getItem(LS_KEY);           // влити те, що встигла записати інша вкладка/пристрій
     if(raw){ db = mergeDb(db, JSON.parse(raw)); }
     localStorage.setItem(LS_KEY, JSON.stringify(db));
-  }catch(e){ toast('⚠️ памʼять браузера переповнена — надішли або збережи правки і видали старі'); }
+    quotaOk();
+  }catch(e){ quotaFail(); }
+}
+/* Текст друкується — зберігаємо з паузою, щоб не серіалізувати малюнки на кожну літеру */
+let persistTimer=null;
+function persistSoon(){ clearTimeout(persistTimer); persistTimer=setTimeout(persist, 500); }
+/* Памʼять переповнена — це втрата роботи. Голосно попереджаємо і одразу даємо файл-копію. */
+let quotaWarned=false;
+function quotaFail(){
+  if(quotaWarned) return; quotaWarned=true;
+  const b=document.createElement('div');
+  b.id='quota-warn';
+  b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;background:#a8233c;color:#fff;'+
+    'font:bold 13px/1.5 system-ui;padding:10px 14px;text-align:center';
+  b.innerHTML='⚠️ Памʼять браузера переповнена — нові малюнки НЕ зберігаються. '+
+    '<button id="qw-save" style="font:bold 12px system-ui;padding:6px 12px;margin-left:8px;background:#fff;color:#a8233c;border:0;border-radius:6px;cursor:pointer">Завантажити копію всього</button>';
+  document.body.appendChild(b);
+  document.getElementById('qw-save').onclick=backupDb;
+}
+function quotaOk(){ const b=document.getElementById('quota-warn'); if(b){ b.remove(); quotaWarned=false; } }
+function backupDb(){
+  try{
+    const blob=new Blob([JSON.stringify(db)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='redaktorska_backup_'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json';
+    a.click(); toast('копію збережено — надішли мені цей файл');
+  }catch(e){ toast('не вдалось зробити копію'); }
 }
 /* інша вкладка щось змінила → підтягуємо, але не перебиваємо активне введення */
 window.addEventListener('storage', e=>{
@@ -304,7 +334,7 @@ function sceneCard(id, title, desc, isNovel, placeholder, onDelete){
   const ta=document.createElement('textarea');
   ta.placeholder = placeholder || (isNovel ? 'сюжет: що змінити, які слова, який настрій…' : 'механіка/сцена: що змінити, як має працювати…');
   ta.value = db.notes[id]||'';
-  ta.addEventListener('input', ()=>{ db.notes[id]=ta.value; touch('n:'+id); persist(); });
+  ta.addEventListener('input', ()=>{ db.notes[id]=ta.value; touch('n:'+id); persistSoon(); });
   body.appendChild(ta);
   const tools=document.createElement('div'); tools.className='tools';
   const mk=(lab,fn)=>{ const b=document.createElement('button'); b.className='tbtn'; b.textContent=lab; b.addEventListener('click',fn); tools.appendChild(b); };
