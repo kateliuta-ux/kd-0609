@@ -1555,15 +1555,13 @@ function secretIntroScript(pov){
   return pov==='dima' ? [
     {who:null,  emo:null,  text:'Позняки — Дімине місце сили.'},
     {who:null,  emo:null,  text:'Він вже купив обручку\nі намагається сховати її від Каті.'},
-    {who:null,  emo:null,  text:'Катя зараз гляне: ТРИМАЙ палець,\nщоб ховати коробочку, якщо Катя дивиться «❗»!'},
-    {who:null,  emo:null,  text:'А спитає щось («💬») — швидко ТАПНИ,\nщоб відповісти 😏'},
+    {who:null,  emo:null,  text:'👀 Катя дивиться — ТРИМАЙ палець.\nВідвернулась — відпускай.'},
   ] : [
     {who:null,   emo:null,  text:'Позняки. Катю сюди закидала все життя.'},
     {who:'katya',emo:'normal',text:'Доля явно щось знала.'},
     {who:null,   emo:null,  text:'ТИМ ЧАСОМ, Діма щось задумав.'},
-    {who:'katya',emo:'normal',text:'Він ховає щось у рюкзаку. Вже третій день.'},
-    {who:null,   emo:null,  text:'Перевір, що ховає Діма:\nТРИМАЙ палець, і втикай у телефон,\nякщо він помітить «❗»!'},
-    {who:null,   emo:null,  text:'Якщо щось спитає («💬») — швидко ТАПНИ,\nщоб відповісти «ага, любий» 😌'},
+    {who:'katya',emo:'shy',  text:'Я нічого не бачила.\nАле відчувала — щось буде.'},
+    {who:null,   emo:null,  text:'👀 Діма дивиться — ТРИМАЙ палець\n(вдавай, що в телефоні). Відвернувся — відпускай.'},
   ];
 }
 function secretOutroScript(pov){
@@ -1577,7 +1575,7 @@ function secretOutroScript(pov){
 }
 function startSecret(){
   game.secret = {meter:0, t:0, npcX:60, npcDir:1, done:false, doneT:0, started:false, failT:0, fails:0,
-    look:0, lookT:0, nextLook:80, qteT:0, nextQte:230, okT:0, failMsg:null};
+    look:0, lookT:0, nextLook:80, okT:0, failMsg:null};
   setPhase('secret');
   startDialog(secretIntroScript(game.pov), ()=>{ game.secret.started = true; });
 }
@@ -1599,21 +1597,12 @@ function updateSecret(){
   else if(s.look===1){ if(--s.lookT<=0){ s.look=2; s.lookT=55+Math.floor(Math.random()*40); } }
   else { if(--s.lookT<=0){ s.look=0; s.nextLook=70+Math.floor(Math.random()*90); } }
   const looking = s.look===2;
-  // «💬» — питання: відповідати треба ШВИДКИМ ТАПОМ (просто тримати палець не вийде)
-  if(!s.qteT && s.look===0 && --s.nextQte<=0){ s.qteT=54; }
   const holding = game.watch ? looking : (input.action || keys[' '] || keys['Enter'] || game._holdPtr);
-  if(s.qteT>0){
-    s.qteT--;
-    const answered = game.watch ? s.qteT<30 : input.actionEdge;
-    if(answered){ input.actionEdge=false; s.qteT=0; s.okT=42; s.nextQte=210+Math.floor(Math.random()*150); }
-    else if(s.qteT===0){ s.meter+=24; s.failT=50; shake(2,8); s.nextQte=210+Math.floor(Math.random()*150);
-      s.failMsg = game.pov==='dima' ? '«Ти мене ЧУЄШ?» — ледь не спалився!' : '«Кать, ти де витаєш?» — підозріло!'; }
-  }
   if(s.okT>0) s.okT--;
   if(s.failT>0){ s.failT--; if(s.failT===0) s.failMsg=null; }
-  else if(looking && !holding){ s.meter += 2.1; }
-  else if(!looking && holding){ s.meter += 0.3; }        // ховатись «про запас» теж підозріло
-  else { s.meter = Math.max(0, s.meter - 0.75); }
+  else if(looking && !holding){ s.meter += 1.6; }
+  else if(!looking && holding){ /* тримати зайве — не страшно */ }
+  else { s.meter = Math.max(0, s.meter - 1.1); }
   if(s.meter >= 100){
     s.fails++; s.meter = 30; s.failT = 60; s.failMsg = null; shake(3,10);
   }
@@ -1679,18 +1668,6 @@ function drawSecret(){
     ctx.font='bold 12px monospace'; ctx.textAlign='center';
     ctx.fillText('❗', s.npcX, FLOOR_Y-84); ctx.textAlign='left';
   }
-  // питання «💬» — бульбашка з таймером: тапни, поки не спливло!
-  if(s.qteT>0){
-    const qx = s.npcX, qy = FLOOR_Y-108;
-    ctx.fillStyle = '#f8f8f3'; ctx.fillRect(qx-30, qy-14, 60, 20);
-    ctx.fillStyle = '#f8f8f3'; ctx.beginPath(); ctx.moveTo(qx-4,qy+6); ctx.lineTo(qx+6,qy+6); ctx.lineTo(qx,qy+13); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#2b2b38'; ctx.font='bold 10px monospace'; ctx.textAlign='center';
-    ctx.fillText(T(me==='dima' ? '💬 «Дім, а ти…?»' : '💬 «Кать, а що…?»'), qx, qy);
-    ctx.fillStyle = '#c0392b'; ctx.fillRect(qx-30, qy+4, 60*Math.min(1,s.qteT/54), 2);
-    ctx.fillStyle = 'rgba(12,9,16,.72)'; ctx.fillRect(qx-44, qy+16, 88, 12);
-    ctx.fillStyle = '#f4cf5e'; ctx.font='bold 9px monospace';
-    ctx.fillText(T('тапни — відповісти!'), qx, qy+25); ctx.textAlign='left';
-  }
   if(s.okT>0){
     ctx.fillStyle = '#8fd07a'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
     ctx.fillText(T(me==='dima' ? '«ага-ага, все ок 😊»' : '«ага, любий 😊»'), s.npcX, FLOOR_Y-104);
@@ -1733,7 +1710,7 @@ function drawSecret(){
   ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillRect(80,H-16,160*Math.min(1,s.t/700),4);
   if(!s.done){
     ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='9px monospace'; ctx.textAlign='center';
-    drawHint(game.watch?'':(me==='dima' ? '👀 дивиться — тримай (ховай) · 💬 питає — тапни' : '👀 дивиться — тримай (телефон) · 💬 питає — тапни'), W/2, H-28);
+    drawHint(game.watch?'':'👀 дивиться — ТРИМАЙ палець', W/2, H-28);
   } else {
     ctx.fillStyle='rgba(10,8,14,.78)'; ctx.fillRect(W/2-110, H/2-58, 220, 28);
     ctx.strokeStyle=COL.gold; ctx.lineWidth=1; ctx.strokeRect(W/2-109.5, H/2-57.5, 219, 27);
