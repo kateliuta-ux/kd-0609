@@ -6290,64 +6290,46 @@ function drawProlog(){
    крупний фото-портрет того, хто говорить, і текст. */
 function novelData(){
   if(LANG==='en') return novelDataEn();
-  const N = t => ({who:null, text:t});
+  const pov = (game && game.pov) || 'katya';
+  // «Історія без ігор» = ТОЧНО той самий текст, що й у грі, лише без мінігор:
+  // беремо ті самі сценарії сцен і прибираємо суто ігрові інструкції.
+  const RULES = /ПРОБІЛ|ТАПНИ|ТРИМАЙ|тап \/|A S D|тапай|Лови ноти|Ріж таймлайн|ПРАВИЛА|Нявкай|мікрофон|Перевір, що ховає|Катя зараз гляне|швидко ТАП/i;
+  const clean = arr => (arr||[]).filter(l => l && l.text && !RULES.test(l.text));
+  const S = (...parts) => parts.reduce((a,p)=> a.concat(clean(p)), []);
+  const cameo = k => { try{ return clean(guestCameo(k)); }catch(_){ return []; } };
   return [
-    {bg:0, cap:['КИЇВ · 2021 · ще до війни','зйомка ШТОРМНАДО'], lines:[
-      N('Ще мирний рік. Знімальний майданчик, гам:\nвона — за камерою, він — у кадрі сам.'),
-      {who:'katya', emo:'normal', text:'Знімаємо ШТОРМНАДО десь в офісі.\nБув якийсь бриф про метаверс.'},
-      {who:'dima',  emo:'happy',  text:'А куди дивитись — в камеру\nчи на режисерку?)'},
-      N('Імені він не спитав — і не збагнув,\nщо поряд доля ходить: він її не вчув.'),
-    ]},
-    {bg:1, cap:['СЕРПЕНЬ 2022 · вже інше життя','Тіндер'], lines:[
-      N('А потім — впала на нас війна,\nусе, що «до», лягло за темну стіну.'),
-      N('Аж через рік звела їх доля вдруге:\nодин свайп вправо — і минула туга.'),
-      {who:'katya', emo:'wow',  text:'Стоп. Це ж хлопець зі зйомок 2021-го…'},
-    ]},
-    {bg:2, cap:['ПЕЙЗАЖКА','перше побачення'], lines:[
-      N('Раз написала: «кокосове темне —\nмоє улюблене» — й забула, певне.'),
-      {who:'katya', emo:'tired', text:'Я підвигоріла на роботі останній.'},
-      {who:'dima',  emo:'happy', text:'Вигорання не існує, але існує пивко'},
-      N('А він те слово в чаті підхопив,\nу серденько сховав, як зерня золотив.'),
-      {who:'dima', emo:'shy', text:'І ще. Тримай.'},
-      {who:'katya', emo:'wow', text:'Андервуд коконат?! Ти ЗАПАМʼЯТАВ?'},
-      N('Отак з дрібнички — з пива отого —\nзайнялось у серці, ой леле, тепло.'),
-      N('Світили над Подолом ліхтарі,\nїх вустонька зійшлися вперше — мов у сні.'),
-    ]},
-    {bg:3, cap:['ЖОВТЕНЬ 2022','Київ ↔ Лондон'], lines:[
-      N('А там — і Лондон, місяць розлуки:\nвона за морем — він рахує дні й муки.'),
-      {who:'katya', emo:'happy', text:'Привіт <3'},
-      {who:'dima',  emo:'happy', text:'Привіт, сумую <3'},
-      N('Той місяць — у родині брата, в Кості:\nз Вікою й дітьми — як удома, в гості.'),
-      {who:'dima', emo:'shy', text:'Вона за 2500 км. Я був закоханий\nі — чесно — скучав.'},
-      N('Одинадцять тисяч листів — за місяць лік,\nвернулась раніш, бо серцю невтерпік.'),
-    ]},
-    {bg:4, cap:['ОСІНЬ 2023 · Білогородка','Кітана'], lines:[
-      N('Осінь. У Дана, у Білогородці,\nкошенята граються на осонці.'),
-      {who:'katya', emo:'happy', text:'Це вона.'},
-      N('Одне до Каті тулиться щосили, —\nприїхали — й в коробку запросили.'),
-    ]},
-    {bg:5, cap:['СВАТАННЯ','за давнім звичаєм'], lines:[
-      N('Перш ніж весілля — йдуть у хату свати:\nстарости з хлібом, за руку просити.'),
-      N('— У вас куниця, у нас мисливець! —\nподали рушники, і згода, й до вінця.'),
-    ]},
-    {bg:6, cap:['ЛЮТИЙ 2026 · Позняки','щось задумав'], lines:[
-      N('Позняки — тут Діма зріс колись,\nтепер удвох вони тут оселились.'),
-      N('Лютий. Він щось задумав — і мовчить:\nховає в рюкзаку. Інтрига миготить.'),
-      {who:'dima', emo:'normal', text:'Головне — щоб вона не побачила.'},
-      {who:'katya', emo:'happy', text:'Нічого не бачила. Нічогісінько.'},
-    ]},
-    {bg:7, cap:['14.02.2026 · Мінімаліст','освідчення'], lines:[
-      N('День закоханих. Партія в шахи — і фініш:\nвона виграла й дарунок піднесла жартома.'),
-      {who:'katya', emo:'happy', text:'Мат. І тримай подарунок —\nкнига «Шахмати для дибілів».'},
-      {who:'dima', emo:'shy', text:'Хочу, щоб ти стала… Катериною Лютою.'},
-      {who:'dima', emo:'shy', text:'І попри те, що ти мене часом бісиш —\nхочу з тобою жити.'},
-      {who:'katya', emo:'happy', text:'Так!'},
-      N('Сказала «так», не дослухавши слова, —\nбо серце відповідь тримало вже готову.'),
-    ]},
-    {bg:8, cap:['6.9.2026 · Київ','весілля'], lines:[
-      N('Од свайпу вправо — та до рушничка,\nвід пива на Пейзажці — та до вінця.'),
-      N('Шостого вересня вінчання, їй-бо, —\nприходьте, любі: буде вам тепло.'),
-    ]},
+    {bg:0, cap:['КИЇВ · 2021 · ще до війни','зйомка ШТОРМНАДО'], lines: S(
+      setScript(pov),
+      pov==='katya' ? montageIntroScript(pov) : bandIntroScript(pov),
+      pov==='katya' ? montageOutroScript(pov) : bandOutroScript(pov)
+    )},
+    {bg:1, cap:['СЕРПЕНЬ 2022 · вже інше життя','Тіндер'], lines: S(
+      chatScript(pov), cameo('tinder')
+    )},
+    {bg:2, cap:['ПЕЙЗАЖКА','перше побачення'], lines: S(
+      picnicScript(pov), dateScript(pov), battleOutroScript(pov)
+    )},
+    {bg:3, cap:['ЖОВТЕНЬ 2022','Київ ↔ Лондон'], lines: S(
+      tetrisIntroScript(pov), tetrisOutroScript(pov),
+      pingIntroScript(pov), pingOutroScript(pov), cameo('london')
+    )},
+    {bg:4, cap:['ОСІНЬ 2023 · Білогородка','Кітана'], lines: S(
+      kitanaIntroScript(pov), kitanaOutroScript(pov), cameo('kitana')
+    )},
+    {bg:5, cap:['СВАТАННЯ','за давнім звичаєм'], lines: S(
+      svatIntroScript(pov), svatOutroScript(pov)
+    )},
+    {bg:6, cap:['ЛЮТИЙ 2026 · Позняки','щось задумав'], lines: S(
+      secretIntroScript(pov), secretOutroScript(pov), cameo('poznyaky')
+    )},
+    {bg:7, cap:['14.02.2026 · Мінімаліст','освідчення'], lines: S(
+      propChessOutroScript(pov), propBoxScript(pov), propOutroScript(pov)
+    )},
+    {bg:8, cap:['6.9.2026 · Київ','весілля'], lines: S(
+      cameo('wed'),
+      [{who:null, emo:null, text:'Од свайпу вправо — та до рушничка,\nвід пива на Пейзажці — та до вінця.'},
+       {who:null, emo:null, text:'Шостого вересня вінчання, їй-бо, —\nприходьте, любі: буде вам тепло.'}]
+    )},
   ];
 }
 /* детальні фони новели (повний екран, атмосферні) */
@@ -6590,9 +6572,9 @@ function novelMangaFx(emo, px, py, size){
   }
   ctx.restore();
 }
-function startNovel(){
+function startNovel(pov){
   tryFullscreen();
-  game.state='novel'; game.pov='katya'; game.watch=true; game.paused=false;
+  game.state='novel'; game.pov = (pov==='dima'?'dima':'katya'); game.watch=true; game.paused=false;
   game.nov = {ch:0, li:0, shown:0, wait:0, chapters:novelData(), seen:novelSeenSet()};
   stopChip(); playChip('planeta');
   elTitle.classList.add('hidden');
@@ -8380,7 +8362,10 @@ document.querySelectorAll('#title-screen .btn[data-pov]').forEach(b=>{
   b.addEventListener('click', ()=>{
     const p = b.dataset.pov;
     tryFullscreen();
-    if(p==='watch'){ LANG='ua'; startNovel(); return; }
+    if(p==='watch'){ LANG='ua';                       // спершу — чию історію читати
+      document.getElementById('main-menu').classList.add('hidden');
+      document.getElementById('watch-pov-menu').classList.remove('hidden');
+      return; }
     startFromSide(p);               // сторона обрана → спершу назвись
   });
 });
@@ -8510,8 +8495,7 @@ document.getElementById('play-pov-back').addEventListener('click', resetTitleMen
 document.querySelectorAll('#watch-pov-menu .btn[data-watch-pov]').forEach(b=>{
   b.addEventListener('click', ()=>{
     document.getElementById('watch-pov-menu').classList.add('hidden');
-    document.querySelector('#title-screen .menu').classList.remove('hidden');
-    startGame(b.dataset.watchPov, true);
+    startNovel(b.dataset.watchPov);
   });
 });
 document.getElementById('watch-pov-back').addEventListener('click', ()=>{
