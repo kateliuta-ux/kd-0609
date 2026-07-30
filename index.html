@@ -1095,7 +1095,7 @@ function setScript(pov){
   if(pov==='katya') return [
     {who:'katya', emo:'tired',  text:'Той, у білому поло. В камеру. Дубль три!'},
     {who:'dima',  emo:'happy',  text:'А куди дивитись — в камеру\nчи на режисерку?)'},
-    {who:'katya', emo:'shy',    text:'(в камеру, Дімо.)'},
+    {who:'katya', emo:'shy',    text:'В камеру, Дімо.'},
     {who:null,    emo:null,     text:'(Той сезон так і не вийшов у ефір, —\nале то потім. Поки в кадрі — мир.)'},
   ];
   return [
@@ -1112,7 +1112,7 @@ function chatScript(pov){
     {who:null, emo:null, text:'І от посеред всього цього огрому —\nодин свайп управо. Дорога додому.'},
   ];
   const intro = pov==='katya' ? [
-    {who:null, emo:null, text:'(Стоп. Це ж той хлопець зі зйомок! —\nупізнала одразу. І написала перша.)'},
+    {who:null, emo:null, text:'Минув понад рік зі зйомок. І от, гортаючи тіндер,\nКатерина відразу впізнала того хлопця\nз майданчика — і написала першою…'},
   ] : [
     {who:null,    emo:null,    text:'(Він її не згадав. Але, буває,\nсерце знає те, що памʼять не тримає.)'},
   ];
@@ -1129,7 +1129,7 @@ function chatScript(pov){
     {who:'dima', emo:'wow',    text:'А шо за дтрєня? Зальчик?'},
     {who:'katya',emo:'happy',  text:'Джиу-джитцу майже боксік, як в тебе)\nтільки ми душимо, а не бʼємо'},
     {who:'dima', emo:'happy',  text:'О, туди ж мій друг ходить\nЯрік Соколовський'},
-    {who:null,   emo:null,     text:'Далі — вже телеграм, без зупинки, —\nі якось мова зайшла про напитки:'},
+    {who:null,   emo:null,     text:'Далі майбутні молодята перейшли в телеграм.'},
     {who:'dima', emo:'normal', text:'а яке пиво ти любиш, до речі?'},
     {who:'katya',emo:'happy',  text:'дуже люблю кокосове темне,\nв Хвильовому наливають'},
     {who:'dima', emo:'normal', text:'Андервуд коконат'},
@@ -1264,10 +1264,10 @@ function guestVenue(){
 function venuePick(){ const vh=localStorage.getItem('wed-venue-hint'); return (vh==='sofi'||vh==='khv')?vh:guestVenue(); }
 function picnicScript(pov){
   if(pov==='katya') return [
-    {who:null,    emo:null,   text:'Субота. Пікнік у зеленім парку:\nМарічці — рік новий, і всім по чарку!'},
+    {who:null,    emo:null,   text:'Субота. Пікнік на Пейзажці.'},
     {who:null,    emo:null,   text:'«За Марічку!» — келишки дзвенять, —\nі вдруге, й втретє: хто ж їх буде рахувать!'},
     {who:'katya', emo:'shy',  text:'Так. Мені пора. В мене…\nпобачення. НЕ ДИВІТЬСЯ ТАК!'},
-    {who:null,    emo:null,   text:'І Катя — трошки весела, легенька —\nна перше побачення пішла хутенько.'},
+    {who:null,    emo:null,   text:'І Катя — трошки весела, легенька\nпішла на перше побачення!'},
   ];
   return [
     {who:null,    emo:null,   text:'Тим часом у Каті — пікнік, гуляння:\nв Марічки день народження зрання.'},
@@ -1411,7 +1411,7 @@ function dateScript(pov){
     ...beer,
     {who:'dima', emo:'shy', text:'Я памятав…а можна, я проведу тебе додому?'},
     {who:null, emo:null, text:'Світили над Подолом ліхтарі,\nїх вустонька зійшлися вперше — мов у сні.'},
-    {who:null, emo:null, text:'Казали двоє: пиво, й більш нічого, ні, —\nа вже любов вилася по стерні.'},
+    {who:null, emo:null, text:'Але обидва домовились, що це несерйозно.'},
   ];
 }
 function battleOutroScript(pov){
@@ -1432,9 +1432,9 @@ function tetrisIntroScript(pov){
 }
 function tetrisOutroScript(pov){
   return pov==='katya' ? [
-    {who:null, emo:null, text:'Рушив потяг, місяць не добуто:\nлюбов із візою докупи не зшито.'},
+    {who:null, emo:null, text:'11 223 повідомлення — і от Катя\nбуде в Києві на місяць раніше, ніж мала!'},
   ] : [
-    {who:null, emo:null, text:'Вернулась раніше — на місяць, на долю.\n«Не через тебе» (та через нас, з любові).'},
+    {who:null, emo:null, text:'11 223 повідомлення — і от Катя\nбуде в Києві на місяць раніше, ніж мала!'},
   ];
 }
 function pingIntroScript(pov){
@@ -1452,9 +1452,9 @@ function pingIntroScript(pov){
 }
 function pingOutroScript(pov){
   return pov==='katya' ? [
-    {who:null, emo:null, text:'Одинадцять тисяч листів — за місяць лік.\nКвиток додому — раніш: серцю невтерпік.'},
+    {who:null, emo:null, text:'11 223 повідомлення — і от Катя\nбуде в Києві на місяць раніше, ніж мала!'},
   ] : [
-    {who:null, emo:null, text:'Одинадцять тисяч тих листів злетіло, —\nй вона на місяць раніше прилетіла.'},
+    {who:null, emo:null, text:'11 223 повідомлення — і от Катя\nбуде в Києві на місяць раніше, ніж мала!'},
   ];
 }
 function svatIntroScript(pov){
@@ -1487,7 +1487,7 @@ function propBoxScript(pov){
     {who:'dima', emo:'shy', text:'Хочу, щоб ти стала… Катериною Лютою.'},
     {who:'dima', emo:'shy', text:'І попри те, що ти мене часом бісиш —\nхочу з тобою жити.'},
     {who:null,   emo:null,  text:'Слова прості — ну і хай:\nу них вмістився цілий рай.'},
-    {who:null,   emo:null,  text:'(вона сказала «так»\nще до крапки.)'},
+    {who:null,   emo:null,  text:'І вона сказала «Так»'},
   ];
 }
 function propOutroScript(pov){
@@ -1498,26 +1498,26 @@ function propOutroScript(pov){
 /* дзеркальні таємниці: кожен ПОВ бачить сцену, якої не бачить інший */
 function secretIntroScript(pov){
   return pov==='dima' ? [
-    {who:null,  emo:null,  text:'Позняки — Дімине місце сили:\nтут виріс він, тут вдвох і осіли.'},
-    {who:null,  emo:null,  text:'ТАЄМНА ОПЕРАЦІЯ «КОРОБОЧКА».\nЗа тиждень до будиночків.'},
-    {who:null,  emo:null,  text:'Побачив «❗» — Катя зараз гляне:\nТРИМАЙ палець, ховай коробочку!'},
-    {who:null,  emo:null,  text:'А спитає щось («💬») — швидко ТАПНИ\nвідповісти. Хто мовчить — той палиться 😏'},
+    {who:null,  emo:null,  text:'Позняки — Дімине місце сили.'},
+    {who:null,  emo:null,  text:'Він вже купив обручку\nі намагається сховати її від Каті.'},
+    {who:null,  emo:null,  text:'Катя зараз гляне: ТРИМАЙ палець,\nщоб ховати коробочку, якщо Катя дивиться «❗»!'},
+    {who:null,  emo:null,  text:'А спитає щось («💬») — швидко ТАПНИ,\nщоб відповісти 😏'},
   ] : [
-    {who:null,   emo:null,  text:'Позняки. Катю сюди все життя\nдоля закидала — й привела до пуття.'},
+    {who:null,   emo:null,  text:'Позняки. Катю сюди закидала все життя.'},
     {who:'katya',emo:'normal',text:'Доля явно щось знала.'},
-    {who:null,   emo:null,  text:'ТИМ ЧАСОМ, ЗА ТИЖДЕНЬ ДО БУДИНОЧКІВ.\nДіма щось задумав.'},
+    {who:null,   emo:null,  text:'ТИМ ЧАСОМ, Діма щось задумав.'},
     {who:'katya',emo:'normal',text:'Він ховає щось у рюкзаку. Вже третій день.'},
-    {who:null,   emo:null,  text:'Побачила «❗» — він зараз обернеться:\nТРИМАЙ палець, втикай у телефон!'},
-    {who:null,   emo:null,  text:'А спитає щось («💬») — швидко ТАПНИ\nвідповісти «ага, любий». Природно 😌'},
+    {who:null,   emo:null,  text:'Перевір, що ховає Діма:\nТРИМАЙ палець, і втикай у телефон,\nякщо він помітить «❗»!'},
+    {who:null,   emo:null,  text:'Якщо щось спитає («💬») — швидко ТАПНИ,\nщоб відповісти «ага, любий» 😌'},
   ];
 }
 function secretOutroScript(pov){
   return pov==='dima' ? [
-    {who:'dima', emo:'happy', text:'Фух. Операція «Коробочка» — успіх.'},
-    {who:null,   emo:null,   text:'(Здається, обійшлось. Здається.)'},
+    {who:'dima', emo:'happy', text:'Фух. Не спалила.'},
+    {who:null,   emo:null,   text:'Насправді вона все зрозуміла.'},
   ] : [
     {who:'katya', emo:'shy', text:'Нічого не бачила. Нічогісінько.'},
-    {who:null,    emo:null,  text:'Він і не здогадується, бідний,\nщо ти все знаєш. Вигляд зроби гідний 😏'},
+    {who:null,    emo:null,  text:'Він і не здогадується,\nщо ти давно все зрозуміла.'},
   ];
 }
 function startSecret(){
@@ -10661,11 +10661,11 @@ function startKitana(){
 }
 function kitanaIntroScript(pov){
   return [
-    {who:null, emo:null, text:'Білогородка. У дворі у Дана\nкотиків принесла кішка зрана.'},
+    {who:null, emo:null, text:'Білогородка. У дворі у Дана.\nКатя і Діма приїхали забирати кошеня.'},
     {who:null, emo:null, text:'Катя в сторіз побачила мале —\nй одразу: «це вона». Отак і все.'},
-    {who:null, emo:null, text:'ПРАВИЛА: щоб покликати Кітану — треба\nнявкати, а гра «слухає» твій голос.'},
+    {who:null, emo:null, text:'ПРАВИЛА: щоб покликати Кітану — треба нявкати.'},
     {who:null, emo:null, text:'Тому далі браузер спитає доступ до мікрофона —\nце лише щоб чути твоє «няв». Дозволь 🎤'},
-    {who:null, emo:null, text:'🐈 Нявкай — Кітана біжить до вас!\nЧастіше нявкаєш — швидше. (нема мікрофона? тап / ПРОБІЛ)'},
+    {who:null, emo:null, text:'🐈 Нявкай — і Кітана прибіжить!\nЧастіше нявкаєш — швидше біжить!\n(нема мікрофона? тап / ПРОБІЛ)'},
   ];
 }
 function kitanaMeow(){
@@ -10801,7 +10801,7 @@ function drawKitanaScene(){
 }
 function kitanaOutroScript(pov){
   return [
-    {who:null, emo:null, text:'Повелась на іграшку — і зосталась:\nу затишнім кутку тут прописалась 🐈'},
+    {who:null, emo:null, text:'Повелась на іграшку — і з парою зосталась,\nу затишнім кутку в них прописалась 🐈'},
   ];
 }
 
