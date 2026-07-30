@@ -112,6 +112,7 @@
 
 <nav>
   <button data-tab="mech" class="on">Механіки гри</button>
+  <button data-tab="app">Екрани застосунку</button>
   <button data-tab="novel">Історія без ігор</button>
   <button data-tab="scenar">Сценарій і тексти</button>
   <button data-tab="guests">Гості й паролі</button>
@@ -185,6 +186,30 @@ const GAME_SCENES = [
   ['invite','Екран запрошення','персональне запрошення в кінці'],
   ['menu','Головне меню','титулка, кнопки, музика'],
   ['rsvp','RSVP-анкета','питання і підсумок'],
+];
+/* Усі НЕігрові екрани застосунку — теж можна правити: текст, вигляд, малюнки */
+const APP_SCENES = [
+  ['app-stub','Заглушка до релізу','голуби, відлік, дата й дрес-код — що бачать до 1 серпня'],
+  ['app-gate','Ворота: пароль','екран «пароль з візитівки» / «грати як гість»'],
+  ['app-menu','Головне меню (титулка)','напис Катя&Діма, кнопки, музика, болванчики'],
+  ['app-guest','Гостьовий режим','що бачить той, хто без пароля: лише гра, історія, семплер'],
+  ['app-faq','Часті питання + дрес-код','питання, відповіді, контакти координаторок'],
+  ['app-invite','Запрошення (фінал гри)','персональне: імʼя, час, місце, кнопки'],
+  ['app-viber','«Гарне запрошення» (кіч)','блискітки, голуби, шампанське'],
+  ['app-rsvp','RSVP-анкета','питання, підсумок, надсилання'],
+  ['app-sampler','Семплер','клавіші, запис, збереження треку'],
+  ['app-playlist','Плейлист гостей','список творів, підписи авторів'],
+  ['app-selfie','Game Boy камера (селфі)','рамка, овал, підказки'],
+  ['app-party','Тіндер гостей','картки гостей, свайпи, метчі'],
+  ['app-rating','Рейтинг гравців','бали, супер-приз'],
+  ['app-ach','Досягнення','8 ачівок, іконки, назви'],
+  ['app-quiz','Квіз «Знавець пари»','10 питань і коментарі'],
+  ['app-404','Сторінка 404','«Такої сторінки немає» + відлік'],
+  ['app-info','Сторінка /info','пам\'ятка для нас: посилання й інструкції'],
+  ['app-kadr','Камери /kadr','19 завдань, коди, наклейки'],
+  ['app-signs','Таблички A4 /signs','друковані таблички на локації'],
+  ['app-stream','Трансляція /stream','сторінка для тих, хто не в Україні'],
+  ['app-zbir','Збір на ЗСУ /zbir','сторінка збору'],
 ];
 const NOVEL_SCENES = [
   ['n-gbvisual','🕹 Game Boy-вигляд (весь режим)','загальний ретро-стиль «Історії без ігор»: палітра/колір, рамка-екран, болванчики-голови, вид згори. Впиши й намалюй, яким він має бути замість теперішнього (він поки дивний)'],
@@ -302,7 +327,7 @@ const SCENE2SEC = {                       // сцена гри → секція 
   'n-credits':'sec16'
 };
 let focusScene = (new URLSearchParams(location.search).get('scene')||'').trim();
-const VALID_TABS=['mech','novel','scenar','guests','elements','refphoto','sent'];
+const VALID_TABS=['mech','app','novel','scenar','guests','elements','refphoto','sent'];
 let tab = (new URLSearchParams(location.search).get('tab')||'mech');
 if(!VALID_TABS.includes(tab)) tab='mech';
 function setActiveNav(){ document.querySelectorAll('nav button').forEach(x=> x.classList.toggle('on', x.dataset.tab===tab)); }
@@ -493,12 +518,13 @@ function ensureScenarHost(){
 function renderFocus(){
   const inGame = GAME_SCENES.find(s=>s[0]===focusScene);
   const inNovel = NOVEL_SCENES.find(s=>s[0]===focusScene);
-  const row = inGame || inNovel;
+  const inApp = APP_SCENES.find(s=>s[0]===focusScene);
+  const row = inGame || inNovel || inApp;
   const back=document.createElement('button'); back.className='tbtn';
   back.textContent='← усі сцени';
   back.style.cssText='margin-bottom:10px;background:var(--line)';
   back.addEventListener('click', ()=>{
-    focusScene=''; tab = inNovel ? 'novel' : 'mech'; setActiveNav();
+    focusScene=''; tab = inNovel ? 'novel' : inApp ? 'app' : 'mech'; setActiveNav();
     try{ history.replaceState(null,'','editor?tab='+tab); }catch(_){}
     render();
   });
@@ -535,10 +561,12 @@ function render(){
   main.innerHTML='';
   if(scenarHost) scenarHost.style.display='none';
   if(focusScene){ renderFocus(); return; }
-  if(tab==='mech' || tab==='novel'){
-    const list = tab==='mech' ? GAME_SCENES : NOVEL_SCENES;
+  if(tab==='mech' || tab==='novel' || tab==='app'){
+    const list = tab==='mech' ? GAME_SCENES : tab==='app' ? APP_SCENES : NOVEL_SCENES;
     const h=document.createElement('div'); h.className='hint';
-    h.innerHTML = tab==='mech'
+    h.innerHTML = tab==='app'
+      ? 'Усі <b>неігрові екрани</b>: заглушка, ворота з паролем, меню, часті питання й дрес-код, запрошення, семплер, рейтинг, окремі сторінки (404, камери, таблички). Познач статус, впиши що змінити, намалюй як має бути.'
+      : tab==='mech'
       ? 'Кожен рівень гри: познач статус, впиши що змінити, намалюй як має виглядати (планшет із натиском працює). '+
         'Фото: зроби скріншот сцени в грі і додай — можна малювати прямо поверх нього.'
       : '«Історія без ігор» — режим-кіно в стилі Game Boy. Перша картка — правка самого <b>Game Boy-вигляду</b> (колір/рамка/болванчики). Далі — по главах: впиши як має звучати глава, додай/намалюй картинку на заміну.';

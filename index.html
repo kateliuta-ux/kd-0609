@@ -11140,15 +11140,29 @@ function devBadge(){
   es.title='редагувати ЦЮ сцену в Редакторській';
   es.addEventListener('click', ev=>{
     ev.preventDefault();
-    // відкриваємо РЕДАКЦІЮ САМЕ ЦІЄЇ СЦЕНИ: її коментарі, текст і картинки
+    // відкриваємо РЕДАКЦІЮ САМЕ ТОГО, ЩО ЗАРАЗ НА ЕКРАНІ:
+    // спершу дивимось, чи відкрито якийсь екран застосунку, і лише потім — сцену гри
+    const SCREENS = [
+      ['release-stub','app-stub'], ['gate-screen','app-gate'], ['dress-screen','app-faq'],
+      ['sampler-screen','app-sampler'], ['playlist-screen','app-playlist'],
+      ['selfie-screen','app-selfie'], ['party-screen','app-party'],
+      ['rating-screen','app-rating'], ['ach-screen','app-ach'],
+      ['quiz-screen','app-quiz'], ['rsvp-screen','app-rsvp'],
+      ['viber-invite','app-viber'], ['end-screen','app-invite'], ['title-screen','app-menu'],
+    ];
     let scene='';
     try{
-      // глава новели → відповідна картка редактора
-      const NOV=['n-cap1','n-tinder','n-date','n-tinder','n-kitana','n-svat','n-prop','n-prop','n-wed'];
-      if(game && game.watch) scene = NOV[(game.nov&&game.nov.ch)|0] || 'n-cap1';
-      else if(game && game.phase) scene = game.phase;
-      else scene = 'menu';
-    }catch(_){}
+      for(const [id,card] of SCREENS){
+        const el=document.getElementById(id);
+        if(el && !el.classList.contains('hidden') && getComputedStyle(el).display!=='none'){ scene=card; break; }
+      }
+      if(!scene){
+        const NOV=['n-cap1','n-tinder','n-date','n-tinder','n-kitana','n-svat','n-prop','n-prop','n-wed'];
+        if(game && game.watch) scene = NOV[(game.nov&&game.nov.ch)|0] || 'n-cap1';
+        else if(game && game.phase) scene = game.phase;
+        else scene = 'app-menu';
+      }
+    }catch(_){ scene='app-menu'; }
     window.open('editor?scene='+encodeURIComponent(scene), '_blank');
   });
   document.body.appendChild(es);
