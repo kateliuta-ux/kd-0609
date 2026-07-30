@@ -4536,9 +4536,12 @@ function drawProp(){
       }
       // мультяшні ОЧІ ростуть поверх фото
       const er = 7 + m*17;
-      const eyeY = fcy - fh2*0.05, mouthY = fcy + fh2*0.235;   // відкалібровано під кадр обличчя
-      [[-0.16],[0.16]].forEach(([exf])=>{
-        const ex2 = fcx + exf*fw2;
+      // калібровка по РЕАЛЬНОМУ кадру: очі на 50% висоти, рот на 71%,
+      // зіниці на 35% і 60% ширини (обличчя трохи лівіше центру кадру)
+      const faceCx = fcx + fw2*0.09;         // обличчя в кадрі трохи правіше центру
+      const eyeY = fcy, mouthY = fcy + fh2*0.28;
+      [[-0.205],[0.205]].forEach(([exf])=>{
+        const ex2 = faceCx + exf*fw2;
         ctx.fillStyle='#221c26'; ctx.beginPath(); ctx.arc(ex2, eyeY, er+2, 0, 7); ctx.fill();
         ctx.fillStyle='#fff';    ctx.beginPath(); ctx.arc(ex2, eyeY, er, 0, 7); ctx.fill();
         ctx.fillStyle='#221c26'; ctx.beginPath(); ctx.arc(ex2, eyeY, Math.max(2.5, er*0.42), 0, 7); ctx.fill();
@@ -4546,10 +4549,10 @@ function drawProp(){
       });
       // брови летять угору
       ctx.fillStyle='#5a3d24';
-      ctx.fillRect(fcx-0.16*fw2-er, eyeY-er-5-m*8, er*2, 3);
-      ctx.fillRect(fcx+0.16*fw2-er, eyeY-er-5-m*8, er*2, 3);
+      ctx.fillRect(faceCx-0.205*fw2-er, eyeY-er-5-m*8, er*2, 3);
+      ctx.fillRect(faceCx+0.205*fw2-er, eyeY-er-5-m*8, er*2, 3);
       // рот — «Оооооо!» росте поверх фото
-      const mr = 5 + m*19, mx = fcx + fw2*0.02;                // рот трошки правіше — під самі губи
+      const mr = 5 + m*19, mx = faceCx;                        // рот по центру обличчя
       ctx.fillStyle='#221c26'; ctx.beginPath(); ctx.ellipse(mx, mouthY, mr*0.75+2, mr+2, 0, 0, 7); ctx.fill();
       ctx.fillStyle='#7a2430'; ctx.beginPath(); ctx.ellipse(mx, mouthY, mr*0.75, mr, 0, 0, 7); ctx.fill();
       ctx.fillStyle='#a8323c'; ctx.beginPath(); ctx.ellipse(mx, mouthY+mr*0.3, mr*0.5, mr*0.5, 0, 0, 7); ctx.fill();
