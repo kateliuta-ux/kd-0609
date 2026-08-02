@@ -5037,7 +5037,10 @@ const BRIDES = [ {col:'#a8505f', g:'f', f:['дідор','кукрицьк','ві
                  {col:'#c98a9c', g:'f', f:['маріч','пінаєвськ','луїз','кукрицьк']} ];  // Марічка / Луїза
 const GROOMS = [ {col:'#3a4a6a', g:'m', f:['плахотн','бур']},          // боярин Діма Плахотній / Олег Бурий
                  {col:'#2e3440', g:'m', f:['смір','сміря','бур']} ];   // Олег Сміря / Олег Бурий
-function drawAttendant(x, baseY, spec, sc){ drawGuest(x, baseY, spec.col, false, game.t + x, pickFace(spec.f), sc||1, spec.g); }
+function drawAttendant(x, baseY, spec, sc){          // весільна партія — той самий стиль, що й гості
+  const r = Math.round(10*(sc||1));
+  drawGuestFigure(pickFace(spec.f), x, baseY, r, spec.g, (spec.f&&spec.f[0]? ghash(spec.f[0]) : x));
+}
 /* Ноти, що злітають над гостем (спів) */
 function drawSongNote(x, headY, seed){
   for(let i=0;i<3;i++){
@@ -5091,9 +5094,38 @@ function drawGuestFigure(img, x, feetY, r, sex, seed){        // повна фі
   const bx=x-Math.round(bw/2), by=feetY-lh-bh, headY=by-r+2;
   const ec=DRESS_ORN[(seed||0)%DRESS_ORN.length];            // колір вишивки/низу
   // НИЗ: жінки — спідниця в колір, чоловіки — темні штани
-  if(sex==='f'){ ctx.fillStyle=ec; ctx.fillRect(bx-1, by+bh-1, bw+2, lh+2);
-    ctx.fillStyle='#fdfdf6'; ctx.fillRect(bx-1, by+bh+lh, bw+2, 1); }               // край спідниці
-  else { ctx.fillStyle='#2f2b3a'; ctx.fillRect(bx+3,by+bh,3,lh); ctx.fillRect(bx+bw-6,by+bh,3,lh); }
+  {
+    const lw = Math.max(2, Math.round(r*0.28));            // товщина ноги
+    const lxA = bx + Math.round(bw*0.26), lxB = bx + bw - Math.round(bw*0.26) - lw;
+    if(sex==='f'){
+      const skirtH = Math.round(lh*0.55);
+      const legH   = Math.round(lh*0.18);
+      const bootH  = Math.max(2, lh - skirtH - legH);
+      ctx.fillStyle = ec;                                   // спідниця, донизу трохи ширша
+      ctx.fillRect(bx-1, by+bh-1, bw+2, skirtH);
+      ctx.fillRect(bx-2, by+bh-1+skirtH-2, bw+4, 2);
+      ctx.fillStyle = '#fdfdf6';                            // біла обшивка низу
+      ctx.fillRect(bx-2, by+bh-1+skirtH, bw+4, 1);
+      ctx.fillStyle = '#e9c9a8';                            // ноги
+      ctx.fillRect(lxA, by+bh-1+skirtH, lw, legH);
+      ctx.fillRect(lxB, by+bh-1+skirtH, lw, legH);
+      ctx.fillStyle = '#a8233c';                            // червоні чобітки
+      ctx.fillRect(lxA-1, feetY-bootH, lw+1, bootH);
+      ctx.fillRect(lxB,   feetY-bootH, lw+1, bootH);
+      ctx.fillStyle = '#7a1a2e';                            // підошва
+      ctx.fillRect(lxA-1, feetY-1, lw+2, 1); ctx.fillRect(lxB, feetY-1, lw+2, 1);
+    } else {
+      const bootH = Math.max(2, Math.round(lh*0.30));
+      ctx.fillStyle = '#2f2b3a';                            // штани
+      ctx.fillRect(lxA, by+bh, lw, lh-bootH);
+      ctx.fillRect(lxB, by+bh, lw, lh-bootH);
+      ctx.fillStyle = '#4a3524';                            // чоботи
+      ctx.fillRect(lxA-1, feetY-bootH, lw+2, bootH);
+      ctx.fillRect(lxB-1, feetY-bootH, lw+2, bootH);
+      ctx.fillStyle = '#2a1d14';
+      ctx.fillRect(lxA-1, feetY-1, lw+2, 1); ctx.fillRect(lxB-1, feetY-1, lw+2, 1);
+    }
+  }
   // БІЛА ВИШИВАНКА
   ctx.fillStyle='#f4f0e4'; ctx.fillRect(bx,by,bw,bh);
   ctx.fillStyle=ec; ctx.fillRect(bx,by,bw,2);                                        // комір
@@ -5102,7 +5134,39 @@ function drawGuestFigure(img, x, feetY, r, sex, seed){        // повна фі
   // пояс (чоловіки) / намисто (жінки)
   if(sex==='f'){ ctx.fillStyle='#c0202e'; ctx.fillRect(bx+2,by+3,bw-4,1); }          // намисто
   else { ctx.fillStyle=ec; ctx.fillRect(bx,by+bh-3,bw,2); }                          // пояс-крайка
-  drawFaceCircle(img, x, headY, r, 1);                                               // голова-селфі
+  /* ── РУКИ: рукав вишиванки з манжетом. Три пози, щоб юрба була живою ── */
+  {
+    const aw = Math.max(2, Math.round(r*0.34));            // товщина рукава
+    const al = Math.round(bh*0.62);                        // довжина
+    const pose = (seed||0) % 3;                            // 0 — опущені, 1 — одна вгору, 2 — обидві в боки
+    const sleeve = (sx, sy, len, up) => {
+      ctx.fillStyle = '#f4f0e4';                           // біле полотно
+      ctx.fillRect(sx, up ? sy-len : sy, aw, len);
+      ctx.fillStyle = ec;                                  // вишитий манжет
+      ctx.fillRect(sx, up ? sy-len : sy+len-2, aw, 2);
+      if(sex==='f'){ ctx.fillStyle='#f4f0e4';              // жіночий рукав трохи пишніший угорі
+        ctx.fillRect(sx-1, up ? sy-len : sy, aw+2, Math.max(2, Math.round(al*0.3))); }
+      ctx.fillStyle = '#e9c9a8';                           // кисть
+      ctx.fillRect(sx, up ? sy-len-2 : sy+len, aw, 2);
+    };
+    const lx = bx-aw, rx = bx+bw, sy0 = by+3;
+    if(pose===0){ sleeve(lx, sy0, al, false); sleeve(rx, sy0, al, false); }
+    else if(pose===1){ sleeve(lx, sy0, al, false); sleeve(rx, sy0+2, Math.round(al*0.9), true);
+      ctx.fillStyle='#f4cf5e'; ctx.fillRect(rx-1, sy0+2-Math.round(al*0.9)-5, aw+2, 3); }  // келих у піднятій руці
+    else { sleeve(lx-1, sy0+1, Math.round(al*0.8), false); sleeve(rx+1, sy0+1, Math.round(al*0.8), false); }
+  }
+  if(img && img.naturalWidth) drawFaceCircle(img, x, headY, r, 1);                   // голова-селфі
+  else {                                                                             // без фото — піксельна голівка
+    ctx.fillStyle='#e9c9a8'; ctx.beginPath(); ctx.arc(x, headY, r, 0, 7); ctx.fill();
+    ctx.fillStyle = sex==='f' ? '#6a4a2a' : '#4a3a24';                                // волосся
+    ctx.beginPath(); ctx.arc(x, headY-Math.round(r*0.25), r*0.95, Math.PI, 0); ctx.fill();
+    if(sex==='f'){ ctx.fillRect(x-r, headY-Math.round(r*0.2), Math.max(2,Math.round(r*0.3)), Math.round(r*1.1));
+                   ctx.fillRect(x+r-Math.max(2,Math.round(r*0.3)), headY-Math.round(r*0.2), Math.max(2,Math.round(r*0.3)), Math.round(r*1.1)); }
+    ctx.fillStyle='#221c26';                                                          // очі
+    ctx.fillRect(x-Math.round(r*0.42), headY-1, 2, 2); ctx.fillRect(x+Math.round(r*0.28), headY-1, 2, 2);
+    ctx.strokeStyle='#221c26'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(x, headY, r, 0, 7); ctx.stroke();
+  }
   // ВІНОК (жінки) — квіточки над головою
   if(sex==='f'){ const fr=Math.max(2,Math.round(r*0.32));
     [[-0.7,-0.55,'#d84a6a'],[0,-0.85,'#e8a23c'],[0.7,-0.55,'#d84a6a'],[-0.35,-0.8,'#2e6a4a'],[0.35,-0.8,'#2e6a4a']]
@@ -5372,9 +5436,10 @@ function drawWedKhv(){
   // гості з келихами у дворику — усі СПІВАЮТЬ «Штольню»
   const khvGuests = [[34,26,'#c0392b',0],[82,38,'#8a2432',6],[128,28,'#2e6a4a',3],[170,42,'#B58A2E',9]];   // дрес-код: червоний/бордо/зелений/гірчиця
   khvGuests.forEach(([gx,gy,col,off],i)=>{
-    drawGuest(gx, FLOOR_Y+gy, col, false, game.t+off, guestFace(i), 1.9,
-      guestGender(guestName(i)) || (i%2 ? 'f' : 'm'));   // КРУПНІ гості — видно фото-обличчя
-    drawSongNote(gx, FLOOR_Y+gy-82, off);           // ноти над головою
+    // ТОЙ САМИЙ стиль, що й у решти юрби — просто крупніше (в один ряд ближче до глядача)
+    const nm = guestName(i) || ('гість'+i);
+    drawGuestFigure(guestFace(i), gx, FLOOR_Y+gy, 15, guestSex(nm), ghash(nm)+i);
+    drawSongNote(gx, FLOOR_Y+gy-64, off);           // ноти над головою
   });
   // гості тягнуть «Штольню» (без перебріхування слів — тільки настрій)
   const SHTOLNYA = ['🎶 Штольня 🎶', 'ля-ля-ля-ля', '🎶🎶🎶', 'гуляєм!'];
