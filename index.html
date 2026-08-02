@@ -11096,96 +11096,42 @@ let DEV_MODE = !VIEW_MODE && localStorage.getItem('wed-dev')==='1';        // р
 const DEV_PASS = 'k1tana';
 function isAuthed(){ return !!(AUTH_GUEST || GUEST || DEV_MODE); }
 function devBadge(){
-  if(!DEV_MODE || document.getElementById('dev-badge')) return;
-  const d = document.createElement('div');
-  d.id='dev-badge'; d.textContent='⚙️ DEV';
-  d.style.cssText='position:fixed;left:8px;bottom:8px;z-index:660;background:#1E4E8A;color:#fff;'+
-    'font:bold 10px monospace;padding:3px 7px;border:2px solid #000;letter-spacing:1px;cursor:pointer';
-  d.title='режим розробника: тапни, щоб вийти';
-  d.addEventListener('click', ()=>{ localStorage.removeItem('wed-dev'); location.reload(); });
-  document.body.appendChild(d);
-  // кнопка «Редакторська» — лише в DEV: Катя й Діма вписують/малюють правки гри
-  const e = document.createElement('a');
-  e.id='dev-editor'; e.href='editor.html'; e.target='_blank'; e.textContent='🎬 Редакторська';
-  e.style.cssText='position:fixed;left:66px;bottom:8px;z-index:660;background:#A8505F;color:#fff;'+
-    'font:bold 10px monospace;padding:3px 7px;border:2px solid #000;letter-spacing:1px;text-decoration:none;cursor:pointer';
-  e.title='кімната правок: пишіть і малюйте зміни до гри (пароль K1TANA)';
-  document.body.appendChild(e);
-  /* ── ОЧИМА ГОСТЯ: перемикач локації, щоб бачити, що саме показується
-     гостю «Бути Софі», гостю «Хвильового» і тому, хто без пароля ── */
-  const MODES = [
-    {k:'sofi', t:'👁 очима: Софі',       c:'#3a2b1a'},
-    {k:'khv',  t:'👁 очима: Хвильовий',  c:'#2a1a2a'},
-    {k:'none', t:'👁 очима: без пароля', c:'#2b2838'},
-    {k:'off',  t:'👁 як є (без підміни)',c:'#1a1a24'},
-  ];
-  const v = document.createElement('div');
-  v.id='dev-venue';
-  v.style.cssText='position:fixed;left:8px;bottom:56px;z-index:660;color:#f4cf5e;'+
-    'font:bold 10px monospace;padding:4px 8px;border:2px solid #000;letter-spacing:1px;cursor:pointer';
-  const paint = ()=>{
-    const cur = localStorage.getItem('wed-dev-venue') || 'off';
-    const m = MODES.find(x=>x.k===cur) || MODES[3];
-    v.textContent = m.t; v.style.background = m.c;
+  if(!DEV_MODE || document.getElementById('dev-panel')) return;
+  /* ── ОДНА панель розробника: згортається в маленький значок ── */
+  const P = document.createElement('div');
+  P.id='dev-panel';
+  P.style.cssText='position:fixed;left:8px;bottom:8px;z-index:660;display:flex;flex-direction:column;'+
+    'gap:3px;align-items:flex-start;font:bold 10px monospace;letter-spacing:1px;'+
+    'background:rgba(12,10,18,.92);border:2px solid #000;padding:4px;border-radius:6px;max-width:190px';
+  const mk = (txt, bg, title) => {
+    const b=document.createElement('div');
+    b.textContent=txt; b.title=title||'';
+    b.style.cssText='background:'+bg+';color:#fff;padding:4px 8px;border:1px solid rgba(0,0,0,.5);'+
+      'cursor:pointer;width:100%;box-sizing:border-box;user-select:none';
+    return b;
   };
-  v.title='що бачить гість цієї локації: запрошення, часті питання, фінал. Тапни — наступна локація';
-  v.addEventListener('click', ()=>{
-    const cur = localStorage.getItem('wed-dev-venue') || 'off';
-    const i = MODES.findIndex(x=>x.k===cur);
-    const next = MODES[(i+1) % MODES.length];
-    if(next.k==='off') localStorage.removeItem('wed-dev-venue');
-    else localStorage.setItem('wed-dev-venue', next.k);
-    paint();
-    try{ faqFill(); }catch(_){}                     // часті питання — одразу перемалювати
-    try{ if(!document.getElementById('viber-invite').classList.contains('hidden')) viberRefresh(); }catch(_){}
-    try{ if(!document.getElementById('dress-screen').classList.contains('hidden')) openDressScreen(); }catch(_){}
-  });
-  paint();
-  document.body.appendChild(v);
-  /* «Скинути мій вхід» — забути пароль/імʼя, щоб перевірити все з нуля.
-     DEV-режим лишається, щоб не вводити K1TANA заново. */
-  const rst=document.createElement('div');
-  rst.textContent='🧹 скинути мій вхід';
-  rst.title='забути пароль, імʼя, відповіді анкети й пройдені сцени (DEV лишиться)';
-  rst.style.cssText='position:fixed;left:150px;bottom:80px;z-index:660;background:#8a3a2a;color:#fff;'+
-    'font:bold 10px monospace;padding:4px 8px;border:2px solid #000;letter-spacing:1px;cursor:pointer';
-  rst.addEventListener('click', ()=>{
-    if(!confirm('Забути мій вхід (пароль, імʼя, анкету, пройдені сцени)?\nDEV-режим лишиться.')) return;
-    try{
-      Object.keys(localStorage).forEach(k=>{
-        if(k.startsWith('wed-') && k!=='wed-dev') localStorage.removeItem(k);
-      });
-      sessionStorage.clear();
-    }catch(_){}
-    location.href = location.pathname;                 // без параметрів, чистий старт
-  });
-  document.body.appendChild(rst);
-  /* «Очима гостя» у НОВІЙ вкладці — там жодних слідів розробника:
-     ні DEV-кнопок, ні Редакторської, ні збереженого входу */
-  const looks = [
-    {q:'guest', t:'🙈 як гість без пароля', c:'#55515f', x:8},
-    {q:'sofi',  t:'💒 як гість Софі',       c:'#7a5a2e', x:150},
-    {q:'khv',   t:'🎭 як гість Хвильового', c:'#7a2f5a', x:8},
-  ];
-  looks.forEach((L,i)=>{
-    const a2=document.createElement('a');
-    a2.href='?view='+L.q; a2.target='_blank'; a2.textContent=L.t;
-    a2.title='відкриє нову вкладку — рівно те, що бачить гість';
-    a2.style.cssText='position:fixed;left:'+L.x+'px;bottom:'+(i===2?80:104)+'px;z-index:660;background:'+L.c+';'+
-      'color:#fff;font:bold 10px monospace;padding:4px 8px;border:2px solid #000;'+
-      'letter-spacing:1px;text-decoration:none;cursor:pointer';
-    document.body.appendChild(a2);
-  });
-  // «✎ ця сцена» — відкрити редактор одразу на поточній сцені (дев)
-  const es = document.createElement('a');
-  es.id='dev-scene'; es.href='#'; es.textContent='✎ ця сцена';
-  es.style.cssText='position:fixed;left:8px;bottom:32px;z-index:660;background:#3F7C77;color:#fff;'+
-    'font:bold 10px monospace;padding:3px 7px;border:2px solid #000;letter-spacing:1px;text-decoration:none;cursor:pointer';
-  es.title='редагувати ЦЮ сцену в Редакторській';
-  es.addEventListener('click', ev=>{
-    ev.preventDefault();
-    // відкриваємо РЕДАКЦІЮ САМЕ ТОГО, ЩО ЗАРАЗ НА ЕКРАНІ:
-    // спершу дивимось, чи відкрито якийсь екран застосунку, і лише потім — сцену гри
+  // шапка — згортає/розгортає
+  const head = mk('⚙️ DEV ▾', '#1E4E8A', 'панель розробника: тапни, щоб згорнути');
+  head.style.fontWeight='bold';
+  const body = document.createElement('div');
+  body.style.cssText='display:flex;flex-direction:column;gap:3px;width:100%';
+  const setOpen = (open)=>{
+    body.style.display = open ? 'flex' : 'none';
+    head.textContent = open ? '⚙️ DEV ▾' : '⚙️';
+    P.style.maxWidth = open ? '190px' : 'fit-content';
+    try{ localStorage.setItem('wed-dev-open', open?'1':'0'); }catch(_){}
+  };
+  head.addEventListener('click', ()=> setOpen(body.style.display==='none'));
+  P.appendChild(head); P.appendChild(body);
+
+  // Редакторська
+  const ed = mk('🎬 Редакторська', '#A8505F', 'кімната правок (пароль K1TANA)');
+  ed.addEventListener('click', ()=> window.open('editor.html','_blank'));
+  body.appendChild(ed);
+
+  // «ця сцена»
+  const sc = mk('✎ правити цю сцену', '#3F7C77', 'відкрити редакцію того, що зараз на екрані');
+  sc.addEventListener('click', ()=>{
     const SCREENS = [
       ['release-stub','app-stub'], ['gate-screen','app-gate'], ['dress-screen','app-faq'],
       ['sampler-screen','app-sampler'], ['playlist-screen','app-playlist'],
@@ -11200,16 +11146,66 @@ function devBadge(){
         const el=document.getElementById(id);
         if(el && !el.classList.contains('hidden') && getComputedStyle(el).display!=='none'){ scene=card; break; }
       }
-      if(!scene){
-        const NOV=['n-cap1','n-tinder','n-date','n-tinder','n-kitana','n-svat','n-prop','n-prop','n-wed'];
-        if(game && game.watch) scene = NOV[(game.nov&&game.nov.ch)|0] || 'n-cap1';
-        else if(game && game.phase) scene = game.phase;
-        else scene = 'app-menu';
-      }
+      if(!scene) scene = (game && game.phase) ? game.phase : 'app-menu';
     }catch(_){ scene='app-menu'; }
     window.open('editor?scene='+encodeURIComponent(scene), '_blank');
   });
-  document.body.appendChild(es);
+  body.appendChild(sc);
+
+  // перемикач локації
+  const MODES = [
+    {k:'sofi', t:'👁 очима: Софі',       c:'#7a5a2e'},
+    {k:'khv',  t:'👁 очима: Хвильовий',  c:'#7a2f5a'},
+    {k:'none', t:'👁 очима: без пароля', c:'#55515f'},
+    {k:'off',  t:'👁 як є (без підміни)',c:'#2b2838'},
+  ];
+  const vw = mk('', '#2b2838', 'що бачить гість цієї локації — часті питання, запрошення, фінал');
+  const paint = ()=>{
+    const cur = localStorage.getItem('wed-dev-venue') || 'off';
+    const m = MODES.find(x=>x.k===cur) || MODES[3];
+    vw.textContent = m.t; vw.style.background = m.c;
+  };
+  vw.addEventListener('click', ()=>{
+    const cur = localStorage.getItem('wed-dev-venue') || 'off';
+    const i = MODES.findIndex(x=>x.k===cur);
+    const next = MODES[(i+1) % MODES.length];
+    if(next.k==='off') localStorage.removeItem('wed-dev-venue');
+    else localStorage.setItem('wed-dev-venue', next.k);
+    paint();
+    try{ faqFill(); }catch(_){}
+    try{ if(!document.getElementById('viber-invite').classList.contains('hidden')) viberRefresh(); }catch(_){}
+    try{ if(!document.getElementById('dress-screen').classList.contains('hidden')) openDressScreen(); }catch(_){}
+  });
+  paint(); body.appendChild(vw);
+
+  // перегляди в новій вкладці — рівно те, що бачить гість
+  [['🙈 глянути як гість','guest','#55515f'],
+   ['💒 глянути як Софі','sofi','#7a5a2e'],
+   ['🎭 глянути як Хвильовий','khv','#7a2f5a']].forEach(([t,q,c])=>{
+    const b = mk(t, c, 'нова вкладка без жодних слідів розробника');
+    b.addEventListener('click', ()=> window.open('?view='+q,'_blank'));
+    body.appendChild(b);
+  });
+
+  // скинути вхід
+  const rst = mk('🧹 скинути мій вхід', '#8a3a2a', 'забути пароль, імʼя, анкету й пройдені сцени (DEV лишиться)');
+  rst.addEventListener('click', ()=>{
+    if(!confirm('Забути мій вхід (пароль, імʼя, анкету, пройдені сцени)?\nDEV-режим лишиться.')) return;
+    try{
+      Object.keys(localStorage).forEach(k=>{ if(k.startsWith('wed-') && k!=='wed-dev') localStorage.removeItem(k); });
+      sessionStorage.clear();
+    }catch(_){}
+    location.href = location.pathname;
+  });
+  body.appendChild(rst);
+
+  // вийти з DEV
+  const out = mk('⏻ вийти з DEV', '#3a3646', 'звичайний режим — панель зникне');
+  out.addEventListener('click', ()=>{ localStorage.removeItem('wed-dev'); location.reload(); });
+  body.appendChild(out);
+
+  document.body.appendChild(P);
+  setOpen(localStorage.getItem('wed-dev-open') !== '0');   // памʼятає, згорнута чи ні
 }
 /* ГОСТЬОВИЙ РЕЖИМ (без пароля): лише гра й «Історія без ігор».
    Ні запрошення, ні часу-місця, ні тіндера, ні фото, ні семплера, ні рейтингу. */
