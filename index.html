@@ -977,9 +977,9 @@ let CENSORED = GUEST ? GUEST.family : PARAMS.get('v')==='family';   // може 
 const TEST_MODE = PARAMS.has('test');
 if(TEST_MODE){ const tb = document.getElementById('test-badge'); if(tb) tb.classList.remove('hidden'); }
 const SLOTS = {
-  A: {what:'Денна частина · церемонія', when:'6 вересня 2026 · збір об 11:30', where:'«Бути Софі», Київ',
+  A: {what:'Денна частина · церемонія', when:'6 вересня 2026 · збір 11:30, церемонія 14:00', where:'«Бути Софі», Київ',
       ics:{start:'20260906T113000', end:'20260906T153000', loc:'Бути Софі, Київ'}},
-  B: {what:'Вечірня частина · свято',   when:'6 вересня 2026 · 16:20',         where:'«Хвильовий», Київ',
+  B: {what:'Вечірня частина · свято',   when:'6 вересня 2026 · збір 16:20, церемонія 18:00', where:'«Хвильовий», Київ',
       ics:{start:'20260906T162000', end:'20260906T235900', loc:'Хвильовий, Київ'}},
 };
 const DRESS_CODE = 'нео-етно';
@@ -7942,14 +7942,14 @@ function drawDressFig(g,x0,yy,px,o){
    Якщо гість не впізнаний (загальне посилання) — показуємо обидві локації. */
 function faqFill(){
   const v = (typeof venuePick==='function') ? venuePick() : null;      // 'sofi' | 'khv' | null
-  const SOFI = {c:'<div class="faq-c"><b>💒 «Бути Софі»</b> · день, збір об 11:30<br>Марія — '+
+  const SOFI = {c:'<div class="faq-c"><b>💒 «Бути Софі»</b> · збір 11:30, церемонія 14:00<br>Марія — '+
       '<a href="tel:+380677989280">+380 67 798 92 80</a> · '+
       '<a href="https://t.me/mariiyka_ua" target="_blank" rel="noopener">@mariiyka_ua</a></div>',
-    w:'💒 «Бути Софі», Київ — збір об 11:30'};
-  const KHV  = {c:'<div class="faq-c"><b>🎭 «Хвильовий»</b> · вечір, 16:20<br>Аліса — '+
+    w:'💒 «Бути Софі», Київ — збір 11:30, церемонія 14:00'};
+  const KHV  = {c:'<div class="faq-c"><b>🎭 «Хвильовий»</b> · збір 16:20, церемонія 18:00<br>Аліса — '+
       '<a href="tel:+380632697004">+380 63 269 70 04</a> · '+
       '<a href="https://t.me/AlisaKisaa" target="_blank" rel="noopener">@AlisaKisaa</a></div>',
-    w:'🎭 «Хвильовий», Київ — 16:20'};
+    w:'🎭 «Хвильовий», Київ — збір 16:20, церемонія 18:00'};
   const set=(id,html)=>{ const e=document.getElementById(id); if(e) e.innerHTML=html; };
 
   if(v==='khv'){
@@ -8174,8 +8174,8 @@ function viberVenue(){
   if(s) return s.where + ' · ' + T(s.when);
   // ?s= з візитівки → DEV-перегляд → за іменем впізнаного гостя
   const v = (typeof venuePick==='function') ? venuePick() : localStorage.getItem('wed-venue-hint');
-  if(v==='sofi') return '«Бути Софі», Софійська площа · ' + T('збір об 11:30');
-  if(v==='khv')  return '«Хвильовий», Київ · 16:20';
+  if(v==='sofi') return '«Бути Софі», Софійська площа · ' + T('збір 11:30, церемонія 14:00');
+  if(v==='khv')  return '«Хвильовий», Київ · ' + T('збір 16:20, церемонія 18:00');
   // невпізнаний гість — без часу і місця, лише дата
   return LANG==='en' ? 'September 6, 2026' : '6 вересня 2026';
 }
