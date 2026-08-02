@@ -494,6 +494,9 @@
       style="width:min(72vw,340px);image-rendering:auto;filter:drop-shadow(0 2px 0 rgba(255,255,255,.65)) drop-shadow(0 3px 6px rgba(150,80,110,.25))"
       onerror="this.parentNode.innerHTML='Катя <span class=amp>&amp;</span> Діма'"></h1>
     <div class="sub" id="title-date">6 вересня 2026 · Київ</div>
+    <div id="title-count" style="font-family:Georgia,serif;font-size:13px;letter-spacing:2px;color:#a8233c;
+      background:rgba(255,246,230,.92);border:1px solid rgba(203,178,106,.75);border-radius:8px;
+      padding:4px 12px;margin:2px auto 0;display:none"></div>
     <div class="menu" id="main-menu">
       <button class="btn" id="btn-viber-title">💌 Моє запрошення</button>
       <button class="btn katya" id="btn-newgame">Нова гра</button>
@@ -11214,6 +11217,26 @@ function devBadge(){
 // семплер лишаємо гостям — хай грають музику й без пароля
 const GUEST_HIDE = ['btn-viber-title','btn-selfie','btn-memory','btn-party',
                     'btn-faq','ach-btn','rating-btn'];
+/* Скільки лишилось до ВАШОГО часу: Софі — 11:30, Хвильовий — 16:20 (за Києвом) */
+function weddingTarget(){
+  const v = (typeof venuePick==='function') ? venuePick() : null;
+  if(v==='sofi') return Date.UTC(2026, 8, 6, 8, 30, 0);    // 11:30 Kyiv
+  if(v==='khv')  return Date.UTC(2026, 8, 6, 13, 20, 0);   // 16:20 Kyiv
+  return null;                                             // невпізнаний — без часу
+}
+function titleCountdown(){
+  const el = document.getElementById('title-count'); if(!el) return;
+  const t = (typeof isAuthed==='function' && isAuthed()) ? weddingTarget() : null;
+  if(!t){ el.style.display='none'; return; }
+  const ms = t - Date.now();
+  if(ms <= 0){ el.textContent = LANG==='en' ? 'today is the day 🤍' : 'сьогодні той самий день 🤍'; el.style.display=''; return; }
+  const d=Math.floor(ms/86400000), h=Math.floor(ms/3600000)%24,
+        m=Math.floor(ms/60000)%60, s=Math.floor(ms/1000)%60;
+  el.textContent = (LANG==='en' ? 'till the wedding: ' : 'до весілля: ') +
+    d+(LANG==='en'?'d ':'д ') + String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.style.display='';
+}
+setInterval(titleCountdown, 1000);
 function updateGateLocks(){
   const lock = !isAuthed();
   GUEST_HIDE.forEach(id=>{
@@ -11226,6 +11249,7 @@ function updateGateLocks(){
   if(hint) hint.style.display = lock ? '' : 'none';
   const td = document.getElementById('title-date');       // дата й місто — теж лише для впізнаних
   if(td) td.style.display = lock ? 'none' : '';
+  try{ titleCountdown(); }catch(_){}
 }
 function gateLockedMsg(kind){
   const gs = document.getElementById('gate-screen');
