@@ -11087,7 +11087,12 @@ const normPass = v => {
   return (v||'').toLowerCase().replace(/[а-яіїєґ]/g, c=> H[c]||c).replace(/[^a-z0-9]/g,'');
 };
 let AUTH_GUEST = null;
-let DEV_MODE = localStorage.getItem('wed-dev')==='1';        // режим розробника (Катя й Діма, пароль K1TANA)
+/* ПЕРЕГЛЯД ОЧИМА ГОСТЯ: ?view=guest — як людина без пароля,
+   ?view=sofi / ?view=khv — як впізнаний гість тієї локації.
+   У цьому режимі DEV вимкнено повністю: ні кнопок, ні Редакторської. */
+const VIEW_AS = (PARAMS.get('view')||'').toLowerCase();
+const VIEW_MODE = ['guest','sofi','khv'].includes(VIEW_AS) ? VIEW_AS : '';
+let DEV_MODE = !VIEW_MODE && localStorage.getItem('wed-dev')==='1';        // режим розробника (Катя й Діма, пароль K1TANA)
 const DEV_PASS = 'k1tana';
 function isAuthed(){ return !!(AUTH_GUEST || GUEST || DEV_MODE); }
 function devBadge(){
@@ -11137,6 +11142,40 @@ function devBadge(){
   });
   paint();
   document.body.appendChild(v);
+  /* «Скинути мій вхід» — забути пароль/імʼя, щоб перевірити все з нуля.
+     DEV-режим лишається, щоб не вводити K1TANA заново. */
+  const rst=document.createElement('div');
+  rst.textContent='🧹 скинути мій вхід';
+  rst.title='забути пароль, імʼя, відповіді анкети й пройдені сцени (DEV лишиться)';
+  rst.style.cssText='position:fixed;left:150px;bottom:80px;z-index:660;background:#8a3a2a;color:#fff;'+
+    'font:bold 10px monospace;padding:4px 8px;border:2px solid #000;letter-spacing:1px;cursor:pointer';
+  rst.addEventListener('click', ()=>{
+    if(!confirm('Забути мій вхід (пароль, імʼя, анкету, пройдені сцени)?\nDEV-режим лишиться.')) return;
+    try{
+      Object.keys(localStorage).forEach(k=>{
+        if(k.startsWith('wed-') && k!=='wed-dev') localStorage.removeItem(k);
+      });
+      sessionStorage.clear();
+    }catch(_){}
+    location.href = location.pathname;                 // без параметрів, чистий старт
+  });
+  document.body.appendChild(rst);
+  /* «Очима гостя» у НОВІЙ вкладці — там жодних слідів розробника:
+     ні DEV-кнопок, ні Редакторської, ні збереженого входу */
+  const looks = [
+    {q:'guest', t:'🙈 як гість без пароля', c:'#55515f', x:8},
+    {q:'sofi',  t:'💒 як гість Софі',       c:'#7a5a2e', x:150},
+    {q:'khv',   t:'🎭 як гість Хвильового', c:'#7a2f5a', x:8},
+  ];
+  looks.forEach((L,i)=>{
+    const a2=document.createElement('a');
+    a2.href='?view='+L.q; a2.target='_blank'; a2.textContent=L.t;
+    a2.title='відкриє нову вкладку — рівно те, що бачить гість';
+    a2.style.cssText='position:fixed;left:'+L.x+'px;bottom:'+(i===2?80:104)+'px;z-index:660;background:'+L.c+';'+
+      'color:#fff;font:bold 10px monospace;padding:4px 8px;border:2px solid #000;'+
+      'letter-spacing:1px;text-decoration:none;cursor:pointer';
+    document.body.appendChild(a2);
+  });
   // «✎ ця сцена» — відкрити редактор одразу на поточній сцені (дев)
   const es = document.createElement('a');
   es.id='dev-scene'; es.href='#'; es.textContent='✎ ця сцена';
@@ -11252,6 +11291,22 @@ document.getElementById('gate-guest').addEventListener('click', ()=>{
 (function gateBoot(){
   if(DEV_MODE) devBadge();
   setTimeout(loadGuestPhotos, 0);   // для DEV і персонального посилання
+  if(VIEW_MODE){                                   // перегляд: чиста сесія, нічого не зберігаємо
+    AUTH_GUEST = null; playerName = ''; myGuest = null;
+    if(VIEW_MODE!=='guest'){
+      const sample = RSVP_GUEST_LIST.find(x=>{
+        const nm=(x.name||'').toLowerCase();
+        const v = GUEST_VENUE.some(r=>r.match.test(nm)) ? 'sofi' : 'khv';
+        return v===VIEW_MODE && x.pass;
+      });
+      if(sample){ AUTH_GUEST = sample; myGuest = sample; playerName = sample.name;
+        try{ localStorage.setItem('wed-player-name', sample.name); }catch(_){}
+        loadGuestPhotos(); }
+    }
+    updateGateLocks();
+    const gs=document.getElementById('gate-screen'); if(gs) gs.classList.add('hidden');
+    return;
+  }
   const savedId = localStorage.getItem('wed-pass-auth') || sessionStorage.getItem('wed-pass-auth');
   if(savedId){                                    // id виду «…-p1» — це супутник (+1)
     const hid = savedId.replace(/-p1$/,''), isP1 = hid!==savedId;
