@@ -677,15 +677,6 @@
         <span style="color:#d89aa4">🚫 єдине прохання — <b>без білого</b>: воно того дня на нареченій.
         Ще краще без джинсів. А взуття — будь-яке, у якому вам добре танцювати 👟</span>
       </div>
-      <div class="faq-a" style="margin-top:6px">
-        👗 <b>Хочеш побачити приклади?</b><br>
-        <a href="https://www.pinterest.com/search/pins/?q=%D1%81%D1%83%D1%87%D0%B0%D1%81%D0%BD%D0%B0%20%D0%B2%D0%B8%D1%88%D0%B8%D0%B2%D0%B0%D0%BD%D0%BA%D0%B0%20%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%20%D0%BD%D0%B0%20%D0%B2%D0%B5%D1%81%D1%96%D0%BB%D0%BB%D1%8F"
-           target="_blank" rel="noopener">Приклади образів у Pinterest ↗</a><br>
-        <a href="https://www.google.com/search?tbm=isch&q=%D1%81%D1%83%D1%87%D0%B0%D1%81%D0%BD%D0%B0+%D0%B2%D0%B8%D1%88%D0%B8%D0%B2%D0%B0%D0%BD%D0%BA%D0%B0+%D0%BE%D0%B1%D1%80%D0%B0%D0%B7+%D0%BD%D0%B0+%D0%B2%D0%B5%D1%81%D1%96%D0%BB%D0%BB%D1%8F"
-           target="_blank" rel="noopener">Те саме в картинках Google ↗</a><br>
-        <span style="color:#a89ab0">у пошуку працює: «сучасна вишиванка образ», «етно-шик вбрання»,
-        «вишиванка на весілля гостю»</span>
-      </div>
 
       <div class="faq-q">🎁 Що дарувати?</div>
       <div class="faq-a">Найдорожче для нас — що ви будете поруч, це вже подарунок.
@@ -1331,7 +1322,15 @@ function guestVenue(){
   return 'khv';                              // названий гість без Софі-мітки → вечірка у Хвильовому
 }
 // зал за посиланням (?s=sofi|khv) у пріоритеті, далі — за іменем
-function venuePick(){ const vh=localStorage.getItem('wed-venue-hint'); return (vh==='sofi'||vh==='khv')?vh:guestVenue(); }
+function venuePick(){
+  // DEV: перемикач «очима гостя» має пріоритет — щоб бачити всі три варіанти
+  if(typeof DEV_MODE!=='undefined' && DEV_MODE){
+    const dv = localStorage.getItem('wed-dev-venue');
+    if(dv==='sofi'||dv==='khv') return dv;
+    if(dv==='none') return null;                     // «без пароля»: гість, якого не впізнали
+  }
+  const vh=localStorage.getItem('wed-venue-hint'); return (vh==='sofi'||vh==='khv')?vh:guestVenue();
+}
 function picnicScript(pov){
   if(pov==='katya') return [
     {who:null,    emo:null,   text:'Субота. Пікнік на Пейзажці.'},
@@ -11097,6 +11096,37 @@ function devBadge(){
     'font:bold 10px monospace;padding:3px 7px;border:2px solid #000;letter-spacing:1px;text-decoration:none;cursor:pointer';
   e.title='кімната правок: пишіть і малюйте зміни до гри (пароль K1TANA)';
   document.body.appendChild(e);
+  /* ── ОЧИМА ГОСТЯ: перемикач локації, щоб бачити, що саме показується
+     гостю «Бути Софі», гостю «Хвильового» і тому, хто без пароля ── */
+  const MODES = [
+    {k:'sofi', t:'👁 очима: Софі',       c:'#3a2b1a'},
+    {k:'khv',  t:'👁 очима: Хвильовий',  c:'#2a1a2a'},
+    {k:'none', t:'👁 очима: без пароля', c:'#2b2838'},
+    {k:'off',  t:'👁 як є (без підміни)',c:'#1a1a24'},
+  ];
+  const v = document.createElement('div');
+  v.id='dev-venue';
+  v.style.cssText='position:fixed;left:8px;bottom:56px;z-index:660;color:#f4cf5e;'+
+    'font:bold 10px monospace;padding:4px 8px;border:2px solid #000;letter-spacing:1px;cursor:pointer';
+  const paint = ()=>{
+    const cur = localStorage.getItem('wed-dev-venue') || 'off';
+    const m = MODES.find(x=>x.k===cur) || MODES[3];
+    v.textContent = m.t; v.style.background = m.c;
+  };
+  v.title='що бачить гість цієї локації: запрошення, часті питання, фінал. Тапни — наступна локація';
+  v.addEventListener('click', ()=>{
+    const cur = localStorage.getItem('wed-dev-venue') || 'off';
+    const i = MODES.findIndex(x=>x.k===cur);
+    const next = MODES[(i+1) % MODES.length];
+    if(next.k==='off') localStorage.removeItem('wed-dev-venue');
+    else localStorage.setItem('wed-dev-venue', next.k);
+    paint();
+    try{ faqFill(); }catch(_){}                     // часті питання — одразу перемалювати
+    try{ if(!document.getElementById('viber-invite').classList.contains('hidden')) viberRefresh(); }catch(_){}
+    try{ if(!document.getElementById('dress-screen').classList.contains('hidden')) openDressScreen(); }catch(_){}
+  });
+  paint();
+  document.body.appendChild(v);
   // «✎ ця сцена» — відкрити редактор одразу на поточній сцені (дев)
   const es = document.createElement('a');
   es.id='dev-scene'; es.href='#'; es.textContent='✎ ця сцена';
