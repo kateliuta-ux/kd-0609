@@ -652,6 +652,7 @@
       <div class="v-wish">Нехай ваша присутність<br>принесе нам щастя й любов!<br>З любов'ю та повагою</div>
       <div class="v-bottom">❧&nbsp;⋆&nbsp;✿&nbsp;⋆&nbsp;❧</div>
       <div class="v-buttons">
+        <button class="btn" id="viber-rsvp" style="background:#3f7c77">✍️ Відповісти</button>
         <button class="btn faq-btn" id="viber-dress">❓ Часті питання</button>
         <button class="btn" id="viber-save" style="background:#c02a7a">Зберегти</button>
         <button class="btn" id="viber-close" style="background:#55515f">Закрити</button>
@@ -8227,6 +8228,12 @@ document.getElementById('btn-viber').addEventListener('click', ()=>{ if(!isAuthe
 document.getElementById('btn-viber-title').addEventListener('click', ()=>{ if(!isAuthed()){ gateLockedMsg('invite'); return; } openViber(true); });
 document.getElementById('viber-close').addEventListener('click', closeViber);
 document.getElementById('viber-dress').addEventListener('click', ()=>{ openDressScreen(); });
+/* та сама анкета, що й у кінці гри — просто з запрошення */
+document.getElementById('viber-rsvp').addEventListener('click', ()=>{
+  document.getElementById('viber-invite').classList.add('hidden');   // спершу закрити картку
+  rsvpAutoShown = true;                                              // щоб не вискочила вдруге сама
+  openRsvp();
+});
 document.getElementById('btn-faq').addEventListener('click', ()=>{ openDressScreen(); });
 document.getElementById('dress-close').addEventListener('click', ()=>{ document.getElementById('dress-screen').classList.add('hidden'); });
 /* збереження: кічова картинка (золотий блиск + троянди + рамка сердечками) */
