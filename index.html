@@ -8157,10 +8157,11 @@ let viberFrom = 'end';                                       // звідки в�
 function viberVenue(){
   const s = mySlot();                                   // персональний код або слот за іменем гостя
   if(s) return s.where + ' · ' + T(s.when);
-  const vh = localStorage.getItem('wed-venue-hint');     // версія з візитівки (QR)
-  if(vh==='sofi') return '«Бути Софі», Софійська площа · ' + T('збір об 11:30');
-  if(vh==='khv')  return '«Хвильовий», Київ · 16:20';
-  // загальне посилання — без часу і місця, лише дата
+  // ?s= з візитівки → DEV-перегляд → за іменем впізнаного гостя
+  const v = (typeof venuePick==='function') ? venuePick() : localStorage.getItem('wed-venue-hint');
+  if(v==='sofi') return '«Бути Софі», Софійська площа · ' + T('збір об 11:30');
+  if(v==='khv')  return '«Хвильовий», Київ · 16:20';
+  // невпізнаний гість — без часу і місця, лише дата
   return LANG==='en' ? 'September 6, 2026' : '6 вересня 2026';
 }
 function inviteName(){ return ((GUEST&&GUEST.name)||localStorage.getItem('wed-player-name')||'').trim(); }
