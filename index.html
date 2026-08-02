@@ -508,6 +508,7 @@
       <div class="btn-row">
         <button class="btn small" id="btn-party">Тіндер</button>
         <button class="btn small faq-btn" id="btn-faq">❓ Часті питання</button>
+        <button class="btn small" id="btn-haspass" style="background:#cbb26a;color:#2a2028">🔑 У мене є пароль</button>
         <button class="btn small" id="btn-install" style="background:#6a5cff">📲 На робочий стіл</button>
       </div>
     </div>
@@ -11218,6 +11219,8 @@ function updateGateLocks(){
     const b = document.getElementById(id);
     if(b){ b.style.display = lock ? 'none' : ''; b.dataset.locked = lock ? '1' : ''; }
   });
+  const hp = document.getElementById('btn-haspass');       // зворотний шлях: ввести пароль пізніше
+  if(hp) hp.style.display = lock ? '' : 'none';
   const hint = document.getElementById('guest-hint');
   if(hint) hint.style.display = lock ? '' : 'none';
   const td = document.getElementById('title-date');       // дата й місто — теж лише для впізнаних
@@ -11279,6 +11282,15 @@ function gateTry(){
 }
 document.getElementById('gate-go').addEventListener('click', gateTry);
 document.getElementById('gate-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') gateTry(); });
+{ const hp=document.getElementById('btn-haspass');
+  if(hp) hp.addEventListener('click', ()=>{
+    try{ sessionStorage.removeItem('wed-gate-done'); localStorage.removeItem('wed-gate-done'); }catch(_){}
+    const gs=document.getElementById('gate-screen');
+    document.getElementById('gate-status').textContent='';
+    const inp=document.getElementById('gate-pass'); if(inp) inp.value='';
+    gs.classList.remove('hidden');
+    setTimeout(()=>{ try{ inp.focus(); }catch(_){} }, 80);
+  }); }
 document.getElementById('gate-guest').addEventListener('click', ()=>{
   sessionStorage.setItem('wed-gate-done','guest');
   document.getElementById('gate-screen').classList.add('hidden');
