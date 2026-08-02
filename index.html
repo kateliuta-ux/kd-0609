@@ -10499,7 +10499,7 @@ document.getElementById('memory-file').addEventListener('change', e=>{
   im.onerror = ()=>{ memToast('не вдалося прочитати фото 😔'); };
   im.src = url;
 });
-loadMemories();   // підвантажити спільні фото гостей на старті
+/* фото гостей НЕ вантажимо, доки не впізнали за паролем — див. loadGuestPhotos() */
 
 /* обличчя гостей (селфі) для фіналу — голови персонажів-гостей стають фото */
 const GUEST_FACES = [];
@@ -10518,7 +10518,17 @@ async function loadSelfies(){
     });
   }catch(e){}
 }
-loadSelfies();    // якщо правила ще не відкриті — просто лишиться порожнім (піксельні голови)
+/* Спільні фото й селфі гостей — ЧУТЛИВЕ: вантажимо лише впізнаному гостю.
+   Без пароля в грі лишаються піксельні голови, а заставка — без чужих фото. */
+let _guestPhotosLoaded = false;
+function loadGuestPhotos(){
+  try{
+    if(_guestPhotosLoaded) return;
+    if(typeof isAuthed!=='function' || !isAuthed()) return;
+    _guestPhotosLoaded = true;
+    loadMemories(); loadSelfies();
+  }catch(_){}
+}
 
 /* ---------------- рейтинг гравців (супер-приз на весіллі) ----------------
    Очки = скільки досягнень зібрано (дослідив гру) + бонус за обидва ПОВ.
@@ -11199,6 +11209,7 @@ function findByPass(v){
 }
 function gateAuth(g, greet){
   AUTH_GUEST = g; myGuest = g; playerName = g.name;
+  setTimeout(loadGuestPhotos, 0);                      // тепер фото гостей можна
   // супутник (+1) святкує там само, де його господар — зал беремо за іменем господаря
   if(g.host){ const hl=g.host.toLowerCase();
     localStorage.setItem('wed-venue-hint', GUEST_VENUE.some(x=>x.match.test(hl)) ? 'sofi' : 'khv'); }
@@ -11240,6 +11251,7 @@ document.getElementById('gate-guest').addEventListener('click', ()=>{
 });
 (function gateBoot(){
   if(DEV_MODE) devBadge();
+  setTimeout(loadGuestPhotos, 0);   // для DEV і персонального посилання
   const savedId = localStorage.getItem('wed-pass-auth') || sessionStorage.getItem('wed-pass-auth');
   if(savedId){                                    // id виду «…-p1» — це супутник (+1)
     const hid = savedId.replace(/-p1$/,''), isP1 = hid!==savedId;
