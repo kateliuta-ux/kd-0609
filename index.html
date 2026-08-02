@@ -6286,15 +6286,17 @@ function drawProlog(){
     ctx.fillStyle = '#d8d4c4'; ctx.font = '9px monospace';
     lines.forEach((ln,i)=> ctx.fillText(ln, W/2, H/2+2 + i*15));
   } else {
-    // ландшафт (комп, H=180): по центру, читабельним шрифтом
-    ctx.fillStyle = COL.gold; ctx.font = 'bold 16px monospace';
-    ctx.fillText('ЗАПРОСИНИ', W/2, 22);
-    ctx.fillStyle = '#e8e2d0'; ctx.font = '9px monospace';
+    // ландшафт (комп): блок по центру між орнаментами, щоб текст на них не налазив
     const shown = lines.filter(l=>l!=='');
-    shown.forEach((ln,i)=> ctx.fillText(ln, W/2, 42 + i*16));
+    const step = 16, blockH = 26 + shown.length*step;         // заголовок + рядки
+    const top = Math.max(30, Math.round((H - blockH)/2) + 12); // не вище за верхній кант
+    ctx.fillStyle = COL.gold; ctx.font = 'bold 16px monospace';
+    ctx.fillText('ЗАПРОСИНИ', W/2, top);
+    ctx.fillStyle = '#e8e2d0'; ctx.font = '9px monospace';
+    shown.forEach((ln,i)=> ctx.fillText(ln, W/2, top + 24 + i*step));
   }
   ctx.fillStyle = 'rgba(216,212,196,.5)'; ctx.font = (PORTRAIT_MODE?8:7)+'px monospace';
-  ctx.fillText(game.watch ? '' : 'тап — далі', W/2, H-(PORTRAIT_MODE?30:5));
+  ctx.fillText(game.watch ? '' : 'тап — далі', W/2, H-(PORTRAIT_MODE?30:20));   // вище за нижній кант
   ctx.textAlign = 'left';
 }
 
@@ -10955,7 +10957,7 @@ g1781864236003;Інна Кандаурова;К;Богдан;0;H4RBUZ;UZVARCH1K
 g1781864246321;Леся;К;Діма;0;OG1ROK;SHYNOCHK4
 g1781864270163;Настя Запорожець;К;Уляна;0;TSYBUL4;SALOCHK0
 g1781864289887;Тімур;К;Яна;0;CH4SNYK;TOVCHENK4
-g1781865782041;Аліса;К;Наречений;0;BURY4K;ROZHANETS
+g1781865782041;Аліса;К;Женя;0;BURY4K;ROZHANETS
 g1781872792125;Мама Світлана;Н;;1;SYRN1K
 g1781872806567;Папа Олег;Н;;1;KOMP0T
 g1781872824065;Бабуся Марія;Н;;1;UZV4R
@@ -10976,9 +10978,9 @@ g1781873251619;Влад Тріфа;Н;;0;SHPUNDR4
 g1781873263811;Валєра;Н;Маша;0;BUZHENYN4;SHUL1K
 g1781873285101;Діма Дмитро Плахотній;Н;Анна Гарбар;0;SALTYS0N;ZAVARNYK
 g1781873300232;Лана Чубаха;Н;;0;KEF1R
-g1781873420900;Настя Гулєнко;Н;Саша Олександр гулянко;0;VARENUKH4;KREMCH1K
+g1781873420900;Настя Гулєнко;Н;Саша Гулєнко;0;VARENUKH4;KREMCH1K
 g1781873431541;Павлуша;Н;;0;NALYVK4
-g1781873442149;Аня Анна Цюрко;Н;;0;LYSYCHK4
+g1781873442149;Аня;Н;;0;LYSYCHK4
 g1781873471996;Като;Н;;0;ZATIRK4
 g1781873493882;Марина (бікер);Н;;0;LEMISHK4
 g1781873513462;Влад (бікер));Н;;0;TETER4
