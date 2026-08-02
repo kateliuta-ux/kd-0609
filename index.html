@@ -7759,12 +7759,12 @@ function finishGame(){
       '<br><span style="opacity:.75;font-size:.9em">🌍 не в Україні? — це запрошення все одно для тебе: буде трансляція церемонії</span>';
   if(GUEST){
     const s = SLOTS[GUEST.slot];
-    title.textContent = GUEST.name + '!';
+    title.textContent = niceName(GUEST.name) + '!';
     body.innerHTML = zaprosyny +
       `<b>${T(s.what)}</b><br>${T(s.when)}<br>${T(s.where)}${surn}` + more;
   } else {
     title.textContent = playerName
-      ? (playerName.toUpperCase() + (LANG==='en'?', YOU ARE INVITED':', ТЕБЕ КЛИЧУТЬ'))
+      ? (niceName(playerName).toUpperCase() + (LANG==='en'?', YOU ARE INVITED':', ТЕБЕ КЛИЧУТЬ'))
       : (LANG==='en'?'THE INVITATION':'ЗАПРОСИНИ');
     const sl = mySlot();
     body.innerHTML = zaprosyny +
@@ -8167,7 +8167,15 @@ function viberVenue(){
   // невпізнаний гість — без часу і місця, лише дата
   return LANG==='en' ? 'September 6, 2026' : '6 вересня 2026';
 }
-function inviteName(){ return ((GUEST&&GUEST.name)||localStorage.getItem('wed-player-name')||'').trim(); }
+/* У запрошенні — саме імʼя, без наших службових позначок
+   («Сусідка Юля» → «Юля», «Яна (джиу-джитсу)» → «Яна») */
+function niceName(s){
+  return String(s||'')
+    .replace(/\s*\([^)]*\)+/g, '')                 // (джиу-джитсу), (бікер)
+    .replace(/^\s*(Сусідка|Сусід)\s+/i, '')         // Сусідка Юля → Юля
+    .replace(/\s{2,}/g,' ').trim();
+}
+function inviteName(){ return niceName((GUEST&&GUEST.name)||localStorage.getItem('wed-player-name')||''); }
 function inviteHello(){
   const n=inviteName();
   if(n && n.toLowerCase()!=='гість') return n+'!';
