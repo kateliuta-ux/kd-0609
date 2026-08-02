@@ -6357,9 +6357,6 @@ function novelData(){
     {bg:4, cap:['ОСІНЬ 2023 · Білогородка','Кітана'], lines: S(
       kitanaIntroScript(pov), kitanaOutroScript(pov), cameo('kitana')
     )},
-    {bg:5, cap:['СВАТАННЯ','за давнім звичаєм'], lines: S(
-      svatIntroScript(pov), svatOutroScript(pov)
-    )},
     {bg:6, cap:['ЛЮТИЙ 2026 · Позняки','щось задумав'], lines: S(
       secretIntroScript(pov), secretOutroScript(pov), cameo('poznyaky')
     )},
@@ -8621,8 +8618,7 @@ function skipScene(){
     cap3:'cap4', date:'cap4', beer:'cap4', walkline:'cap4', battle:'cap4', kiss:'cap4',
     cap4:'capK', run:'capK',
     capK:'cap5', kitana:'cap5',
-    cap5:'capS', svat:'capS',
-    capS:'cap6', secret:'cap6',
+    cap5:'cap6', secret:'cap6',
     cap6:'cap7', prop:'cap7',
     cap7:'cap8', diia:'cap8',
     wed:'capP', capP:'credits',
@@ -8644,7 +8640,7 @@ function openPause(){
   document.getElementById('pause-menu').classList.remove('hidden');
   try{ stopMusic(); }catch(_){}
 }
-function skipTargetExists(){ return ['prolog','sitcom','cap1','set','capMont','montage','capBand','band','cap2','tinder','swipe','match','chat','cap3','date','beer','battle','cap4','run','capK','kitana','cap5','svat','capS','secret','cap6','prop','cap7','diia','wed','capP'].includes(game.phase); }
+function skipTargetExists(){ return ['prolog','sitcom','cap1','set','capMont','montage','capBand','band','cap2','tinder','swipe','match','chat','cap3','date','beer','battle','cap4','run','capK','kitana','cap5','secret','cap6','prop','cap7','diia','wed','capP'].includes(game.phase); }
 function resumePause(){
   game.paused = false;
   document.getElementById('pause-menu').classList.add('hidden');
@@ -8924,17 +8920,10 @@ function update(){
       updateKitana();
       break;
 
-    case 'cap5':
-      if(game.phaseT > 340 || (input.actionEdge && game.phaseT > 30)) startSvat();
-      break;
-
-    case 'svat':
-      updateSvat();
-      break;
-
-    case 'capS':
+    case 'cap5':                                  // сватання прибрано — одразу до «Коробочки»
       if(game.phaseT > 340 || (input.actionEdge && game.phaseT > 30)) startSecret();
       break;
+
 
     case 'secret':
       updateSecret();
@@ -9090,7 +9079,7 @@ function render(){
       drawSitcom();
       break;
     case 'cap1':
-      drawCaption('КИЇВ · 2021 · ЩЕ ДО ВІЙНИ', 'вечорниці — де молодь сходилась за ділом. у наших це зйомка', 'ЧАСТИНА ПЕРША · ВЕЧОРНИЦІ');
+      drawCaption('КИЇВ · 2021', '', 'ЧАСТИНА ПЕРША · ВЕЧОРНИЦІ');
       break;
     case 'set': {
       const sh = game.shoot || {sub:W/2, vf:W/2, focus:0, dir:1, done:false, takes:0, flash:0};
@@ -9120,23 +9109,23 @@ function render(){
           fitText(ft, W-60, 18, true); ctx.fillText(ft, W/2, Math.round(H*0.46));
         }
         ctx.textAlign='left';
-      } else { drawCaption('ЗНЯТО!', 'пʼять дублів — і той, останній, наш'); }
+      } else { drawCaption('ЗНЯТО!', ''); }
       break;
     }
     case 'capMont':
-      drawCaption('ПІСЛЯ ЗЙОМКИ · 2021', 'оглядини: дивляться, хто що вміє. Катине ремесло — монтаж', 'ОГЛЯДИНИ · РЕМЕСЛО МОЛОДОЇ');
+      drawCaption('ПІСЛЯ ЗЙОМКИ · 2021', 'Катя повернулася до монтажу', 'ОГЛЯДИНИ · РЕМЕСЛО МОЛОДОЇ');
       break;
     case 'montage':
       drawMontage();
       break;
     case 'capBand':
-      drawCaption('ТОГО Ж РОКУ', 'а Дімине ремесло — синтезатори і сцена: SPACE SPICE BOY', 'ОГЛЯДИНИ · РЕМЕСЛО МОЛОДОГО');
+      drawCaption('ТОГО Ж РОКУ', 'Діма повернувся до SPACE SPICE BOY', 'ОГЛЯДИНИ · РЕМЕСЛО МОЛОДОГО');
       break;
     case 'band':
       drawBand();
       break;
     case 'cap2':
-      drawCaption('СЕРПЕНЬ 2022 · ВЖЕ ІНШЕ ЖИТТЯ', 'війна все змінила. сучасні вечорниці звуться тіндер', 'ЧАСТИНА ПЕРША · ВЕЧОРНИЦІ');
+      drawCaption('СЕРПЕНЬ 2022 · ВЖЕ ІНШЕ ЖИТТЯ', 'Минув понад рік зі зйомок — і от, гортаючи тіндер, Катерина впізнала того хлопця з майданчика і написала першою', 'ЧАСТИНА ДРУГА · ЖЕНИХАННЯ');
       break;
     case 'tinder':
     case 'swipe':
@@ -9152,9 +9141,7 @@ function render(){
       drawPicnic();
       break;
 
-    case 'cap3':
-      drawCaption('ЗА КІЛЬКА ДНІВ', 'на вечорницях годилось частувати. у нас — кокосове темне', 'ЧАСТИНА ПЕРША · ВЕЧОРНИЦІ');
-      break;
+    case 'cap3': break;                      // заставку прибрано (правка Каті)
     case 'date': {
       const camX = Math.round(game.camX);
       drawPeizazhka(camX);
@@ -9198,13 +9185,7 @@ function render(){
     case 'kitana':
       drawKitanaScene();
       break;
-    case 'cap5':
-      drawCaption('СВАТАННЯ', 'старости, рушник — і гарбуз напоготові', 'ЧАСТИНА ТРЕТЯ · СВАТАННЯ');
-      break;
-    case 'svat':
-      drawSvat();
-      break;
-    case 'capS':
+    case 'cap5':                                  // сватання прибрано
       drawCaption('ЛЮТИЙ 2026 · ПОЗНЯКИ', game.pov==='dima' ? 'перед заручинами дари ховають: Діма ховає коробочку' : 'перед заручинами дари ховають. Катя «нічого не бачила»', 'ЧАСТИНА ЧЕТВЕРТА · ЗАРУЧИНИ');
       break;
     case 'secret':
