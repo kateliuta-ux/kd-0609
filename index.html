@@ -10539,7 +10539,7 @@ async function saveMatch(toName){
     });
   }catch(e){}
 }
-const LIKES_RESET_AT = 1785762000000;   // 3.8.2026 — тестові лайки до цієї миті не рахуються (база не дає видаляти)
+const LIKES_RESET_AT = 1785000000000;   // 26.7.2026 — зрізає лише НАШІ тестові лайки; справжні (Марія 3.08+) лишаються
 async function loadMyMatches(){
   const me=(localStorage.getItem('wed-player-name')||'').trim().toLowerCase(); if(!me) return [];
   try{
@@ -11259,6 +11259,7 @@ let DEV_MODE = !VIEW_MODE && localStorage.getItem('wed-dev')==='1';        // р
 const DEV_PASS = 'k1tana';
 function isAuthed(){ return !!(AUTH_GUEST || GUEST || DEV_MODE); }
 /* 📊 Хто вже заходив своїм паролем — журнал із бази */
+const VISIT_HIDE = new Set(['UAekajfdDYcR7yr05z0d','iJxaEjoKe5aYRsWIfBum']);   // тестові записи (база не видаляє)
 async function showVisitStats(){
   let box = document.getElementById('visit-stats');
   if(box){ box.remove(); return; }
@@ -11278,6 +11279,7 @@ async function showVisitStats(){
     const docs = (rows||[]).map(r=>r.document).filter(Boolean);
     const first={}, count={};
     docs.forEach(d=>{
+      if(VISIT_HIDE.has(d.name.split('/').pop())) return;                          // тестові
       const f=d.fields||{}; const nm=f.name&&f.name.stringValue; if(!nm || nm==='__selftest') return;
       const at=+((f.at&&f.at.integerValue)||0);
       count[nm]=(count[nm]||0)+1;
@@ -11293,8 +11295,27 @@ async function showVisitStats(){
     html += came.length
       ? came.map(nm=>'<div>• <b style="color:#fff">'+nm+'</b> <span style="color:#8a8494">— '+fmt(first[nm])+(count[nm]>1?' · заходив(-ла) '+count[nm]+'×':'')+'</span></div>').join('')
       : '<div style="color:#8a8494">поки ніхто</div>';
-    html += '<div style="color:#d89aa4;margin:14px 0 6px">⏳ Ще не заходили — '+notYet.length+'</div>';
-    html += '<div style="color:#8a8494;font-size:12px">'+notYet.join(' · ')+'</div>';
+    // сліди активності ДО запуску журналу (3.08): пройшли гру або лишили селфі
+    try{
+      const REL = 1785585600000;   // реліз 1.8.2026
+      const extra = new Set();
+      (await fsGetAll(FS_BASE+'scores?key='+FB.apiKey+'&pageSize=300&mask.fieldPaths=name&mask.fieldPaths=at')||[]).forEach(d=>{
+        const f=d.fields||{}; const nm=f.name&&f.name.stringValue; const at=+((f.at&&f.at.integerValue)||0);
+        if(nm && at>=REL && !cameLow.has(nm.toLowerCase().trim())) extra.add(nm+' (пройшов/-ла гру)');
+      });
+      (await fsGetAll(FS_BASE+'selfies?key='+FB.apiKey+'&pageSize=300&mask.fieldPaths=name&mask.fieldPaths=at')||[]).forEach(d=>{
+        const f=d.fields||{}; const nm=f.name&&f.name.stringValue; const at=+((f.at&&f.at.integerValue)||0);
+        if(nm && nm!=='__selftest' && at>=REL && !cameLow.has(nm.toLowerCase().trim())) extra.add(nm+' (селфі)');
+      });
+      if(extra.size){
+        html += '<div style="color:#8fd0e8;margin:14px 0 6px">👣 Були в грі до запуску журналу — '+extra.size+'</div>';
+        html += [...extra].map(s=>'<div>• '+s+'</div>').join('');
+        [...extra].forEach(s=>cameLow.add(s.replace(/\s*\(.*/,'').toLowerCase().trim()));
+      }
+    }catch(_){}
+    const notYet2 = all.filter(x=>!cameLow.has(x.name.toLowerCase().trim())).map(x=>x.name);
+    html += '<div style="color:#d89aa4;margin:14px 0 6px">⏳ Ще не заходили — '+notYet2.length+'</div>';
+    html += '<div style="color:#8a8494;font-size:12px">'+notYet2.join(' · ')+'</div>';
     html += '<div style="margin-top:18px"><button style="font:bold 12px monospace;padding:8px 16px;background:#55515f;color:#fff;border:2px solid #000;cursor:pointer" onclick="this.closest(\'#visit-stats\').remove()">закрити</button></div>';
     box.innerHTML = html;
   }catch(e){ box.innerHTML += '<div style="color:#d89aa4">не вдалось завантажити: '+e.message+'</div>'; }
