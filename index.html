@@ -459,6 +459,10 @@
 <div id="lang-btn" title="мова / language" style="position:fixed;top:6px;right:52px;z-index:450;cursor:pointer;
   background:rgba(16,12,22,.85);color:#f4f0e4;font-size:13px;font-weight:bold;padding:6px 9px;border-radius:12px;
   border:1px solid rgba(181,138,46,.55);letter-spacing:1px">EN</div>
+<!-- 📸 у епізоді тіндера: додай своє фото, не виходячи з гри -->
+<div id="game-selfie-btn" class="hidden" style="position:fixed;left:50%;transform:translateX(-50%);bottom:64px;z-index:440;
+  background:#a8505f;color:#fff;font:bold 12px monospace;letter-spacing:1px;padding:9px 14px;border-radius:10px;
+  border:2px solid rgba(0,0,0,.4);box-shadow:0 3px 0 rgba(90,20,40,.4);cursor:pointer;user-select:none">📸 додай своє фото в тіндер</div>
 <!-- звук вимикається БУДЬ-КОЛИ: z-index вище за всі екрани (заглушка 900, збереження 920) -->
 <div id="mute-btn" title="звук вкл/викл — працює на будь-якому екрані" style="position:fixed;top:6px;right:8px;z-index:960;cursor:pointer;
   font-size:19px;line-height:1;padding:5px 7px;border-radius:9px;background:rgba(20,18,26,.72);
@@ -7768,6 +7772,9 @@ function updateHudAndControls(){
 
 function setPhase(p){
   game.phase = p; game.phaseT = 0;
+  // 📸 кнопка «додай фото» — лише в епізоді тіндера, лише впізнаним, лише в живій грі
+  try{ const sb=document.getElementById('game-selfie-btn');
+    if(sb) sb.classList.toggle('hidden', !(['tinder','swipe','match'].includes(p) && !game.watch && isAuthed())); }catch(_){}
   input.actionEdge = false; game._tapPos = null;        // залишковий тап не перегортає нову сцену
   if(p==='set') game.shoot = null;   // свіжий старт мінігри-оператора
   if(p!=='kitana' && typeof stopMic==='function') stopMic();   // мікрофон живе лише в сцені Кітани
@@ -10309,6 +10316,10 @@ document.getElementById('selfie-send').addEventListener('click', async ()=>{
 });
 document.getElementById('selfie-back').addEventListener('click', ()=> closeSelfie(true));
 document.getElementById('btn-selfie').addEventListener('click', openSelfie);
+document.getElementById('game-selfie-btn').addEventListener('click', ()=>{
+  document.getElementById('game-selfie-btn').classList.add('hidden');
+  openSelfie();                                        // після «Назад» гра просто продовжується
+});
 if(PARAMS.get('selfie') !== null && PARAMS.get('selfie') !== undefined && PARAMS.has('selfie')){
   // прямий лінк ?selfie — одразу камера
   setTimeout(openSelfie, 400);
@@ -10343,9 +10354,10 @@ function buildPartyDeck(){
   const withPhoto = GUEST_FACES.filter(f=>!TINDER_KIDS.test((f.name||'').toLowerCase()))
     .map(f => { const nm=(f.name||'гість весілля'); const real=(f.img&&f.img.src)||'';
     return {kind:'guest', name:nm, disp:niceName(nm), tag:'гість весілля', src:(real&&real.startsWith('data:'))?real:placeholderAvatar(niceName(nm))}; });
-  // 2) решта гостей ЗІ СПИСКУ — з монограмами (їх теж можна лайкати вже зараз)
+  // 2) без фото — лише ті, хто ВЖЕ ПРОЙШОВ гру (є в рейтингу): їх реально зустрінеш у грі
   const haveLow = new Set(withPhoto.map(g=>g.name.toLowerCase().trim()));
   const noPhoto = (RSVP_GUEST_LIST||[]).filter(g=> g.name && !haveLow.has(g.name.toLowerCase().trim())
+      && partyPlayed.has(g.name.toLowerCase().trim())
       && !TINDER_KIDS.test(g.name.toLowerCase())
       && g.name.toLowerCase().trim()!==meNameLow)
     .map(g=>({kind:'guest', name:g.name, disp:niceName(g.name), tag:'гість весілля · ще без фото', src:placeholderAvatar(niceName(g.name))}));
@@ -10382,9 +10394,52 @@ async function checkMatchNotify(){
   }catch(_){}
 }
 setTimeout(checkMatchNotify, 2200);
+const PARTY_MIN_PHOTOS = 10;                 // тіндер стартує, коли є хоч 10 фото гостей
+let partyPlayed = new Set();                 // хто вже пройшов гру (є в рейтингу)
+async function refreshPartyPlayed(){
+  try{ const rows = await loadScores() || [];
+    partyPlayed = new Set(rows.map(r=>(r.name||'').toLowerCase().trim())); }catch(_){}
+}
 function openParty(){
   if(!isAuthed()){ gateLockedMsg(); return; }              // тіндер — лише з паролем візитівки
+  // ЗАГЛУШКА: поки фото замало, свайпати нема кого — кличемо додати своє
+  const photosNow = GUEST_FACES.filter(f=>headReady(f.img)).length;
+  if(photosNow < PARTY_MIN_PHOTOS){
+    const ps=document.getElementById('party-screen');
+    ps.classList.remove('hidden');
+    document.getElementById('party-stack').style.display='none';
+    document.getElementById('party-actions').style.display='none';
+    const box=document.getElementById('party-empty');
+    const bottomRow=document.getElementById('party-add') && document.getElementById('party-add').parentElement;
+    if(bottomRow) bottomRow.style.display='none';
+    box.classList.remove('hidden');
+    box.style.cssText='display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;'+
+      'max-width:min(86vw,320px);text-align:center;font-family:Georgia,serif;color:#e8e2d0;line-height:1.65';
+    box.innerHTML =
+      '<div style="font-size:44px">💘</div>'+
+      '<div style="font-size:16px;font-weight:bold;color:#f4cf5e">'+
+        (LANG==='en'?'Tinder opens at 10 photos':'Тіндер запуститься, коли буде\nхоча б 10 учасників із фото')+'</div>'+
+      '<div style="font-size:26px;letter-spacing:2px;color:#e88aa0;font-weight:bold">'+photosNow+' / '+PARTY_MIN_PHOTOS+'</div>'+
+      '<div style="font-size:12.5px;color:#bcb7a8">'+
+        (LANG==='en'?'Add your photo — and get the party started 😏':'Додай своє фото — і підженеш вечірку 😏\nЩо більше облич, то цікавіше гортати')+'</div>'+
+      '<button class="btn" id="party-empty-selfie" style="background:var(--rose);font-weight:bold;padding:11px 18px">📸 '+
+        (LANG==='en'?'Add my photo':'Додати своє фото')+'</button>'+
+      '<button class="btn" id="party-empty-back" style="background:#55515f">'+(LANG==='en'?'Back':'Назад')+'</button>';
+    document.getElementById('party-empty-selfie').addEventListener('click', ()=>{
+      ps.classList.add('hidden'); box.classList.add('hidden');
+      try{ openSelfie(); }catch(_){ document.getElementById('btn-selfie').click(); }
+    });
+    document.getElementById('party-empty-back').addEventListener('click', ()=>{
+      ps.classList.add('hidden'); box.classList.add('hidden');
+    });
+    return;
+  }
+  document.getElementById('party-stack').style.display='';
+  document.getElementById('party-actions').style.display='';
+  { const br=document.getElementById('party-add'); if(br && br.parentElement) br.parentElement.style.display='flex'; }
+  document.getElementById('party-empty').classList.add('hidden');
   partyDeck = buildPartyDeck(); partyIdx = 0; partyBusy = false; sessionMatches = [];
+  refreshPartyPlayed().then(()=>{ if(partyIdx===0 && !partyBusy){ partyDeck = buildPartyDeck(); renderPartyTop(); } });
   partyLikedMe = new Set();
   loadMyMatches().then(names=>{                                   // відкрив тіндер = побачив лайки
     partyLikedMe = new Set((names||[]).map(n=>n.toLowerCase().trim()));
@@ -10484,6 +10539,7 @@ async function saveMatch(toName){
     });
   }catch(e){}
 }
+const LIKES_RESET_AT = 1785762000000;   // 3.8.2026 — тестові лайки до цієї миті не рахуються (база не дає видаляти)
 async function loadMyMatches(){
   const me=(localStorage.getItem('wed-player-name')||'').trim().toLowerCase(); if(!me) return [];
   try{
@@ -10491,7 +10547,8 @@ async function loadMyMatches(){
     const names=new Set();
     docs.forEach(d=>{
       const f=d.fields||{};
-      const fr=(f.from&&f.from.stringValue)||''; if(fr==='__selftest') return;
+      const at=+((f.at&&f.at.integerValue)||0); if(at < LIKES_RESET_AT) return;    // старі тестові
+      const fr=(f.from&&f.from.stringValue)||''; if(fr==='__selftest' || /^Гість у /.test(fr)) return;
       if((f.to&&f.to.stringValue||'').toLowerCase()===me) names.add(fr);
     });
     names.delete('');
@@ -11088,6 +11145,7 @@ g1791000000001;Аліна Ан-Божнюк;К;Олексій Ан-Божнюк;
 g1791000000002;Артем Скорозінський;К;Аліна;0;SHASHLYCH0K;MAK1VNYK
 g1791000000005;Саша Юдіна;К;;0;PROSKUR4
 g1791000000006;Яна (джиу-джитсу);К;;0;KYSLYCHK4
+g1791000000009;Олена Стулій;К;Андрій;0;VERESHCHAK4;SOLOMAKH4
 g1791000000003;Бабуся Світлана;К;;1;PUNDYK
 g1790000000001;Гість у Софі 1;К;;1;HRECHK4
 g1790000000002;Гість у Софі 2;К;;1;K4SHA
