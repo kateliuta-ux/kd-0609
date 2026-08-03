@@ -306,8 +306,8 @@
   #release-stub #stub-err{color:#a8233c;font-family:Georgia,serif;font-size:11px;min-height:14px}
 
   /* ===== кічове запрошення «для тьоті у Viber» ===== */
-  #viber-invite{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
-    overflow:hidden;padding:16px;
+  #viber-invite{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center;
+    overflow-y:auto;padding:16px;
     background:radial-gradient(circle at 50% 30%,#5b1a6e,#2a0a3a 70%,#160420)}
   #viber-invite.hidden{display:none}
   #viber-emojis{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -8575,6 +8575,14 @@ function applyLang(){
   const wh=document.getElementById('watch-hint'); if(wh) wh.textContent = E?'🍿 WATCH MODE':'🍿 РЕЖИМ ПЕРЕГЛЯДУ';
   const skb=document.getElementById('skip-btn'); if(skb) skb.textContent = E?'⏭ scene':'⏭ сцену';
   const wp=document.getElementById('watch-play'); if(wp) wp.textContent = E?'▶ PLAY IT MYSELF':'▶ ГРАТИ САМ';
+  const hpB=document.getElementById('btn-haspass'); if(hpB) hpB.textContent = E?'🔑 I have a password':'🔑 У мене є пароль';
+  const vrB=document.getElementById('viber-rsvp'); if(vrB) vrB.textContent = E?'✍️ RSVP':'✍️ Відповісти';
+  const slE=document.querySelector('#viber-card .v-slogan');
+  if(slE) slE.textContent = E?'Be mutually beautiful!':'Будьте взаємно красивими!';
+  const dlE=document.querySelector('#viber-card .v-deadline');
+  if(dlE) dlE.innerHTML = E
+    ? '⏳ Please reply <b>by August 20</b> — so we know<br>how many seats to set 🍽'
+    : '⏳ Дай відповідь <b>до 20 серпня</b> — щоб ми знали,<br>скільки місць накривати 🍽';
   const ed=document.querySelector('#end-screen .date'); if(ed) ed.textContent = E?'06 · 09 · 2026 — KYIV':'06 · 09 · 2026 — КИЇВ';
   const ts=document.querySelector('#title-screen .sub'); if(ts) ts.textContent = E?'September 6, 2026 · Kyiv':'6 вересня 2026 · Київ';
   const povK = document.querySelector('#play-pov-menu .btn[data-pov="katya"]');
@@ -10334,13 +10342,13 @@ function buildPartyDeck(){
   // 1) гості з фото (селфі) — завжди в колоді
   const withPhoto = GUEST_FACES.filter(f=>!TINDER_KIDS.test((f.name||'').toLowerCase()))
     .map(f => { const nm=(f.name||'гість весілля'); const real=(f.img&&f.img.src)||'';
-    return {kind:'guest', name:nm, tag:'гість весілля', src:(real&&real.startsWith('data:'))?real:placeholderAvatar(nm)}; });
+    return {kind:'guest', name:nm, disp:niceName(nm), tag:'гість весілля', src:(real&&real.startsWith('data:'))?real:placeholderAvatar(niceName(nm))}; });
   // 2) решта гостей ЗІ СПИСКУ — з монограмами (їх теж можна лайкати вже зараз)
   const haveLow = new Set(withPhoto.map(g=>g.name.toLowerCase().trim()));
   const noPhoto = (RSVP_GUEST_LIST||[]).filter(g=> g.name && !haveLow.has(g.name.toLowerCase().trim())
       && !TINDER_KIDS.test(g.name.toLowerCase())
       && g.name.toLowerCase().trim()!==meNameLow)
-    .map(g=>({kind:'guest', name:g.name, tag:'гість весілля · ще без фото', src:placeholderAvatar(g.name)}));
+    .map(g=>({kind:'guest', name:g.name, disp:niceName(g.name), tag:'гість весілля · ще без фото', src:placeholderAvatar(niceName(g.name))}));
   for(let i=noPhoto.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=noPhoto[i]; noPhoto[i]=noPhoto[j]; noPhoto[j]=t; }
   const guests = withPhoto.filter(g=>g.name.toLowerCase().trim()!==meNameLow).concat(noPhoto);
   for(let i=guests.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=guests[i]; guests[i]=guests[j]; guests[j]=t; }
@@ -10352,7 +10360,7 @@ function buildPartyDeck(){
     const mine = GUEST_FACES.find(f => (f.name||'').toLowerCase().trim() === meName.toLowerCase());
     const realMine = mine && mine.img && mine.img.src && mine.img.src.startsWith('data:') ? mine.img.src : null;
     const has = !!(selfieShot || realMine);
-    deck.unshift({kind:'self', name:meName+' — це ти', tag: has?'твоя картка ✦':'твоя картка ✦ (додай фото!)', src: selfieShot || realMine || placeholderAvatar(meName)});
+    deck.unshift({kind:'self', name:meName+' — це ти', disp:niceName(meName)+' — це ти', tag: has?'твоя картка ✦':'твоя картка ✦ (додай фото!)', src: selfieShot || realMine || placeholderAvatar(meName)});
   }
   return deck;
 }
@@ -10417,7 +10425,7 @@ function renderPartyTop(){
     const img = document.createElement('img'); img.src = c.src || ''; img.alt = '';
     const meta = document.createElement('div'); meta.className = 'party-meta';
     meta.innerHTML = '<b></b><span></span>';
-    meta.querySelector('b').textContent = c.name;
+    meta.querySelector('b').textContent = c.disp || niceName(c.name);
     meta.querySelector('span').textContent = c.tag || 'гість весілля';
     const like = document.createElement('div'); like.className = 'party-badge like'; like.textContent = 'LIKE';
     const nope = document.createElement('div'); nope.className = 'party-badge nope'; nope.textContent = 'NOPE';
@@ -10502,7 +10510,7 @@ function showPartyMatch(card){
     || placeholderAvatar(meName || 'ти');
   const k = document.createElement('img'); k.className = 'pm-face'; k.src = mySrc;
   face.append(im, h, k);
-  const nm = (card.name||'Гість').replace(/[,—].*/,'').trim();
+  const nm = niceName((card.name||'Гість').replace(/[,—].*/,'').trim());
   document.getElementById('party-match-text').textContent =
     'Взаємно! Знайди(-и) ' + nm + ' на весіллі й привітайтесь 🥂';
   document.getElementById('party-match').classList.remove('hidden');
