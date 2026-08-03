@@ -11258,6 +11258,47 @@ const VIEW_MODE = ['guest','sofi','khv'].includes(VIEW_AS) ? VIEW_AS : '';
 let DEV_MODE = !VIEW_MODE && localStorage.getItem('wed-dev')==='1';        // режим розробника (Катя й Діма, пароль K1TANA)
 const DEV_PASS = 'k1tana';
 function isAuthed(){ return !!(AUTH_GUEST || GUEST || DEV_MODE); }
+/* 📊 Хто вже заходив своїм паролем — журнал із бази */
+async function showVisitStats(){
+  let box = document.getElementById('visit-stats');
+  if(box){ box.remove(); return; }
+  box = document.createElement('div');
+  box.id='visit-stats';
+  box.style.cssText='position:fixed;inset:0;z-index:980;background:rgba(10,8,14,.96);color:#e8e2d0;'+
+    'font:13px/1.6 monospace;overflow-y:auto;padding:20px 16px 40px';
+  box.innerHTML='<div style="color:#f4cf5e;font-weight:bold">📊 ХТО ВЖЕ ЗАЙШОВ СВОЇМ ПАРОЛЕМ</div><div style="color:#8a8494">завантажую…</div>';
+  box.addEventListener('click', e=>{ if(e.target===box) box.remove(); });
+  document.body.appendChild(box);
+  try{
+    const q = await fetch(FS_BASE.replace(/documents\/$/,'documents')+':runQuery?key='+FB.apiKey, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({structuredQuery:{ from:[{collectionId:'voice-tracks'}],
+        where:{fieldFilter:{field:{fieldPath:'kind'},op:'EQUAL',value:{stringValue:'visit'}}}, limit:500 }})});
+    const rows = await q.json();
+    const docs = (rows||[]).map(r=>r.document).filter(Boolean);
+    const first={}, count={};
+    docs.forEach(d=>{
+      const f=d.fields||{}; const nm=f.name&&f.name.stringValue; if(!nm || nm==='__selftest') return;
+      const at=+((f.at&&f.at.integerValue)||0);
+      count[nm]=(count[nm]||0)+1;
+      if(!first[nm] || at<first[nm]) first[nm]=at;
+    });
+    const came = Object.keys(first).sort((a,b)=>first[a]-first[b]);
+    const all = (RSVP_GUEST_LIST||[]).filter(x=>x.name && !/^Гість у /.test(x.name));
+    const cameLow = new Set(came.map(s=>s.toLowerCase().trim()));
+    const notYet = all.filter(x=>!cameLow.has(x.name.toLowerCase().trim())).map(x=>x.name);
+    const fmt = t => new Date(t).toLocaleString('uk-UA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    let html = '<div style="color:#f4cf5e;font-weight:bold;margin-bottom:10px">📊 ХТО ВЖЕ ЗАЙШОВ СВОЇМ ПАРОЛЕМ</div>';
+    html += '<div style="color:#8fd07a;margin-bottom:6px">✅ Зайшли — '+came.length+'</div>';
+    html += came.length
+      ? came.map(nm=>'<div>• <b style="color:#fff">'+nm+'</b> <span style="color:#8a8494">— '+fmt(first[nm])+(count[nm]>1?' · заходив(-ла) '+count[nm]+'×':'')+'</span></div>').join('')
+      : '<div style="color:#8a8494">поки ніхто</div>';
+    html += '<div style="color:#d89aa4;margin:14px 0 6px">⏳ Ще не заходили — '+notYet.length+'</div>';
+    html += '<div style="color:#8a8494;font-size:12px">'+notYet.join(' · ')+'</div>';
+    html += '<div style="margin-top:18px"><button style="font:bold 12px monospace;padding:8px 16px;background:#55515f;color:#fff;border:2px solid #000;cursor:pointer" onclick="this.closest(\'#visit-stats\').remove()">закрити</button></div>';
+    box.innerHTML = html;
+  }catch(e){ box.innerHTML += '<div style="color:#d89aa4">не вдалось завантажити: '+e.message+'</div>'; }
+}
 function devBadge(){
   if(!DEV_MODE || document.getElementById('dev-panel')) return;
   /* ── ОДНА панель розробника: згортається в маленький значок ── */
@@ -11350,6 +11391,10 @@ function devBadge(){
     body.appendChild(b);
   });
 
+  // статистика входів
+  const st = mk('📊 хто вже зайшов', '#1E4E8A', 'список гостей, які відкривали гру своїм паролем');
+  st.addEventListener('click', showVisitStats);
+  body.appendChild(st);
   // скинути вхід
   const rst = mk('🧹 скинути мій вхід', '#8a3a2a', 'забути пароль, імʼя, анкету й пройдені сцени (DEV лишиться)');
   rst.addEventListener('click', ()=>{
@@ -11428,8 +11473,23 @@ function findByPass(v){
                 pass:h.pass1, host:h.name};
   return null;
 }
+/* журнал входів: Катя бачить у DEV-панелі, хто вже відкривав своє запрошення */
+function logVisit(g){
+  try{
+    if(typeof TEST_MODE!=='undefined' && TEST_MODE) return;
+    if(typeof VIEW_MODE!=='undefined' && VIEW_MODE) return;      // превʼю «очима гостя» — не рахуємо
+    const day = new Date().toISOString().slice(0,10);
+    const key = 'wed-visit-'+g.id+'-'+day;
+    if(localStorage.getItem(key)) return;                        // вже записано сьогодні
+    localStorage.setItem(key,'1');
+    fetch(FS_BASE+'voice-tracks?key='+FB.apiKey, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fields:{ kind:{stringValue:'visit'}, name:{stringValue:g.name},
+        gid:{stringValue:String(g.id||'')}, at:{integerValue:String(Date.now())} }})});
+  }catch(_){}
+}
 function gateAuth(g, greet){
   AUTH_GUEST = g; myGuest = g; playerName = g.name;
+  logVisit(g);
   setTimeout(loadGuestPhotos, 0);                      // тепер фото гостей можна
   // супутник (+1) святкує там само, де його господар — зал беремо за іменем господаря
   if(g.host){ const hl=g.host.toLowerCase();
