@@ -238,15 +238,25 @@
   .s-cell.on{background:linear-gradient(160deg,#f4a0b0,var(--rose))!important}
   .s-hint{color:#cfc7bb;font-size:clamp(10px,2.1cqw,12.5px);text-align:center;max-width:min(94%,560px);line-height:1.4}
   .s-hint b{color:#f4cf5e}
-  .s-controls{display:flex;flex-direction:column;gap:9px;align-items:center;width:100%;max-width:96vw}
-  .s-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-  .s-primary{gap:8px}
-  .s-sec{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;
-    padding:7px 6px;border:1px solid #2c2a38;border-radius:10px;background:rgba(255,255,255,.02);max-width:min(96%,560px)}
-  .s-seclab{color:#8a8496;font-size:clamp(9px,1.8cqw,11px);letter-spacing:1px;text-transform:uppercase}
-  .s-btn{font-size:clamp(9px,2cqw,14px);padding:.4em .7em}
-  #s-play{background:#2f9e4f!important;font-size:clamp(13px,3cqw,19px);padding:.5em 1.1em;
+  .s-controls{display:flex;flex-direction:column;gap:10px;align-items:center;width:100%;max-width:96vw}
+  .s-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .s-primary{gap:9px}
+  .s-sec{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;
+    padding:8px 6px;border:1px solid #2c2a38;border-radius:10px;background:rgba(255,255,255,.02);max-width:min(96%,560px)}
+  .s-seclab{color:#8a8496;font-size:clamp(10px,2cqw,12px);letter-spacing:1px;text-transform:uppercase}
+  /* кнопки семплера: не дрібніші за 13px і не нижчі за 42px — щоб пальцем на телефоні влучалось */
+  .s-btn{font-size:clamp(13px,3cqw,16px);padding:.5em .85em;min-height:42px}
+  #s-play{background:#2f9e4f!important;font-size:clamp(15px,3.4cqw,19px);padding:.5em 1.1em;
     box-shadow:0 0 0 3px #000, 0 0 14px rgba(63,174,84,.75);animation:pulse-btn 1.6s ease-in-out infinite}
+  /* хрестик виходу: липкий у кутку — видно завжди, навіть коли екран прокручено */
+  /* лівий кут — праворуч живуть глобальні EN і звук */
+  #s-home{position:sticky;top:6px;align-self:flex-start;margin:0 0 -46px 6px;z-index:6;
+    background:#55515f;font-size:17px;padding:.4em .65em;min-height:40px;opacity:.92}
+  /* крок 2 (запис голосу): редакторські секції ховаються, лишається сітка + запис */
+  #sampler-screen.voice .s-edit{display:none}
+  #sampler-screen.voice #s-hint1{display:none}
+  #s-voicesec{border-color:#5a3a44;background:rgba(200,80,100,.07)}
+  .s-btn.sel{outline:3px solid #f4cf5e;outline-offset:-1px}
   #s-code{background:var(--terra)} #s-back{background:#55515f}
   #selfie-snap{font-size:clamp(15px,3.6cqw,22px)!important;padding:.55em 1.2em!important;
     box-shadow:0 0 0 3px #000, 0 0 16px rgba(232,138,160,.8)!important;animation:pulse-btn 1.6s ease-in-out infinite}
@@ -558,34 +568,44 @@
   </div>
 
   <div id="sampler-screen" class="overlay hidden">
-    <div class="s-head">🎹 СЕМПЛЕР <span>накидай мелодію — і збережи її у весільний плейлист</span></div>
+    <button class="btn" id="s-home" title="вийти з семплера">✕</button>
+    <div class="s-head">🎹 СЕМПЛЕР <span id="s-substep">крок 1 · накидай мелодію в сітці</span></div>
     <div style="font-size:clamp(10px,2.2cqw,12px);color:#f4cf5e;text-align:center;max-width:min(96%,480px);line-height:1.3;padding:1px 6px">
       🎟 найкращий трек — запрошення на весілля · донат на збір ЗСУ від 100 грн 🌻
     </div>
-    <div class="s-hint">Тисни клітинки — вийде мелодія (<b>трек</b>). Хочеш свій голос — «Записати голос» (<b>пісня</b>). Далі — «У плейлист».</div>
+    <div class="s-hint" id="s-hint1">Тисни клітинки — вийде мелодія. Хочеш — далі «🎙 ДОДАТИ ГОЛОС», і вийде ціла пісня.</div>
     <div id="s-grid"></div>
     <div class="s-controls">
-      <div class="s-row s-primary">
+      <div class="s-row s-primary s-edit">
         <button class="btn s-btn" id="s-play">▶ ПРОГРАТИ</button>
         <button class="btn s-btn" id="s-clear" style="background:#55515f">↺ ЗАНОВО</button>
+        <button class="btn s-btn" id="s-erase" style="background:#4a4658">🧽 ГУМКА</button>
       </div>
-      <div class="s-sec"><span class="s-seclab">🎛 звучання</span><div class="s-row">
+      <div class="s-sec s-edit"><span class="s-seclab">🎛 звучання</span><div class="s-row">
         <button class="btn s-btn" id="s-wave" style="background:#6a5cff">ІНСТР.: БАНДУРА</button>
         <button class="btn s-btn" id="s-tempo" style="background:#3a5c8a">ТЕМП: СПОКІЙНИЙ</button>
-        <button class="btn s-btn" id="s-erase" style="background:#4a4658">🧽 ГУМКА</button>
-      </div></div>
-      <div class="s-sec"><span class="s-seclab">🎙 свій голос / звук</span><div class="s-row">
-        <button class="btn s-btn" id="s-samp" style="background:#c9584a">🎙 СВІЙ ЗВУК</button>
+        <button class="btn s-btn" id="s-samp" style="background:#c9584a">🎤 ЗАПИШИ СВІЙ ЗВУК</button>
         <button class="btn s-btn" id="s-lib" style="background:#7a5c3e">🎁 ЗВУКИ ГОСТЕЙ</button>
-        <button class="btn s-btn" id="s-rec" style="background:#a8323c">🎙 ЗАПИСАТИ ГОЛОС</button>
-        <button class="btn s-btn hidden" id="s-myplay" style="background:#3f7c77">▶ МІЙ ТРЕК</button>
-        <button class="btn s-btn hidden" id="s-mysave" style="background:var(--rose)">💾 ЗБЕРЕГТИ ПІСНЮ</button>
       </div></div>
-      <div class="s-sec"><span class="s-seclab">💾 готово</span><div class="s-row">
+      <div class="s-sec s-edit"><span class="s-seclab">💾 готово</span><div class="s-row">
+        <button class="btn s-btn" id="s-tovoice" style="background:#a8323c">🎙 ДОДАТИ ГОЛОС</button>
         <button class="btn s-btn" id="s-save" style="background:var(--rose)">💾 У ПЛЕЙЛИСТ</button>
         <button class="btn s-btn" id="s-playlist" style="background:#3f7c77">🎧 ПЛЕЙЛИСТ</button>
         <button class="btn s-btn" id="s-back" style="background:#55515f">← НАЗАД</button>
       </div></div>
+      <div class="s-sec hidden" id="s-voicesec"><span class="s-seclab">🎙 крок 2 · запис голосу</span>
+        <div class="s-hint" id="vs-hint"></div>
+        <div class="s-row" id="vs-mode">
+          <button class="btn s-btn" id="vs-beat" style="background:#3f7c77">🎧 ПІД БІТ (навушники)</button>
+          <button class="btn s-btn" id="vs-acap" style="background:#A8505F">🎤 АКАПЕЛА</button>
+        </div>
+        <div class="s-row">
+          <button class="btn s-btn" id="s-rec" style="background:#a8323c">🔴 ЗАПИСАТИ</button>
+          <button class="btn s-btn hidden" id="s-myplay" style="background:#3f7c77">▶ МІЙ ТРЕК</button>
+          <button class="btn s-btn hidden" id="s-mysave" style="background:var(--rose)">💾 ЗБЕРЕГТИ ПІСНЮ</button>
+        </div>
+        <div class="s-row"><button class="btn s-btn" id="s-fromvoice" style="background:#55515f">← ДО МЕЛОДІЇ</button></div>
+      </div>
     </div>
     <div id="s-recbar" class="hidden" style="width:min(88%,420px);height:10px;background:#2b2b38;border:2px solid #000">
       <div id="s-recfill" style="height:100%;width:0%;background:var(--rose)"></div>
@@ -8572,12 +8592,29 @@ function applyLang(){
     'party-add':     ['ДОДАТИ СВОЄ ФОТО','ADD YOUR PHOTO'],
     'party-match-go':['ДАЛІ ▶','NEXT ▶'],
     'pl-back':       ['НАЗАД','BACK'],
-    's-back':        ['НАЗАД','BACK'],
+    's-back':        ['← НАЗАД','← BACK'],
+    's-play':        ['▶ ПРОГРАТИ','▶ PLAY'],
+    's-clear':       ['↺ ЗАНОВО','↺ RESET'],
+    's-samp':        ['🎤 ЗАПИШИ СВІЙ ЗВУК','🎤 RECORD YOUR SOUND'],
+    's-lib':         ['🎁 ЗВУКИ ГОСТЕЙ','🎁 GUEST SOUNDS'],
+    's-tovoice':     ['🎙 ДОДАТИ ГОЛОС','🎙 ADD VOICE'],
+    's-save':        ['💾 У ПЛЕЙЛИСТ','💾 TO PLAYLIST'],
+    's-playlist':    ['🎧 ПЛЕЙЛИСТ','🎧 PLAYLIST'],
+    's-rec':         ['🔴 ЗАПИСАТИ','🔴 RECORD'],
+    's-fromvoice':   ['← ДО МЕЛОДІЇ','← BACK TO MELODY'],
+    'vs-beat':       ['🎧 ПІД БІТ (навушники)','🎧 WITH BEAT (headphones)'],
+    'vs-acap':       ['🎤 АКАПЕЛА','🎤 A CAPPELLA'],
     'rsvp-close':    ['✕','✕'],
   };
   Object.keys(bmap2).forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = bmap2[id][E?1:0]; });
   setHead('#party-screen .s-head', 'ТІНДЕР <span>гортай гостей весілля · метч = привітатися 6 вересня 🥂</span>',
     'TINDER <span>swipe the wedding guests · a match = say hi on Sept 6 🥂</span>');
+  const ssub=document.getElementById('s-substep');
+  if(ssub && !document.getElementById('sampler-screen').classList.contains('voice'))
+    ssub.textContent = E ? 'step 1 · tap the grid — make a melody' : 'крок 1 · накидай мелодію в сітці';
+  const sh1=document.getElementById('s-hint1');
+  if(sh1) sh1.innerHTML = E ? 'Tap the cells — a melody appears. Then «🎙 ADD VOICE» — and it becomes a whole song.'
+                            : 'Тисни клітинки — вийде мелодія. Хочеш — далі «🎙 ДОДАТИ ГОЛОС», і вийде ціла пісня.';
   setHead('#email-screen .s-head', '📮 Лишити пошту?<span>надішлемо копію запрошення — і сповістимо, коли в грі зʼявиться нове</span>',
     "📮 Leave your email?<span>we'll send a copy of the invitation — and updates about the game</span>");
   const ei=document.getElementById('email-input'); if(ei) ei.placeholder = E?'your@email.com':'твоя@пошта.com';
@@ -9822,7 +9859,7 @@ async function smpRecord(){
       if(SMP.playing) samplerStop();                              // сітка стихає разом із записом
       clearTimeout(recTimer); clearInterval(recBarTimer);
       document.getElementById('s-recbar').classList.add('hidden');
-      btn.textContent='🎙 ЗАПИСАТИ ГОЛОС';
+      btn.textContent = LANG==='en' ? '🔴 RECORD AGAIN' : '🔴 ЗАПИСАТИ ЩЕ РАЗ';
       sStat('обробляю запис…');
       try{
         // склеїти PCM → 9кГц mono WAV (стільки ж лишається після «діджиталізації», а важить мало)
@@ -9870,7 +9907,11 @@ async function smpRecord(){
     recMedia=null; recStop=null;
   }
 }
-document.getElementById('s-rec').addEventListener('click', smpRecord);
+document.getElementById('s-rec').addEventListener('click', ()=>{
+  // вибір «під біт / акапела» зроблено кнопками кроку 2 — діалог тоді не потрібен
+  if(vsChoice && SMP.grid.some(row=>row.some(v=>v))) smpRecMode = vsChoice;
+  smpRecord();
+});
 document.getElementById('s-myplay').addEventListener('click', ()=>{
   if(!myTrackBuf) return;
   ensureAudio();
@@ -10108,7 +10149,50 @@ document.getElementById('pl-back').addEventListener('click', ()=>{
   else elTitle.classList.remove('hidden');
 });
 let samplerStory = false;                 // семплер відкрито зсередини історії (сцена гурту)
+/* ── крок 2: запис голосу як окремий етап (сітка лишається видимою — біт видно) ── */
+let vsChoice = null;
+function vsHl(){
+  document.getElementById('vs-beat').classList.toggle('sel', vsChoice==='beat');
+  document.getElementById('vs-acap').classList.toggle('sel', vsChoice==='acapella');
+}
+function voiceMode(on){
+  const scr = document.getElementById('sampler-screen'), E = LANG==='en';
+  const sub = document.getElementById('s-substep');
+  if(!on){
+    if(typeof recMedia!=='undefined' && recMedia && recStop) recStop();   // вихід = стоп запису
+    if(typeof myTrackSrc!=='undefined' && myTrackSrc){ try{ myTrackSrc.stop(); }catch(_){} }
+    scr.classList.remove('voice');
+    document.getElementById('s-voicesec').classList.add('hidden');
+    if(sub) sub.textContent = E ? 'step 1 · tap the grid — make a melody' : 'крок 1 · накидай мелодію в сітці';
+    return;
+  }
+  samplerStop();
+  scr.classList.add('voice');
+  document.getElementById('s-voicesec').classList.remove('hidden');
+  const hasPat = SMP.grid.some(row=>row.some(v=>v));
+  document.getElementById('vs-mode').classList.toggle('hidden', !hasPat);
+  vsChoice = null; smpRecMode = null; vsHl();
+  if(sub) sub.textContent = E ? 'step 2 · record your voice' : 'крок 2 · запиши свій голос';
+  document.getElementById('vs-hint').innerHTML = hasPat
+    ? (E ? 'Your melody becomes the beat of the song. Pick how to record, then hit <b>🔴 RECORD</b>: 3-2-1 — and sing!'
+         : 'Твоя мелодія стане бітом пісні. Обери, як пишемо, і тисни <b>🔴 ЗАПИСАТИ</b>: відлік 3-2-1 — і співай!')
+    : (E ? 'The grid is empty — we\'ll record your voice a cappella (up to 30s). Or go back and lay down a beat first.'
+         : 'Сітка порожня — запишемо голос акапельно (до 30с). Або повернись і накидай спершу біт.');
+  sStat('');
+  try{ document.getElementById('s-voicesec').scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(_){}
+}
+document.getElementById('s-tovoice').addEventListener('click', ()=>voiceMode(true));
+document.getElementById('s-fromvoice').addEventListener('click', ()=>voiceMode(false));
+document.getElementById('vs-beat').addEventListener('click', ()=>{ vsChoice='beat'; vsHl();
+  sStat(LANG==='en' ? '🎧 with headphones the beat stays out of the mic — clean voice' : '🎧 у навушниках біт не лізе в мікрофон — голос буде чистий'); });
+document.getElementById('vs-acap').addEventListener('click', ()=>{ vsChoice='acapella'; vsHl();
+  sStat(LANG==='en' ? '🎤 a cappella: beat is silent while recording, we mix it in after' : '🎤 акапела: під час запису біт мовчить, ми домішаємо його потім'); });
+document.getElementById('s-home').addEventListener('click', ()=>{
+  voiceMode(false);
+  document.getElementById('s-back').click();
+});
 document.getElementById('s-back').addEventListener('click', ()=>{
+  voiceMode(false);
   samplerStop();
   document.getElementById('sampler-screen').classList.add('hidden');
   if(samplerStory){
