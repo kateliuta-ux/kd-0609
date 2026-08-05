@@ -527,6 +527,8 @@
     <div class="menu" id="main-menu">
       <button class="btn" id="btn-viber-title">💌 Моє запрошення</button>
       <button class="btn katya" id="btn-newgame">Нова гра</button>
+      <button class="btn hidden" id="btn-moms" style="background:#b0596f;
+        box-shadow:0 0 0 3px #000, 0 0 12px rgba(232,138,160,.75);animation:pulse-btn 2.2s ease-in-out infinite">🌷 Для мам</button>
 
       <div class="btn-row">
         <button class="btn small" id="btn-sampler">Семплер</button>
@@ -566,6 +568,7 @@
     <div id="ach-list" style="display:flex;flex-direction:column;gap:6px;width:min(88%,420px)"></div>
     <button class="btn s-btn" id="ach-back" style="background:#55515f">НАЗАД</button>
   </div>
+
 
   <div id="sampler-screen" class="overlay hidden">
     <button class="btn" id="s-home" title="вийти з семплера">✕</button>
@@ -8553,6 +8556,7 @@ function resetTitleMenus(){
 function applyLang(){
   const map = {
     'btn-newgame': ['Нова гра','New game'],
+    'btn-moms':    ['🌷 Для мам','🌷 For moms'],
     'btn-sampler': ['Семплер','Sampler'],
     'btn-viber':   ['Гарне запрошення','Pretty invitation'],
     'btn-viber-title': ['💌 Моє запрошення','💌 My invitation'],
@@ -11612,8 +11616,21 @@ function updateGateLocks(){
   if(hint) hint.style.display = lock ? '' : 'none';
   const td = document.getElementById('title-date');       // дата й місто — теж лише для впізнаних
   if(td) td.style.display = lock ? 'none' : '';
+  // «Для мам»: помітна кнопка для батьків і бабусь (та в DEV — щоб ви бачили)
+  const mb = document.getElementById('btn-moms');
+  if(mb){
+    const nm = ((typeof AUTH_GUEST!=='undefined' && AUTH_GUEST && AUTH_GUEST.name) || localStorage.getItem('wed-player-name') || '').toLowerCase();
+    const momsy = /мама|папа|тато|батьк|бабус/.test(nm) || (typeof DEV_MODE!=='undefined' && DEV_MODE);
+    mb.classList.toggle('hidden', lock || !momsy);
+  }
   try{ titleCountdown(); }catch(_){}
 }
+/* ── «Для мам»: Катина готова сторінка на весілля.лютевесілля.укр/mamy/ ──
+   (кнопка відкриває її в новій вкладці; punycode — щоб працювало скрізь) */
+const MOMS_URL = 'https://xn--b1agsa2a0g0b.xn--b1afbvda4be1ira8e.xn--j1amh/mamy/';
+document.getElementById('btn-moms').addEventListener('click', ()=>{
+  try{ window.open(MOMS_URL, '_blank', 'noopener'); }catch(_){ location.href = MOMS_URL; }
+});
 function gateLockedMsg(kind){
   const gs = document.getElementById('gate-screen');
   document.getElementById('gate-status').textContent = kind==='invite'
