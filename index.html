@@ -10135,7 +10135,7 @@ let selfieStream = null, selfieShot = null;
 let selfieFor = null;                                  // за кого фото (діти лондонців / Яра)
 function selfieKidsFor(name){
   const n=(name||'').toLowerCase();
-  if(/кост/.test(n) || (/віка|вікторія/.test(n) && !/кукриц/.test(n))) return ['Давід','Георгій','Ліка'];
+  if(/кост/.test(n) || (/віка|вікторія/.test(n) && !/кукриц/.test(n) && !/сусід/.test(n))) return ['Давід','Георгій','Ліка'];
   if(/луїз|шаблія/.test(n)) return ['Яра'];
   return null;
 }
