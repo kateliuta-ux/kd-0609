@@ -406,6 +406,8 @@
   #viber-card .v-deadline b{color:#c02a7a;font-size:13.5px}
   @keyframes vdead{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
   @media (prefers-reduced-motion:reduce){ #viber-card .v-deadline{animation:none} }
+  #viber-card .v-stream{margin:8px auto 0;max-width:300px;font-family:Georgia,serif;font-size:11.5px;
+    line-height:1.55;color:#5a4a6e;opacity:.92}
   #viber-card .v-buttons{flex-wrap:wrap}
   #viber-card .v-buttons .btn{padding:8px 12px;font-size:12.5px}
   #viber-card .v-buttons-main{margin-top:10px}
@@ -668,6 +670,7 @@
       <div class="v-slogan">Будьте взаємно красивими!</div>
       <div class="v-bottom">❧&nbsp;⋆&nbsp;✿&nbsp;⋆&nbsp;❧</div>
       <div class="v-deadline">⏳ Дай відповідь <b>до 20 серпня</b> — щоб ми знали,<br>скільки місць накривати 🍽</div>
+      <div class="v-stream">🌍 Далеко від Києва? Це запрошення діє й онлайн:<br>церемонію транслюватимемо — посилання буде тут, у грі 💻</div>
       <div class="v-buttons v-buttons-main">
         <button class="btn" id="viber-rsvp" style="background:#3f7c77">✍️ Відповісти</button>
       </div>
@@ -8590,6 +8593,10 @@ function applyLang(){
   if(dlE) dlE.innerHTML = E
     ? '⏳ Please reply <b>by August 20</b> — so we know<br>how many seats to set 🍽'
     : '⏳ Дай відповідь <b>до 20 серпня</b> — щоб ми знали,<br>скільки місць накривати 🍽';
+  const stE=document.querySelector('#viber-card .v-stream');
+  if(stE) stE.innerHTML = E
+    ? '🌍 Far from Kyiv? This invitation works online too:<br>we will stream the ceremony — the link will be here, in the game 💻'
+    : '🌍 Далеко від Києва? Це запрошення діє й онлайн:<br>церемонію транслюватимемо — посилання буде тут, у грі 💻';
   const ed=document.querySelector('#end-screen .date'); if(ed) ed.textContent = E?'06 · 09 · 2026 — KYIV':'06 · 09 · 2026 — КИЇВ';
   const ts=document.querySelector('#title-screen .sub'); if(ts) ts.textContent = E?'September 6, 2026 · Kyiv':'6 вересня 2026 · Київ';
   const povK = document.querySelector('#play-pov-menu .btn[data-pov="katya"]');
@@ -11707,7 +11714,7 @@ function rsvpResponse(){
 
 /* ================= RSVP: питання гостям ================= */
 const RSVP_QUESTIONS = [
-  {q:'Ти з нами 6 вересня?', opts:['Звісно! 🥂','Дуже постараюсь','Ніяк 😢']},
+  {q:'Ти з нами 6 вересня?', opts:['Звісно! 🥂','Дуже постараюсь','Буду дивитись онлайн 💻','Ніяк 😢']},
   {q:'Пʼєш алкоголь?', opts:['Так 🥂','Ні, безалко']},
   {q:'Пісня, під яку ти точно танцюєш?', input:true},
 ];
