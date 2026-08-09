@@ -11828,7 +11828,11 @@ async function loadGuestPwOverride(){
     }
   }catch(e){}
 }
-loadGuestPwOverride();
+/* ВИМКНЕНО: документ wed-guestlist заморожений на 21.07 (правила бази забороняють
+   оновлення), а його злиття ПЕРЕТИРАЛО нових гостей зі збіжними id (Яна, Костя,
+   Саша Юдіна, Олена Стулій…) — паролі переставали працювати. Зашитий список у
+   коді — єдине джерело правди; правки гостей їдуть через git-деплой. */
+// loadGuestPwOverride();
 const slugify = s => (s||'').toLowerCase().trim()
   .replace(/[^a-zа-яїієґ0-9]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'x';
 async function sendRsvpToApp(guestId, response, extra){
