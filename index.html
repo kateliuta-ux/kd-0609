@@ -740,9 +740,9 @@
       </div>
 
       <div class="faq-q">🎁 Що дарувати?</div>
-      <div class="faq-a">Найдорожче для нас — що ви будете поруч, це вже подарунок.
-        Якщо все ж хочеться щось вручити — нам найбільше згодиться конвертик
-        на наші спільні мрії 💛 Але жодних очікувань: приходьте і святкуйте.</div>
+      <div class="faq-a" id="faq-gift-a">Будь ласка, <b>не заморочуйтесь із подарунком</b> 🙂
+        Найкращий набір від гостя: <b>конвертик</b> на наші спільні мрії (гроші — найзручніше),
+        <b>гарний настрій</b> і <b>дрес-код</b> 💛 Приходьте і святкуйте!</div>
 
       <div class="faq-q" id="faq-ticket-q">🌱 Що робити з квитком?</div>
       <div class="faq-a" id="faq-ticket-a"><b>Посадіть його!</b> Квиток-запрошення — справжній пакетик із насінням.
@@ -1041,7 +1041,7 @@ const FLOWERS_NOTE = 'Принесеш кілька живих квітів —\
    1) 'Ваша присутність — найкращий подарунок.\nА хто хоче потішити — будемо вдячні за конвертик\nна наші спільні мрії 💛'
    2) 'Подарунки не потрібні — приходьте самі 🤍\nЯкщо ж дуже хочеться — ми збираємо\nна наше спільне майбутнє.'
    3) 'Головне — ви поруч. Ніяких списків подарунків:\nхто захоче, той підтримає наш новий розділ 💌' */
-const GIFT_NOTE = 'Ваша присутність — найкращий подарунок.\nА хто хоче потішити — будемо вдячні за конвертик\nна наші спільні мрії 💛';
+const GIFT_NOTE = 'Не заморочуйтесь із подарунком:\nконвертик на спільні мрії, гарний настрій\nі дрес-код — ідеальний набір 💛';
 
 /* ---------------- досягнення 🏆 ---------------- */
 const ACHS = [
@@ -8648,6 +8648,10 @@ function applyLang(){
     'GAME BOY CAMERA <span>become a pixel at the wedding: face right in the oval, eyes and mouth on the lines</span>');
   const svgT=document.querySelectorAll('#selfie-screen svg text');
   if(svgT.length>=2){ svgT[0].textContent = E?'eyes':'очі'; svgT[1].textContent = E?'mouth':'рот'; }
+  const fga=document.getElementById('faq-gift-a');
+  if(fga) fga.innerHTML = E
+    ? 'Please <b>don\'t stress about a gift</b> 🙂 The perfect guest kit: an <b>envelope</b> for our shared dreams (money is easiest), a <b>great mood</b> and the <b>dress code</b> 💛 Come and celebrate!'
+    : 'Будь ласка, <b>не заморочуйтесь із подарунком</b> 🙂 Найкращий набір від гостя: <b>конвертик</b> на наші спільні мрії (гроші — найзручніше), <b>гарний настрій</b> і <b>дрес-код</b> 💛 Приходьте і святкуйте!';
   const ftq=document.getElementById('faq-ticket-q');
   if(ftq) ftq.textContent = E ? '🌱 What to do with the ticket?' : '🌱 Що робити з квитком?';
   const fta=document.getElementById('faq-ticket-a');
