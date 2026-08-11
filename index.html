@@ -250,7 +250,7 @@
     box-shadow:0 0 0 3px #000, 0 0 14px rgba(63,174,84,.75);animation:pulse-btn 1.6s ease-in-out infinite}
   /* хрестик виходу: липкий у кутку — видно завжди, навіть коли екран прокручено */
   /* лівий кут — праворуч живуть глобальні EN і звук */
-  #s-home{position:sticky;top:6px;align-self:flex-start;margin:0 0 -46px 6px;z-index:6;
+  #s-home, #ach-home{position:sticky;top:6px;align-self:flex-start;margin:0 0 -46px 6px;z-index:6;
     background:#55515f;font-size:17px;padding:.4em .65em;min-height:40px;opacity:.92}
   /* крок 2 (запис голосу): редакторські секції ховаються, лишається сітка + запис */
   #sampler-screen.voice .s-edit{display:none}
@@ -563,10 +563,11 @@
     <button class="btn s-btn" id="rating-back" style="background:#55515f">НАЗАД</button>
   </div>
 
-  <div id="ach-screen" class="overlay hidden" style="background:#14121c;gap:2%">
+  <div id="ach-screen" class="overlay hidden" style="background:#14121c;gap:10px;overflow-y:auto;justify-content:flex-start;padding:14px 0 24px">
+    <button class="btn" id="ach-home" title="закрити">✕</button>
     <div class="s-head">🏆 ДОСЯГНЕННЯ</div>
     <div id="ach-list" style="display:flex;flex-direction:column;gap:6px;width:min(88%,420px)"></div>
-    <button class="btn s-btn" id="ach-back" style="background:#55515f">НАЗАД</button>
+    <button class="btn" id="ach-back" style="background:#55515f;font-size:clamp(15px,3.6cqw,18px);padding:.55em 1.4em;margin-top:4px">← НАЗАД</button>
   </div>
 
 
@@ -8618,7 +8619,7 @@ function applyLang(){
     's-erase':       ['🧽 ГУМКА','🧽 ERASER'],
     's-mysave':      ['💾 ЗБЕРЕГТИ ПІСНЮ','💾 SAVE THE SONG'],
     'rating-back':   ['НАЗАД','BACK'],
-    'ach-back':      ['НАЗАД','BACK'],
+    'ach-back':      ['← НАЗАД','← BACK'],
     'selfie-back':   ['НАЗАД','BACK'],
     'selfie-file':   ['📁 З ГАЛЕРЕЇ','📁 FROM GALLERY'],
     'ts-donate':     ['🌻 Перейти до збору','🌻 Open the fundraiser'],
@@ -10949,6 +10950,7 @@ document.getElementById('ach-back').addEventListener('click', ()=>{
   document.getElementById('ach-screen').classList.add('hidden');
   elTitle.classList.remove('hidden');
 });
+document.getElementById('ach-home').addEventListener('click', ()=> document.getElementById('ach-back').click());
 
 /* ================= пасхалки ================= */
 /* код Konami — глобально */
