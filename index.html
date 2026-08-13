@@ -10526,7 +10526,9 @@ const TINDER_KIDS = /давід|георгій|ліка\b|яра\b|яруся/; 
 function buildPartyDeck(){
   const meNameLow = (localStorage.getItem('wed-player-name')||'').trim().toLowerCase();
   // 1) гості з фото (селфі) — завжди в колоді
-  const withPhoto = GUEST_FACES.filter(f=>!TINDER_KIDS.test((f.name||'').toLowerCase()))
+  const OWN_CARDS = new Set(['катя','дмитро']);          // молодят не свайпаємо — тіндер серед гостей
+  const withPhoto = GUEST_FACES.filter(f=>!TINDER_KIDS.test((f.name||'').toLowerCase())
+      && !OWN_CARDS.has((f.name||'').toLowerCase().trim()))
     .map(f => { const nm=(f.name||'гість весілля'); const real=(f.img&&f.img.src)||'';
     return {kind:'guest', name:nm, disp:niceName(nm), tag:'гість весілля', src:(real&&real.startsWith('data:'))?real:placeholderAvatar(niceName(nm))}; });
   // 2) без фото — лише ті, хто ВЖЕ ПРОЙШОВ гру (є в рейтингу): їх реально зустрінеш у грі
