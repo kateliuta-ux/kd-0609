@@ -11654,7 +11654,7 @@ function updateGateLocks(){
   const mb = document.getElementById('btn-moms');
   if(mb){
     const nm = ((typeof AUTH_GUEST!=='undefined' && AUTH_GUEST && AUTH_GUEST.name) || localStorage.getItem('wed-player-name') || '').toLowerCase();
-    const momsy = /мама|папа|тато|батьк|бабус/.test(nm) || (typeof DEV_MODE!=='undefined' && DEV_MODE);
+    const momsy = /мама|папа|тато|батьк|бабус|дядьк|тітк|хрещен/.test(nm) || (typeof DEV_MODE!=='undefined' && DEV_MODE);
     mb.classList.toggle('hidden', lock || !momsy);
   }
   try{ titleCountdown(); }catch(_){}
