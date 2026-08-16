@@ -8707,7 +8707,9 @@ function applyLang(){
   const wh=document.getElementById('watch-hint'); if(wh) wh.textContent = E?'🍿 WATCH MODE':'🍿 РЕЖИМ ПЕРЕГЛЯДУ';
   const skb=document.getElementById('skip-btn'); if(skb) skb.textContent = E?'⏭ scene':'⏭ сцену';
   const wp=document.getElementById('watch-play'); if(wp) wp.textContent = E?'▶ PLAY IT MYSELF':'▶ ГРАТИ САМ';
-  const hpB=document.getElementById('btn-haspass'); if(hpB) hpB.textContent = (typeof isAuthed==='function'&&isAuthed()) ? (E?'🔑 Not you? Switch guest':'🔑 Це не ти? Змінити гостя') : (E?'🔑 I have a password':'🔑 У мене є пароль');
+  const hpB=document.getElementById('btn-haspass'); if(hpB){
+    let authed=false; try{ authed=isAuthed(); }catch(_){}   // isAuthed/AUTH_GUEST оголошені нижче — при першому виклику ще TDZ
+    hpB.textContent = authed ? (E?'🔑 Not you? Switch guest':'🔑 Це не ти? Змінити гостя') : (E?'🔑 I have a password':'🔑 У мене є пароль'); }
   const vrB=document.getElementById('viber-rsvp'); if(vrB) vrB.textContent = E?'✍️ RSVP':'✍️ Відповісти';
   const slE=document.querySelector('#viber-card .v-slogan');
   if(slE) slE.textContent = E?'Be mutually beautiful!':'Будьте взаємно красивими!';
