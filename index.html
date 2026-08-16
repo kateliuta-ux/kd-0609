@@ -745,6 +745,10 @@
         Найкращий набір від гостя: <b>конвертик</b> на наші спільні мрії (гроші — найзручніше),
         <b>гарний настрій</b> і <b>дрес-код</b> 💛 Приходьте і святкуйте!</div>
 
+      <div class="faq-q">💐 А квіти?</div>
+      <div class="faq-a"><b>Не треба, будь ласка!</b> Букети ми не збираємо —
+        про декор подбали самі. Руки лишіть вільними для обіймів і танців 🤍</div>
+
       <div class="faq-q" id="faq-ticket-q">🌱 Що робити з квитком?</div>
       <div class="faq-a" id="faq-ticket-a"><b>Посадіть його!</b> Квиток-запрошення — справжній пакетик із насінням.
         Тільки спершу <b>відірвіть корінець</b> і збережіть його до <b>6 вересня</b> —
@@ -1036,7 +1040,6 @@ const SLOTS = {
       ics:{start:'20260906T162000', end:'20260906T235900', loc:'Хвильовий, Київ'}},
 };
 const DRESS_CODE = 'нео-етно';
-const FLOWERS_NOTE = 'Принесеш кілька живих квітів —\nз них разом зберемо декор простору 🌸';
 /* «що дарувати»: вони збирають гроші — формулюємо делікатно.
    Катя може переписати; ось три готові варіанти на вибір:
    1) 'Ваша присутність — найкращий подарунок.\nА хто хоче потішити — будемо вдячні за конвертик\nна наші спільні мрії 💛'
@@ -7887,9 +7890,9 @@ function finishGame(){
       ? 'Our parents asked, and so do we:<br>come celebrate with us 🍞'
       : 'Просили тато й мама, і ми просимо:<br>приходь до нас на свято 🍞') + '</i><br><br>';
   const more = LANG==='en'
-    ? '<br><span style="opacity:.6;font-size:.9em">dress code, flowers & the rest — in "Save the invitation" 💾</span>' +
+    ? '<br><span style="opacity:.6;font-size:.9em">dress code & the rest — in "Save the invitation" 💾</span>' +
       '<br><span style="opacity:.75;font-size:.9em">🌍 abroad? — this invitation is still for you: the ceremony will be streamed</span>'
-    : '<br><span style="opacity:.6;font-size:.9em">дрес-код, квіти й решта — у «Зберегти запрошення» 💾</span>' +
+    : '<br><span style="opacity:.6;font-size:.9em">дрес-код і решта — у «Зберегти запрошення» 💾</span>' +
       '<br><span style="opacity:.75;font-size:.9em">🌍 не в Україні? — це запрошення все одно для тебе: буде трансляція церемонії</span>';
   if(GUEST){
     const s = SLOTS[GUEST.slot];
@@ -7971,7 +7974,7 @@ document.getElementById('btn-ics').addEventListener('click', ()=>{
   const ics = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//katya-dima-wedding//UA',
     'BEGIN:VEVENT','UID:wedding-katya-dima-20260906', ...ev,
     'SUMMARY:Весілля Каті і Діми 🥂',
-    'DESCRIPTION:'+(DRESS_CODE!=='—' ? 'Дрес-код: '+DRESS_CODE+'. ' : '')+'Принеси кілька живих квітів для декору 🌸',
+    'DESCRIPTION:'+(DRESS_CODE!=='—' ? 'Дрес-код: '+DRESS_CODE+'. ' : '')+'Чекаємо на тебе 🥂',
     'END:VEVENT','END:VCALENDAR'].join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([ics], {type:'text/calendar'}));
@@ -8223,9 +8226,7 @@ function buildInvitationCard(){
     g.fillStyle = '#8a8272'; g.font = 'italic 21px Georgia, serif';
     g.fillText('вишиванка · намисто · вінок · пояс — як любиш', 360, y); y += 40;
   }
-  g.fillStyle = '#a8323c'; g.font = '22px Georgia, serif';
-  g.fillText('🌸 принеси кілька живих квітів — для декору', 360, y); y += 30;
-  g.fillText('з них зберемо декор свята', 360, y); y += 44;
+  y += 6;
   // «що дарувати» (делікатно — вони збирають гроші)
   g.fillStyle = '#6b6658'; g.font = 'italic 21px Georgia, serif';
   GIFT_NOTE.split('\n').forEach((ln,i)=>{ g.fillText((i===0?'🎁 ':'') + ln, 360, y); y += 27; });
