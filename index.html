@@ -8707,7 +8707,7 @@ function applyLang(){
   const wh=document.getElementById('watch-hint'); if(wh) wh.textContent = E?'🍿 WATCH MODE':'🍿 РЕЖИМ ПЕРЕГЛЯДУ';
   const skb=document.getElementById('skip-btn'); if(skb) skb.textContent = E?'⏭ scene':'⏭ сцену';
   const wp=document.getElementById('watch-play'); if(wp) wp.textContent = E?'▶ PLAY IT MYSELF':'▶ ГРАТИ САМ';
-  const hpB=document.getElementById('btn-haspass'); if(hpB) hpB.textContent = E?'🔑 I have a password':'🔑 У мене є пароль';
+  const hpB=document.getElementById('btn-haspass'); if(hpB) hpB.textContent = (typeof isAuthed==='function'&&isAuthed()) ? (E?'🔑 Not you? Switch guest':'🔑 Це не ти? Змінити гостя') : (E?'🔑 I have a password':'🔑 У мене є пароль');
   const vrB=document.getElementById('viber-rsvp'); if(vrB) vrB.textContent = E?'✍️ RSVP':'✍️ Відповісти';
   const slE=document.querySelector('#viber-card .v-slogan');
   if(slE) slE.textContent = E?'Be mutually beautiful!':'Будьте взаємно красивими!';
@@ -11659,8 +11659,11 @@ function updateGateLocks(){
     const b = document.getElementById(id);
     if(b){ b.style.display = lock ? 'none' : ''; b.dataset.locked = lock ? '1' : ''; }
   });
-  const hp = document.getElementById('btn-haspass');       // зворотний шлях: ввести пароль пізніше
-  if(hp) hp.style.display = lock ? '' : 'none';
+  const hp = document.getElementById('btn-haspass');       // зворотний шлях: ввести пароль пізніше / вийти з чужого
+  if(hp){ hp.style.display = '';
+    const E2 = (typeof LANG!=='undefined' && LANG==='en');
+    hp.textContent = lock ? (E2?'🔑 I have a password':'🔑 У мене є пароль')
+                          : (E2?'🔑 Not you? Switch guest':'🔑 Це не ти? Змінити гостя'); }
   const hint = document.getElementById('guest-hint');
   if(hint) hint.style.display = lock ? '' : 'none';
   const td = document.getElementById('title-date');       // дата й місто — теж лише для впізнаних
@@ -11720,10 +11723,11 @@ function gateAuth(g, greet){
   // супутник (+1) святкує там само, де його господар — зал беремо за іменем господаря
   if(g.host){ const hl=g.host.toLowerCase();
     localStorage.setItem('wed-venue-hint', GUEST_VENUE.some(x=>x.match.test(hl)) ? 'sofi' : 'khv'); }
+  else localStorage.removeItem('wed-venue-hint');   // щоб зал попереднього гостя не «прилипав» після зміни пароля
   localStorage.setItem('wed-pass-auth', g.id);
   localStorage.setItem('wed-player-name', g.name);
   localStorage.setItem('wed-gate-done','auth');
-  CENSORED = g.censor || CENSORED;
+  CENSORED = !!g.censor || (GUEST && GUEST.family) || PARAMS.get('v')==='family';   // за НОВИМ гостем (при зміні пароля теж)
   if(greet){
     document.getElementById('gate-status').textContent =
       '🎉 Привіт, '+(g.name.split(/\s+/)[0])+'! Тебе впізнано — персональне запрошення, тіндер і фото відкриті';
@@ -11755,7 +11759,11 @@ document.getElementById('gate-pass').addEventListener('keydown', e=>{ if(e.key==
   if(hp) hp.addEventListener('click', ()=>{
     try{ sessionStorage.removeItem('wed-gate-done'); localStorage.removeItem('wed-gate-done'); }catch(_){}
     const gs=document.getElementById('gate-screen');
-    document.getElementById('gate-status').textContent='';
+    const curName = (typeof AUTH_GUEST!=='undefined' && AUTH_GUEST && AUTH_GUEST.name) || '';
+    document.getElementById('gate-status').textContent = curName
+      ? (LANG==='en' ? 'now signed in as '+curName+' — enter YOUR password to switch'
+                     : 'зараз ти в грі як '+curName+' — введи СВІЙ пароль, і все стане твоїм')
+      : '';
     const inp=document.getElementById('gate-pass'); if(inp) inp.value='';
     gs.classList.remove('hidden');
     setTimeout(()=>{ try{ inp.focus(); }catch(_){} }, 80);
