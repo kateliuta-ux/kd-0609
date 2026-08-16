@@ -7991,6 +7991,12 @@ document.getElementById('btn-ics').addEventListener('click', ()=>{
 /* слот гостя: персональний код → інакше за іменем (дружки/родичі → Софі, решта → Хвильовий) */
 function mySlot(){
   if(GUEST) return SLOTS[GUEST.slot];                    // персональний код гостя
+  // впізнаний гість → локація за карткою (пароль/імʼя/+1) — як скрізь у грі
+  if(typeof isAuthed==='function' && isAuthed() && typeof venuePick==='function'){
+    const v = venuePick();
+    if(v==='sofi') return SLOTS.A;
+    if(v==='khv')  return SLOTS.B;
+  }
   const vh = localStorage.getItem('wed-venue-hint');     // посилання Софі / Хвильовий (?s=sofi|khv)
   if(vh==='sofi') return SLOTS.A;
   if(vh==='khv')  return SLOTS.B;
@@ -8138,8 +8144,14 @@ function buildInvitationCard(){
   // вітання — це запросини
   g.fillStyle = '#c99'; g.font = 'italic 20px Georgia, serif';
   g.fillText('~ наші запросини на весілля ~', 360, 150);
-  g.fillStyle = '#a8506a'; g.font = 'bold 27px Georgia, serif';
-  g.fillText(d.greeting ? (d.greeting + ', тебе кличуть! 🕊️') : 'тебе кличуть на весілля 🕊️', 360, 184);
+  // довгий рядок → звужуємо шрифт, щоб влазив у рамку
+  const fitLine = (txt, style, size, maxW)=>{ let s=size;
+    do{ g.font = style.replace('SZ', s+'px'); s--; } while(s>12 && g.measureText(txt).width > maxW);
+  };
+  g.fillStyle = '#a8506a';
+  const greet = d.greeting ? (d.greeting + ', тебе кличуть! 🕊️') : 'тебе кличуть на весілля 🕊️';
+  fitLine(greet, 'bold SZ Georgia, serif', 27, 620);
+  g.fillText(greet, 360, 184);
 
   // фото-голови у кружечках
   const heads = [['katya', 250], ['dima', 470]];
@@ -8178,10 +8190,13 @@ function buildInvitationCard(){
   // блок локації/часу
   let y = 770;
   if(d.hasSlot){
-    g.fillStyle = '#2b2b38'; g.font = 'bold 34px Georgia, serif';
+    g.fillStyle = '#2b2b38';
+    fitLine(d.where, 'bold SZ Georgia, serif', 34, 620);
     g.fillText(d.where, 360, y); y += 46;
-    g.fillStyle = '#4a4636'; g.font = '26px Georgia, serif';
+    g.fillStyle = '#4a4636';
+    fitLine(d.what, 'SZ Georgia, serif', 26, 620);
     g.fillText(d.what, 360, y); y += 38;
+    fitLine(d.when, 'SZ Georgia, serif', 26, 620);
     g.fillText(d.when, 360, y); y += 50;
   } else {
     g.fillStyle = '#4a4636'; g.font = '26px Georgia, serif';
