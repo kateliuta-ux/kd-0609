@@ -11704,7 +11704,16 @@ function findByPass(v){
   const h = RSVP_GUEST_LIST.find(x=> x.pass1 && x.pass1===v);
   if(h) return {id:h.id+'-p1', name:h.plus1, side:h.side, plus1:'', censor:h.censor,
                 pass:h.pass1, host:h.name};
-  return null;
+  // мʼякий збіг: 4≈a, 1≈i, 0≈o, 3≈e, b≈v — коли гість набрав слово літерами
+  // (кирилична розкладка мапить В→b) або 4 як «а»; приймаємо ЛИШЕ однозначний збіг
+  const canon = s => s.replace(/4/g,'a').replace(/1/g,'i').replace(/0/g,'o').replace(/3/g,'e').replace(/b/g,'v');
+  const cv = canon(v), hits = [];
+  for(const x of RSVP_GUEST_LIST){
+    if(x.pass && canon(x.pass)===cv) hits.push(x);
+    if(x.pass1 && canon(x.pass1)===cv)
+      hits.push({id:x.id+'-p1', name:x.plus1, side:x.side, plus1:'', censor:x.censor, pass:x.pass1, host:x.name});
+  }
+  return hits.length===1 ? hits[0] : null;
 }
 /* журнал входів: Катя бачить у DEV-панелі, хто вже відкривав своє запрошення */
 function logVisit(g){
