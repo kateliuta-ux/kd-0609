@@ -11367,7 +11367,7 @@ g1795000000019;Гість у Софі 19;К;;1;HORISH0K
 g1795000000020;Гість у Софі 20;К;;1;PALYANYTS4
 g1795000000021;Гріша;К;;0;SPOTYK4CH
 g1795000000022;Діма Савенко;Н;;0;MEDOVUKH4
-g1796000000001;Олександр (хлопець Насті Мітіної);Н;;0;KHRUSTYK
+g1796000000001;Олександр (хлопець Насті М.);Н;;0;KHRUSTYK
 g1796000000002;Андрій Черніченко;Н;Саша;0;KALYNK4;MAKIVK4
 g1795000000023;Марія R;Н;Микита;0;KHRINIVK4;KAB4CHOK
 g1795000000024;Анастасія Попович;Н;;0;SLYVYANK4
@@ -11429,7 +11429,8 @@ g1795000000083;Гість у Хвильовому 62;К;;0;SKUMBRI4
 g1795000000084;Гість у Хвильовому 63;К;;0;PSHONK4
 g1795000000085;Гість у Хвильовому 64;К;;0;MAMALYG4
 g1795000000086;Гість у Хвильовому 65;К;;0;KLYOTSK1
-g1795000000087;Гість у Хвильовому 66;К;;0;HOMBOVTS1`.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
+g1795000000087;Гість у Хвильовому 66;К;;0;HOMBOVTS1
+g1797000000001;Іра (Прага);К;Льоша;0;KNYSHYK;VERGUNYK`.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
   const p = l.split(';');
   const cl = s => (s||'').trim().toLowerCase().replace(/[^а-яіїєґa-z0-9ʼ']/g,'');
   return {id:(p[0]||'').trim(), name:(p[1]||'').trim(), side:(p[2]||'').trim(),
@@ -11748,6 +11749,45 @@ function gateAuth(g, greet){
     setTimeout(()=>{ document.getElementById('gate-screen').classList.add('hidden'); updateGateLocks(); }, 1600);
   }
   updateGateLocks();
+  setTimeout(songCallMaybe, greet ? 3200 : 2200);   // 🎶 оупен-кол плейлиста після входу
+}
+/* 🎶 Оупен-кол: збираємо весільний плейлист — питаємо пісню в кожного впізнаного,
+   поки не відповість. «Потім» → мовчимо до наступного заходу. Відповідь → база (kind song). */
+function songCallMaybe(){
+  try{
+    if(typeof isAuthed!=='function' || !isAuthed()) return;
+    if(typeof VIEW_MODE!=='undefined' && VIEW_MODE) return;
+    if(PARAMS.get('v')==='invite') return;                       // версію для старших не чіпаємо
+    if(localStorage.getItem('wed-song-sent') || sessionStorage.getItem('wed-song-later')) return;
+    if(document.getElementById('song-call')) return;
+    const nm = localStorage.getItem('wed-player-name')||'';
+    const box=document.createElement('div'); box.id='song-call';
+    box.style.cssText='position:fixed;inset:0;z-index:960;background:rgba(10,8,14,.92);display:flex;align-items:center;justify-content:center;padding:20px';
+    box.innerHTML = '<div style="background:linear-gradient(180deg,#241c2c,#1c1622);border:3px solid #e8c86a;border-radius:12px;max-width:340px;width:100%;padding:22px 18px;text-align:center;color:#e8e4f0;font-family:inherit">'+
+      '<div style="color:#f4cf5e;font-weight:bold;font-size:15px;margin-bottom:8px">'+T('🎶 Збираємо весільний плейлист!')+'</div>'+
+      '<div style="font-size:13px;line-height:1.6;margin-bottom:12px">'+T('Пісня, під яку ти точно танцюєш?')+'</div>'+
+      '<input id="song-call-in" type="text" maxlength="80" placeholder="'+T('гурт — пісня')+'" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:16px;padding:.55em;background:#f8f8f3;border:3px solid #000;color:#1a1a24;border-radius:6px">'+
+      '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px">'+
+      '<button class="btn katya" id="song-call-go">'+T('Додати 🎉')+'</button>'+
+      '<button class="btn small" id="song-call-later" style="background:#3a3646">'+T('потім')+'</button></div></div>';
+    document.body.appendChild(box);
+    document.getElementById('song-call-later').addEventListener('click', ()=>{ sessionStorage.setItem('wed-song-later','1'); box.remove(); });
+    document.getElementById('song-call-in').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('song-call-go').click(); });
+    document.getElementById('song-call-go').addEventListener('click', ()=>{
+      const v=(document.getElementById('song-call-in').value||'').trim();
+      if(!v) return;
+      if(!(typeof TEST_MODE!=='undefined' && TEST_MODE)){
+        try{ fetch(FS_BASE+'voice-tracks?key='+FB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({fields:{kind:{stringValue:'song'},name:{stringValue:nm},
+            gid:{stringValue:String((AUTH_GUEST&&AUTH_GUEST.id)||'')},song:{stringValue:v},
+            at:{integerValue:String(Date.now())}}})}); }catch(_){}
+      }
+      localStorage.setItem('wed-song-sent','1');
+      box.querySelector('div').innerHTML='<div style="color:#f4cf5e;font-weight:bold;font-size:15px">'+T('🎉 Дякуємо! Буде в плейлисті 💛')+'</div>';
+      try{ sfxScore(880); }catch(_){}
+      setTimeout(()=>box.remove(), 1500);
+    });
+  }catch(_){}
 }
 function gateTry(){
   const st = document.getElementById('gate-status');
