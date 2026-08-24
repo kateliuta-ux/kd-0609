@@ -12067,6 +12067,17 @@ function rsvpFinish(){
       if(ok) elRsvpQ.textContent = T('Дякуємо! Відповідь записано ✓ Можеш ще й:');
     });
   }
+  // повні відповіді (включно з піснею для плейлиста) — у базу, щоб не губились у чатах
+  if(!rsvp.quizSaved && !(typeof TEST_MODE!=='undefined' && TEST_MODE) && !(typeof VIEW_MODE!=='undefined' && VIEW_MODE)){
+    rsvp.quizSaved = true;
+    try{ fetch(FS_BASE+'voice-tracks?key='+FB.apiKey, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fields:{ kind:{stringValue:'quiz'},
+        name:{stringValue: localStorage.getItem('wed-player-name')||'' },
+        gid:{stringValue: String(gid||'')},
+        answers:{stringValue: rsvp.answers.join(' | ')},
+        song:{stringValue: rsvp.answers[2]||''},
+        at:{integerValue:String(Date.now())} }})}); }catch(_){}
+  }
   elRsvpSummary.textContent = rsvpText();
   elRsvpSummary.classList.remove('hidden');
   elRsvpOpts.innerHTML = '';
