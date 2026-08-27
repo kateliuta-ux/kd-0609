@@ -8218,7 +8218,9 @@ function buildInvitationCard(){
   y = Math.max(y, 928);
   if(DRESS_CODE && DRESS_CODE !== '—'){
     g.fillStyle = '#2b2b38'; g.font = 'bold 24px Georgia, serif';
-    g.fillText('дрес-код: ' + DRESS_CODE, 360, y); y += 18;
+    g.fillText('дрес-код: ' + DRESS_CODE, 360, y); y += 26;
+    g.fillStyle = '#8a8272'; g.font = 'italic 20px Georgia, serif';
+    g.fillText('нарядне що завгодно + аксесуар чи вишивка', 360, y); y += 6;
     // ── 8-бітні приклади: гості в кольорових вишиванках із намистом/вінками/поясами
     const gy = y+6;
     DRESS_FIGS.forEach((o,i)=> drawDressFig(g, 158+i*100, gy, 7, o));
