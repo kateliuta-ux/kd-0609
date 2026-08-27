@@ -11435,7 +11435,8 @@ g1795000000087;Гість у Хвильовому 66;К;;0;HOMBOVTS1
 g1797000000001;Іра (Прага);К;Льоша;0;KNYSHYK;VERGUNYK
 g1797000000002;Сергій;К;Аліна;1;KRENDELYK;PEREPICHK4
 g1797000000003;Хрещена Оля;К;;1;KVASOLYA
-g1797000000004;Алла;К;;1;TSYBULYA`.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
+g1797000000004;Алла;К;;1;TSYBULYA
+g1797000000005;Хрещеної син Павло;Н;;1;PLYATSYK`.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
   const p = l.split(';');
   const cl = s => (s||'').trim().toLowerCase().replace(/[^а-яіїєґa-z0-9ʼ']/g,'');
   return {id:(p[0]||'').trim(), name:(p[1]||'').trim(), side:(p[2]||'').trim(),
