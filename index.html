@@ -1035,6 +1035,7 @@ const TEST_MODE = PARAMS.has('test');
 if(TEST_MODE){ const tb = document.getElementById('test-badge'); if(tb) tb.classList.remove('hidden'); }
 const SLOTS = {
   A: {what:'Денна частина · церемонія', when:'6 вересня 2026 · збір 11:30, церемонія ~13:00', where:'«Бути Софі», Київ',
+      note:'⏳ Локація може змінитись — чекай оновлення від нас',      // Софі попередили, що можуть не прийняти
       ics:{start:'20260906T113000', end:'20260906T153000', loc:'Бути Софі, Київ'}},
   B: {what:'Вечірня частина · свято',   when:'6 вересня 2026 · збір 16:20, церемонія 18:00', where:'«Хвильовий», Київ',
       ics:{start:'20260906T162000', end:'20260906T235900', loc:'Хвильовий, Київ'}},
@@ -7384,7 +7385,7 @@ function drawNovel(){
     const blocks = [];
     if(v!=='khv') blocks.push(SLOTS.A);
     if(v!=='sofi') blocks.push(SLOTS.B);
-    const bh = 34 + blocks.length*30 + (DRESS_CODE!=='—'?14:0);
+    const bh = 34 + blocks.reduce((a,s)=> a+30+(s.note?12:0), 0) + (DRESS_CODE!=='—'?14:0);
     const by2 = 96;
     ctx.fillStyle='rgba(13,26,24,.82)'; ctx.fillRect(24,by2,W-48,bh);
     ctx.strokeStyle='rgba(150,196,178,.75)'; ctx.lineWidth=1.5; ctx.strokeRect(25,by2+1,W-50,bh-2);
@@ -7395,6 +7396,7 @@ function drawNovel(){
     blocks.forEach(s=>{
       ctx.fillStyle='#bff0d8'; ctx.font='bold 10px monospace'; ctx.fillText(s.where, W/2, ly);
       ctx.fillStyle='#ffe9a0'; ctx.font='bold 9px monospace'; ctx.fillText(s.what+' · '+s.when.replace('6 вересня 2026 · ',''), W/2, ly+12);
+      if(s.note){ ctx.fillStyle='#ffb3a7'; ctx.font='8px monospace'; ctx.fillText('⏳ локація уточнюється — чекай оновлення', W/2, ly+23); ly += 12; }
       ly += 30;
     });
     if(DRESS_CODE!=='—'){ ctx.fillStyle='#c9d9c4'; ctx.font='8px monospace'; ctx.fillText('дрес-код: '+DRESS_CODE, W/2, ly); }
@@ -7898,7 +7900,8 @@ function finishGame(){
     const s = SLOTS[GUEST.slot];
     title.textContent = niceName(GUEST.name) + '!';
     body.innerHTML = zaprosyny +
-      `<b>${T(s.what)}</b><br>${T(s.when)}<br>${T(s.where)}${surn}` + more;
+      `<b>${T(s.what)}</b><br>${T(s.when)}<br>${T(s.where)}` +
+      (s.note ? `<br><span style="color:#ffb3a7">${s.note}</span>` : '') + surn + more;
   } else {
     title.textContent = playerName
       ? (niceName(playerName).toUpperCase() + (LANG==='en'?', YOU ARE INVITED':', ТЕБЕ КЛИЧУТЬ'))
@@ -7906,7 +7909,7 @@ function finishGame(){
     const sl = mySlot();
     body.innerHTML = zaprosyny +
       (sl
-        ? `<b>${T(sl.what)}</b><br>${T(sl.when)}<br>${T(sl.where)}`
+        ? `<b>${T(sl.what)}</b><br>${T(sl.when)}<br>${T(sl.where)}` + (sl.note ? `<br><span style="color:#ffb3a7">${sl.note}</span>` : '')
         : (LANG==='en' ? 'September 6, 2026' : '6 вересня 2026')) +
       surn + more;
   }
@@ -8015,6 +8018,7 @@ function invitationData(){
     what: slot ? slot.what : '',
     when: slot ? slot.when : '6 вересня 2026',
     where: slot ? slot.where : '',
+    note: slot ? (slot.note||'') : '',
     hasSlot: !!slot,
   };
 }
@@ -8196,6 +8200,7 @@ function buildInvitationCard(){
     g.fillStyle = '#2b2b38';
     fitLine(d.where, 'bold SZ Georgia, serif', 34, 620);
     g.fillText(d.where, 360, y); y += 46;
+    if(d.note){ g.fillStyle = '#a8323c'; fitLine(d.note, 'italic SZ Georgia, serif', 24, 620); g.fillText(d.note, 360, y-8); y += 32; }
     g.fillStyle = '#4a4636';
     fitLine(d.what, 'SZ Georgia, serif', 26, 620);
     g.fillText(d.what, 360, y); y += 38;
@@ -8316,10 +8321,10 @@ let viberGender = 'f';                                       // 'f' жінка /
 let viberFrom = 'end';                                       // звідки відкрили (title/end)
 function viberVenue(){
   const s = mySlot();                                   // персональний код або слот за іменем гостя
-  if(s) return s.where + ' · ' + T(s.when);
+  if(s) return s.where + (s.note ? ' ('+s.note+')' : '') + ' · ' + T(s.when);
   // ?s= з візитівки → DEV-перегляд → за іменем впізнаного гостя
   const v = (typeof venuePick==='function') ? venuePick() : localStorage.getItem('wed-venue-hint');
-  if(v==='sofi') return '«Бути Софі», Софійська площа · ' + T('збір 11:30, церемонія ~13:00');
+  if(v==='sofi') return '«Бути Софі», Софійська площа (' + SLOTS.A.note + ') · ' + T('збір 11:30, церемонія ~13:00');
   if(v==='khv')  return '«Хвильовий», Київ · ' + T('збір 16:20, церемонія 18:00');
   // невпізнаний гість — без часу і місця, лише дата
   return LANG==='en' ? 'September 6, 2026' : '6 вересня 2026';
@@ -11436,7 +11441,8 @@ g1797000000001;Іра (Прага);К;Льоша;0;KNYSHYK;VERGUNYK
 g1797000000002;Сергій;К;Аліна;1;KRENDELYK;PEREPICHK4
 g1797000000003;Хрещена Оля;К;;1;KVASOLYA
 g1797000000004;Алла;К;;1;TSYBULYA
-g1797000000005;Хрещеної син Павло;Н;;1;PLYATSYK`.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
+g1797000000005;Хрещеної син Павло;Н;;1;PLYATSYK
+g1797000000006;Свєта Апрєльска;К;Женя Волинець;0;SHARLOTK4;KALYT4`.trim().split('\n').filter(l=>l.includes(';')).map(l=>{
   const p = l.split(';');
   const cl = s => (s||'').trim().toLowerCase().replace(/[^а-яіїєґa-z0-9ʼ']/g,'');
   return {id:(p[0]||'').trim(), name:(p[1]||'').trim(), side:(p[2]||'').trim(),
@@ -12466,11 +12472,13 @@ document.getElementById('btn-install').addEventListener('click', async ()=>{
     const dc = (typeof DRESS_CODE!=='undefined' && DRESS_CODE!=='—') ? DRESS_CODE : '';
     const dcRow = dc ? '<div class="si-row">👗 Дрес-код: <b>'+dc+'</b></div>' : '';
     const venue = (emoji,slot)=>'<div class="si-row">📍 <b>'+slot.where+'</b></div>'+
+      (slot.note ? '<div class="si-row" style="color:#e07a7a">'+slot.note+'</div>' : '')+
       '<div class="si-row">'+emoji+' '+slot.when+'</div>'+dcRow;
     if(s==='sofi')      el.innerHTML = venue('🕦', SLOTS.A);
     else if(s==='khv')  el.innerHTML = venue('🕓', SLOTS.B);
     else el.innerHTML =                                     // загальне посилання — обидві локації
       '<div class="si-row">💒 <b>'+SLOTS.A.where+'</b> · '+SLOTS.A.when.replace('6 вересня 2026 · ','')+'</div>'+
+      (SLOTS.A.note ? '<div class="si-row" style="color:#e07a7a">'+SLOTS.A.note+'</div>' : '')+
       '<div class="si-row">🎭 <b>'+SLOTS.B.where+'</b> · '+SLOTS.B.when.replace('6 вересня 2026 · ','')+'</div>'+
       '<div class="si-row" style="margin-top:2px">🗓 6 вересня 2026</div>'+dcRow;
   }
