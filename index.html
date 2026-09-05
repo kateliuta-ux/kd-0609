@@ -7647,6 +7647,10 @@ function updateDialog(){
 /* ================= керування ================= */
 const keys = {};
 addEventListener('keydown', e=>{
+  // якщо людина пише в полі (імʼя, пароль, пісня для плейлиста) — гра клавіші не перехоплює:
+  // інакше пробіл ішов у гру, а не в текст (гості не могли поставити пробіл)
+  const _t = e.target, _tag = ((_t && _t.tagName) || '').toLowerCase();
+  if(_tag==='input' || _tag==='textarea' || _tag==='select' || (_t && _t.isContentEditable)) return;
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
   if(e.repeat) return;
   keys[e.key] = true;
