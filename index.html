@@ -6442,6 +6442,8 @@ Object.assign(EN_DICT, {"«Штормклуб»": "'Stormclub'", "«Штормн
 Object.assign(EN_DICT, {"гості й Кітана сходяться на викуп 🥂": "guests & Kitana gather for the ransom 🥂", "ОБРЯД «ВЕРБОВА ДОЩЕЧКА» 🌿": "THE 'WILLOW PLANK' RITE 🌿", "наречену ведуть до нареченого — просто дивись": "the bride is led to the groom — just watch"});
 Object.assign(EN_DICT, {"ІСПИТ СТАРОСТІВ!": "THE ELDERS’ EXAM!", "Чим Діма пояснив, що не памʼятає ту зйомку 2021-го?": "How did Dima explain not remembering that 2021 shoot?", "Скільки повідомлень вони написали": "How many messages did they write", "за жовтень 2022 (місяць Лондона)?": "in October 2022 (the London month)?"});
 
+Object.assign(EN_DICT, {"Шановний пане чи пані": "Dear guest"});
+
 
 /* Сітком-заставка: полароїди з реальних фото у 8-біт, потім титр */
 // чи фото кольорове (ч/б нечитабельні — відкидаємо); результат кешується
@@ -6902,8 +6904,9 @@ function finishGame(){
       `<b>${T(s.what)}</b><br>${T(s.when)}<br>${T(s.where)}` +
       (s.note ? `<br><span style="color:#ffb3a7">${s.note}</span>` : '') + surn + more;
   } else {
-    title.textContent = playerName
-      ? (niceName(playerName).toUpperCase() + (LANG==='en'?', YOU ARE INVITED':', ТЕБЕ КЛИЧУТЬ'))
+    const nm = inviteName();                 // на відкритому сайті — без імен (див. inviteName)
+    title.textContent = nm
+      ? (nm.toUpperCase() + (LANG==='en'?', YOU ARE INVITED':', ТЕБЕ КЛИЧУТЬ'))
       : (LANG==='en'?'THE INVITATION':'ЗАПРОСИНИ');
     const sl = mySlot();
     body.innerHTML = zaprosyny +
@@ -7350,18 +7353,26 @@ function niceName(s){
     .replace(/\s{2,}/g,' ').trim();
   return shortSurname(base);
 }
-function inviteName(){ return niceName((GUEST&&GUEST.name)||localStorage.getItem('wed-player-name')||''); }
+/* Після весілля сайт відкритий для всіх. Звертання на імʼя лишилось тільки
+   для персонального посилання (?guest=…); випадковий відвідувач — і той, у кого
+   в браузері лишилось імʼя з часів паролів, — бачить нейтральне звертання. */
+const HELLO_NEUTRAL = 'Шановний пане чи пані';
+function inviteName(){
+  if(GUEST && GUEST.name) return niceName(GUEST.name);
+  try{ if(PUBLIC_MODE) return ''; }catch(_){}       // відкритий сайт — без імен
+  return niceName(localStorage.getItem('wed-player-name')||'');
+}
 function inviteHello(){
   const n=inviteName();
   if(n && n.toLowerCase()!=='гість') return n+'!';
-  return 'Сонечко, тебе чекаємо!';   // одна версія для всіх
+  return T(HELLO_NEUTRAL)+', вас чекаємо!';
 }
 function viberRefresh(){
   const n=inviteName();
   // стать за іменем гостя → «Дорогенька» (ж) / «Шановний пане» (ч) + відповідний стиль картки
   if(n && n.toLowerCase()!=='гість'){ viberGender = guestGender(n) || viberGender; }
   document.getElementById('viber-hello').textContent =
-    n && n.toLowerCase()!=='гість' ? (vset().hello+', '+n+'!') : vset().hello+'!';
+    n && n.toLowerCase()!=='гість' ? (vset().hello+', '+n+'!') : T(HELLO_NEUTRAL)+'!';
   const vv = viberVenue();
   document.getElementById('viber-venue').textContent = vv;
   document.getElementById('viber-venue').style.display = vv ? '' : 'none';
@@ -7446,7 +7457,7 @@ function buildViberCard(){
   // ── тексти ──
   g.textAlign='center';
   g.fillStyle = male?'#d8e4f0':'#c02a7a';
-  { const n=inviteName(); const hn = n && n.toLowerCase()!=='гість' ? (vset().hello+', '+n+'!') : vset().hello+'!';
+  { const n=inviteName(); const hn = n && n.toLowerCase()!=='гість' ? (vset().hello+', '+n+'!') : T(HELLO_NEUTRAL)+'!';
     g.font = 'italic ' + (hn.length>22?24:hn.length>15?28:32) + 'px Georgia, serif'; g.fillText(hn, 360, 196); }
   // каліграфічний заголовок із золотим градієнтом
   const grad = g.createLinearGradient(0,215,0,340);
