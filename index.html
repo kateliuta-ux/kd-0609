@@ -7794,6 +7794,14 @@ document.getElementById('skip-btn').addEventListener('pointerdown', e=>{ e.preve
 
 /* ================= стани / UI ================= */
 const elTitle = document.getElementById('title-screen');
+/* Головне меню НІКОЛИ не показуємо поверх живої гри.
+   Якщо якийсь екран (селфі, семплер, плейлист, рейтинг…) закрився під час гри —
+   просто повертаємось у сцену, а не в меню. Інакше меню висить над діалогом. */
+function showTitleScreen(){
+  if(game.state==='play' || game.state==='novel'){ updateHudAndControls(); return false; }
+  elTitle.classList.remove('hidden');
+  return true;
+}
 const elEnd = document.getElementById('end-screen');
 const elHud = document.getElementById('hud');
 
@@ -8389,7 +8397,7 @@ function closeViber(){
   clearInterval(viberSpark); viberSpark = null;
   stopChip();
   document.getElementById('viber-invite').classList.add('hidden');
-  if(viberFrom==='title'){ elTitle.classList.remove('hidden'); return; }
+  if(viberFrom==='title'){ showTitleScreen(); return; }
   document.getElementById('end-screen').classList.remove('hidden');
 }
 document.getElementById('btn-viber').addEventListener('click', ()=>{ if(!isAuthed()){ gateLockedMsg('invite'); return; } openViber(false); });
@@ -8563,7 +8571,7 @@ function identityChosen(){
   const ng = document.getElementById('name-go'); if(ng) ng.textContent = LANG==='en' ? 'PLAY ▶' : 'ГРАТИ ▶';
   document.getElementById('name-screen').classList.add('hidden');
   const box=document.getElementById('name-suggest'); if(box) box.innerHTML='';
-  offerSelfieThen(()=>{ elTitle.classList.remove('hidden'); });
+  offerSelfieThen(()=>{ showTitleScreen(); });
 }
 document.querySelectorAll('#title-screen .btn[data-pov]').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -10277,7 +10285,7 @@ document.getElementById('pl-back').addEventListener('click', ()=>{
   document.getElementById('playlist-screen').classList.add('hidden');
   if(document.getElementById('playlist-screen').dataset.from === 'sampler')
     document.getElementById('sampler-screen').classList.remove('hidden');
-  else elTitle.classList.remove('hidden');
+  else showTitleScreen();
 });
 let samplerStory = false;                 // семплер відкрито зсередини історії (сцена гурту)
 /* ── крок 2: запис голосу як окремий етап (сітка лишається видимою — біт видно) ── */
@@ -10333,7 +10341,7 @@ document.getElementById('s-back').addEventListener('click', ()=>{
   } else if(window._fromStub && window.reshowStub && window.reshowStub()){
     window._fromStub = false;             // до релізу: із семплера — назад у заглушку, не в гру
   } else {
-    elTitle.classList.remove('hidden');
+    showTitleScreen();
   }
 });
 document.getElementById('btn-sampler').addEventListener('click', ()=>{
@@ -10412,7 +10420,7 @@ function closeSelfie(toEnd){
     const g = selfieOfferGo; selfieOfferGo = null; g(); return;
   }
   if(toEnd && game.state==='end') document.getElementById('end-screen').classList.remove('hidden');
-  else if(toEnd) elTitle.classList.remove('hidden');
+  else if(toEnd) showTitleScreen();          // у живій грі — назад у сцену, не в меню
 }
 // --- конвертація кадру в Game Boy: сіре + автоконтраст + Bayer-дизеринг у 4 бірюзові тони ---
 const GB_BAYER = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
@@ -10995,7 +11003,7 @@ document.getElementById('rating-btn').addEventListener('click', openLeaderboard)
 document.getElementById('rating-back').addEventListener('click', ()=>{
   document.getElementById('rating-screen').classList.add('hidden');
   if(game.state==='end') document.getElementById('end-screen').classList.remove('hidden');
-  else elTitle.classList.remove('hidden');
+  else showTitleScreen();
 });
 
 /* ================= панель досягнень ================= */
@@ -11032,7 +11040,7 @@ document.getElementById('ach-btn').addEventListener('click', ()=>{
 });
 document.getElementById('ach-back').addEventListener('click', ()=>{
   document.getElementById('ach-screen').classList.add('hidden');
-  elTitle.classList.remove('hidden');
+  showTitleScreen();
 });
 document.getElementById('ach-home').addEventListener('click', ()=> document.getElementById('ach-back').click());
 
@@ -12300,6 +12308,9 @@ function quizFinish(){
 const STEP_MS = 1000/60;
 let _lastT = null, _acc = 0;
 function loop(now){
+  // страховка від глюка «меню поверх гри»: поки гра жива — титулка завжди схована
+  if((game.state==='play' || game.state==='novel') && !elTitle.classList.contains('hidden'))
+    elTitle.classList.add('hidden');
   if(_lastT === null) _lastT = now;
   _acc += now - _lastT; _lastT = now;
   if(_acc > 250) _acc = 250;               // після фонової вкладки не наздоганяємо лавиною
