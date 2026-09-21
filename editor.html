@@ -113,7 +113,6 @@
 <nav>
   <button data-tab="mech" class="on">Механіки гри</button>
   <button data-tab="app">Екрани застосунку</button>
-  <button data-tab="novel">Історія без ігор</button>
   <button data-tab="scenar">Сценарій і тексти</button>
   <button data-tab="guests">Гості й паролі</button>
   <button data-tab="elements">Що малювати</button>
@@ -211,19 +210,7 @@ const APP_SCENES = [
   ['app-stream','Трансляція /stream','сторінка для тих, хто не в Україні'],
   ['app-zbir','Збір на ЗСУ /zbir','сторінка збору'],
 ];
-const NOVEL_SCENES = [
-  ['n-gbvisual','🕹 Game Boy-вигляд (весь режим)','загальний ретро-стиль «Історії без ігор»: палітра/колір, рамка-екран, болванчики-голови, вид згори. Впиши й намалюй, яким він має бути замість теперішнього (він поки дивний)'],
-  ['n-cap1','Ч.1 Вечорниці','Київ 2021, офіс, зйомка — як познайомились'],
-  ['n-tinder','Ч.2 Тіндер і війна','свайп через прірву, перше повідомлення'],
-  ['n-date','Ч.3 Побачення','Пейзажка, пиво, серце'],
-  ['n-kitana','Ч.4 Кітана','кішка з Білогородки'],
-  ['n-svat','Ч.5 Свати','хата, традиція'],
-  ['n-prop','Ч.6 Освідчення','каюта, «так» до крапки'],
-  ['n-diia','Ч.7 Дія','прізвище'],
-  ['n-vykup','Ч.8 Викуп','стрічка, дружки'],
-  ['n-wed','Ч.9 Весілля','два фінали'],
-  ['n-credits','Титри','подяки'],
-];
+const NOVEL_SCENES = [];                 // режим «Історія без ігор» прибрано з проєкту
 
 /* ───────────────────────── збереження ───────────────────────── */
 const LS_KEY = 'wed-editor-v1';
@@ -321,13 +308,9 @@ const SCENE2SEC = {                       // сцена гри → секція 
   battle:'sec7', tetris:'sec8', ping:'sec8', kitana:'sec9', svat:'sec10',
   secret:'sec11', prop:'sec12', chess:'sec12', fingers:'sec12', rummage:'sec11',
   diia:'sec13', vykup:'sec14', wed:'sec15', credits:'sec16', invite:'sec16', quiz:'sec17',
-  // «Історія без ігор» — ті самі сцени, свої картки
-  'n-gbvisual':'sec18', 'n-cap1':'sec1', 'n-tinder':'sec4', 'n-date':'sec6', 'n-kitana':'sec9',
-  'n-svat':'sec10', 'n-prop':'sec12', 'n-diia':'sec13', 'n-vykup':'sec14', 'n-wed':'sec15',
-  'n-credits':'sec16'
 };
 let focusScene = (new URLSearchParams(location.search).get('scene')||'').trim();
-const VALID_TABS=['mech','app','novel','scenar','guests','elements','refphoto','sent'];
+const VALID_TABS=['mech','app','scenar','guests','elements','refphoto','sent'];
 let tab = (new URLSearchParams(location.search).get('tab')||'mech');
 if(!VALID_TABS.includes(tab)) tab='mech';
 function setActiveNav(){ document.querySelectorAll('nav button').forEach(x=> x.classList.toggle('on', x.dataset.tab===tab)); }
@@ -427,7 +410,7 @@ const ELEMENT_GROUPS = [
    ['el-w-parts','Назви частин','«ЧАСТИНА ПЕРША…ШОСТА»'],
    ['el-w-chapters','Назви глав','Вечорниці · Тіндер · Побачення · Кітана · Свати · Освідчення · Дія · Викуп · Весілля'],
    ['el-w-credits','«Титри / Дякуємо»',''],
-   ['el-w-menu','Кнопки меню','Нова гра · Історія без ігор · Семплер · Додай себе · Тіндер · Моє запрошення'],
+   ['el-w-menu','Кнопки меню','Нова гра · Семплер · Додай себе · Тіндер · Моє запрошення'],
    ['el-w-sampler','«СЕМПЛЕР» / «ПЛЕЙЛИСТ» / «РЕЙТИНГ»','заголовки екранів'],
    ['el-w-notarius','Вивіска «НОТАРІУС»','неон у Хвильовому'],
    ['el-w-sofi','«Бути Софі»','вивіска локації'],
@@ -670,7 +653,7 @@ function render(){
       : tab==='mech'
       ? 'Кожен рівень гри: познач статус, впиши що змінити, намалюй як має виглядати (планшет із натиском працює). '+
         'Фото: зроби скріншот сцени в грі і додай — можна малювати прямо поверх нього.'
-      : '«Історія без ігор» — режим-кіно в стилі Game Boy. Перша картка — правка самого <b>Game Boy-вигляду</b> (колір/рамка/болванчики). Далі — по главах: впиши як має звучати глава, додай/намалюй картинку на заміну.';
+      : '';
     main.appendChild(h);
     list.forEach(([id,t,d])=> main.appendChild(sceneCard(id,t,d,tab==='novel')));
   }
