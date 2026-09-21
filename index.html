@@ -8336,11 +8336,25 @@ function viberVenue(){
 }
 /* У запрошенні — саме імʼя, без наших службових позначок
    («Сусідка Юля» → «Юля», «Яна (джиу-джитсу)» → «Яна») */
+/* ролі, після яких далі йде саме імʼя, а не прізвище: «Дядя Саша» лишається як є */
+const NAME_ROLES = /^(мама|папа|тато|батько|бабуся|дідусь|дядько|дядя|тітка|тьотя|брат|сестра|хрещена|хрещений|хрещеної|сусідка|сусід|кума|кум)$/i;
+/* прізвище показуємо лише першою літерою: «Дмитро Плахотній» → «Дмитро П.»
+   (прохання Каті, вересень 2026 — сайт відкритий для всіх) */
+function shortSurname(s){
+  const w = String(s||'').trim().split(/\s+/).filter(Boolean);
+  if(w.length < 2) return w.join(' ');
+  const keep = NAME_ROLES.test(w[0]) ? 2 : 1;         // «Мама Леся Синявська» → «Мама Леся С.»
+  if(w.length <= keep) return w.join(' ');
+  const last = w[w.length-1];
+  if(last.length <= 2 || /\.$/.test(last)) return w.join(' ');   // «Марія R» вже коротке
+  return w.slice(0, w.length-1).join(' ') + ' ' + last[0].toUpperCase() + '.';
+}
 function niceName(s){
-  return String(s||'')
+  const base = String(s||'')
     .replace(/\s*\([^)]*\)+/g, '')                 // (джиу-джитсу), (бікер)
     .replace(/^\s*(Сусідка|Сусід)\s+/i, '')         // Сусідка Юля → Юля
     .replace(/\s{2,}/g,' ').trim();
+  return shortSurname(base);
 }
 function inviteName(){ return niceName((GUEST&&GUEST.name)||localStorage.getItem('wed-player-name')||''); }
 function inviteHello(){
@@ -8572,7 +8586,7 @@ function renderNameSuggest(q){
   }).slice(0, 7);
   hits.forEach(g=>{
     const btn = document.createElement('button');
-    btn.className='btn small'; btn.style.background='#2b2b38'; btn.textContent = g.name;
+    btn.className='btn small'; btn.style.background='#2b2b38'; btn.textContent = niceName(g.name);
     btn.addEventListener('click', ()=> pickGuestAndPlay(g));
     box.appendChild(btn);
   });
@@ -9722,7 +9736,7 @@ document.getElementById('s-lib').addEventListener('click', async ()=>{
   } else {
     activeGuestSample = list[guestSampleIdx % list.length];
     document.getElementById('s-wave').textContent='ІНСТР.: 🎁 '+activeGuestSample.name.split(/\s+/)[0].toUpperCase().slice(0,10);
-    st.textContent=T('звук гостя: ')+activeGuestSample.name+T(' — малюй ним ноти 🎶');
+    st.textContent=T('звук гостя: ')+niceName(activeGuestSample.name)+T(' — малюй ним ноти 🎶');
   }
   smpWaveIdx = SMP_WAVES.findIndex(w=>w[0]==='smp'); SMP.wave='smp';
   ensureAudio(); playNote(523.25, audioCtx.currentTime, 0.5, 'smp', 0.07);
@@ -9820,7 +9834,6 @@ async function saveVoiceTrack(author, blob, pattern, sampleB64, email){
       pattern:{stringValue:pattern||''},
       mime:{stringValue:blob.type||'audio/webm'}, at:{integerValue:String(Date.now())},
     };
-    if(email) fields.email = {stringValue:email};
     if(sampleB64) fields.sample = {stringValue:sampleB64};   // записаний звук-інструмент їде з піснею
     const r = await fetch(FS_BASE+'voice-tracks?key='+FB.apiKey, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -10120,7 +10133,8 @@ async function saveTrack(author, pattern, sampleB64, email){
       author:{stringValue:author}, pattern:{stringValue:pattern},
       at:{integerValue:String(Date.now())},
     };
-    if(email) fields.email = {stringValue:email};
+    // імейл у трек більше не пишемо: збір донатів завершився разом із весіллям,
+    // а колекція треків читається відкрито (вересень 2026)
     if(sampleB64) fields.sample = {stringValue:sampleB64};   // записаний звук їде разом із треком
     const r = await fetch(FS_BASE+'sampler-tracks?key='+FB.apiKey, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -10238,7 +10252,7 @@ async function openPlaylist(fromSampler){
     const wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-direction:column;gap:3px;width:100%';
     const row=document.createElement('button'); row.className='btn';
     row.style.cssText='background:'+(kind==='voice'?'#3a2f42':'#2b2b38')+';display:flex;justify-content:space-between;gap:8px;width:100%';
-    row.innerHTML='<span>▶ '+t.author.replace(/</g,'&lt;')+'</span><span style="opacity:.7">'+(isC?'🎟 ':'')+(kind==='voice'?T('🎤 пісня'):'🎹')+'</span>';
+    row.innerHTML='<span>▶ '+niceName(t.author).replace(/</g,'&lt;')+'</span><span style="opacity:.7">'+(isC?'🎟 ':'')+(kind==='voice'?T('🎤 пісня'):'🎹')+'</span>';
     row.addEventListener('click', ()=> kind==='voice'? playVoiceTrack(t,row) : plPlayPattern(t,row));   // чуже — тільки слухати
     wrap.appendChild(row);
     if(DEV_MODE){
@@ -12064,7 +12078,7 @@ function rsvpShow(){
       if(q.length >= 1){
         RSVP_GUEST_LIST.filter(g=>{ if(/^Гість у /.test(g.name)) return false; const n=g.name.toLowerCase(); return n.includes(q) || n.split(/\s+/).some(w=>w.startsWith(q)); })
           .slice(0, 5).forEach(g=>{
-            const b = document.createElement('button'); b.className='btn'; b.style.background='#2b2b38'; b.textContent = g.name;
+            const b = document.createElement('button'); b.className='btn'; b.style.background='#2b2b38'; b.textContent = niceName(g.name);
             b.addEventListener('click', ()=> pick(g)); elRsvpOpts.appendChild(b);
           });
       }
