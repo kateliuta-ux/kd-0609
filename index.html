@@ -9204,6 +9204,29 @@ function plPlayPattern(t, rowEl){
     if(col===0 && ++loops>=2) plStopPattern();               // два кола — і тиша
   }, stepMs);
 }
+/* Один автор — один трек у плейлисті.
+   Імена гості писали по-різному («Настя Мітіна» / «Nastia Mitina», «Ря»),
+   тож зводимо кожне до латинського ключа, а нікнейми — через PL_ALIAS. */
+const PL_TRANSL = {'а':'a','б':'b','в':'v','г':'h','ґ':'g','д':'d','е':'e','є':'ie','ж':'zh','з':'z',
+  'и':'y','і':'i','ї':'i','й':'i','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s',
+  'т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ь':'','ъ':'','ы':'y',
+  'э':'e','ё':'e','ю':'iu','я':'ia'};
+const PL_ALIAS = {'ria':'iuliariabukhina'};          // «Ря» — це Юля Рябухіна (звірено за імейлом)
+function authorKey(s){
+  let v = String(s||'').toLowerCase().replace(/\(.*?\)/g,' ').trim();
+  v = v.replace(/[\u0400-\u04FF]/g, ch => (PL_TRANSL[ch]!==undefined ? PL_TRANSL[ch] : ch));
+  v = v.replace(/[^a-z]/g,'');
+  return PL_ALIAS[v] || v;
+}
+/* для показу беремо найповніше написання імені серед усіх записів автора */
+function bestNames(list){
+  const m = {};
+  list.forEach(t=>{ const k=authorKey(t.author), n=(t.author||'').trim(); if(!k||!n) return;
+    const cur = m[k];
+    const cyr = x => /[\u0400-\u04FF]/.test(x);
+    if(!cur || (cyr(n) && !cyr(cur)) || (cyr(n)===cyr(cur) && n.length>cur.length)) m[k]=n; });
+  return m;
+}
 async function openPlaylist(fromSampler){
   document.getElementById('sampler-screen').classList.add('hidden');
   elTitle.classList.add('hidden');
@@ -9214,29 +9237,35 @@ async function openPlaylist(fromSampler){
   const st = document.getElementById('pl-status');
   list.innerHTML = ''; st.textContent = T('завантажую…');
   const tracks = await loadTracks();
-  const voices = await loadVoiceTracks();
+  let voices = await loadVoiceTracks();
   CONFIRMED_EMAILS = await loadConfirms();
   if(!tracks && !voices.length){ st.textContent = T('плейлист ще не відкрито — зазирни пізніше 🎶'); return; }
   if((!tracks || !tracks.length) && !voices.length){ st.textContent = T('поки порожньо. Стань першим автором!'); return; }
   /* один автор — один трек: коли людина записала пісню ЗІ СЛОВАМИ,
      її ранішу версію без слів у плейлисті не показуємо (з бази не видаляємо). */
-  const sungKeys = new Set();
-  voices.forEach(t=>{
-    const e=(t.email||'').trim().toLowerCase(); if(e) sungKeys.add('e:'+e);
-    const a=(t.author||'').trim().toLowerCase(); if(a) sungKeys.add('a:'+a);
+  const NAMES = bestNames((tracks||[]).concat(voices));
+  const sungKeys = new Set(), seenVoice = new Set();
+  const songs = voices.filter(t=>{                 // і серед пісень — один автор один раз
+    const k = authorKey(t.author), e=(t.email||'').trim().toLowerCase();
+    if(e) sungKeys.add('e:'+e);
+    if(k) sungKeys.add(k);
+    if(k && seenVoice.has(k)) return false;
+    if(k) seenVoice.add(k);
+    return true;
   });
-  const seenPat = new Set();
-  const patterns = (tracks||[]).filter(t=>{
-    const e=(t.email||'').trim().toLowerCase(), a=(t.author||'').trim().toLowerCase();
-    if((e && sungKeys.has('e:'+e)) || (a && sungKeys.has('a:'+a))) return false;  // є пісня зі словами
-    const sig = a+'|'+(t.pattern||'');            // та сама мелодія того ж автора, збережена двічі
-    if(seenPat.has(sig)) return false;
-    seenPat.add(sig); return true;
+  const seenAuthor = new Set();
+  const patterns = (tracks||[]).filter(t=>{        // інструменталки — лише де голосу немає
+    const k = authorKey(t.author), e=(t.email||'').trim().toLowerCase();
+    if((k && sungKeys.has(k)) || (e && sungKeys.has('e:'+e))) return false;
+    if(k){ if(seenAuthor.has(k)) return false; seenAuthor.add(k); }
+    return true;
   });
-  const hiddenCount = (tracks?tracks.length:0) - patterns.length;
+  voices = songs;
   const total = patterns.length + voices.length;
-  st.textContent = total + ' твор' + (total===1?'':'и'+(total<5?'':'ів')) + ' від гостей'
-    + (hiddenCount ? ' · '+hiddenCount+(hiddenCount===1?' інструменталку сховано':' інструменталок сховано')+' — автори переспівали їх зі словами' : '')
+  const plTvir = n => { const a=n%100, b=n%10;
+    if(a>=11&&a<=14) return 'творів'; if(b===1) return 'твір'; if(b>=2&&b<=4) return 'твори'; return 'творів'; };
+  st.textContent = total + ' ' + plTvir(total) + ' від гостей'
+    + ' · один автор — один трек, з голосом важливіший'
     + (DEV_MODE?' · 🎛 підтверджуй донати нижче':'');
   const addRow = (t, kind)=>{
     const em=(t.email||'').trim().toLowerCase();
@@ -9244,7 +9273,7 @@ async function openPlaylist(fromSampler){
     const wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-direction:column;gap:3px;width:100%';
     const row=document.createElement('button'); row.className='btn';
     row.style.cssText='background:'+(kind==='voice'?'#3a2f42':'#2b2b38')+';display:flex;justify-content:space-between;gap:8px;width:100%';
-    row.innerHTML='<span>▶ '+niceName(t.author).replace(/</g,'&lt;')+'</span><span style="opacity:.7">'+(isC?'🎟 ':'')+(kind==='voice'?T('🎤 пісня'):'🎹')+'</span>';
+    row.innerHTML='<span>▶ '+niceName(NAMES[authorKey(t.author)]||t.author).replace(/</g,'&lt;')+'</span><span style="opacity:.7">'+(isC?'🎟 ':'')+(kind==='voice'?T('🎤 пісня'):'🎹')+'</span>';
     row.addEventListener('click', ()=> kind==='voice'? playVoiceTrack(t,row) : plPlayPattern(t,row));   // чуже — тільки слухати
     wrap.appendChild(row);
     if(DEV_MODE){
