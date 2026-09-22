@@ -6453,7 +6453,7 @@ function isColorful(img){
 function sitcomFrames(){
   // ТІЛЬКИ кольорові базові + спільні фото гостей (кожне з підписом)
   return SITCOM_PH.filter(isColorful).map(img=>({img, cap:null}))
-    .concat(SITCOM_EXTRA.map(m=>({img:m.img, cap:m.name})));
+    .concat(SITCOM_EXTRA.map(m=>({img:m.img, cap:niceName(m.name)})));
 }
 function drawSitcom(){
   ctx.fillStyle = '#0e0c14'; ctx.fillRect(0,0,W,H);
@@ -7333,16 +7333,14 @@ function viberVenue(){
    («Сусідка Юля» → «Юля», «Яна (джиу-джитсу)» → «Яна») */
 /* ролі, після яких далі йде саме імʼя, а не прізвище: «Дядя Саша» лишається як є */
 const NAME_ROLES = /^(мама|папа|тато|батько|бабуся|дідусь|дядько|дядя|тітка|тьотя|брат|сестра|хрещена|хрещений|хрещеної|сусідка|сусід|кума|кум)$/i;
-/* прізвище показуємо лише першою літерою: «Дмитро Плахотній» → «Дмитро П.»
+/* Гостя називаємо тільки на імʼя: прізвище й ініціал прибираємо зовсім —
+   «Анастасія Попович» → «Анастасія», «Марія R» → «Марія»,
+   «Мама Леся Синявська» → «Мама Леся» (роль лишається).
    (прохання Каті, вересень 2026 — сайт відкритий для всіх) */
 function shortSurname(s){
   const w = String(s||'').trim().split(/\s+/).filter(Boolean);
-  if(w.length < 2) return w.join(' ');
-  const keep = NAME_ROLES.test(w[0]) ? 2 : 1;         // «Мама Леся Синявська» → «Мама Леся С.»
-  if(w.length <= keep) return w.join(' ');
-  const last = w[w.length-1];
-  if(last.length <= 2 || /\.$/.test(last)) return w.join(' ');   // «Марія R» вже коротке
-  return w.slice(0, w.length-1).join(' ') + ' ' + last[0].toUpperCase() + '.';
+  const keep = NAME_ROLES.test(w[0]) ? 2 : 1;
+  return w.slice(0, keep).join(' ');
 }
 function niceName(s){
   const base = String(s||'')
