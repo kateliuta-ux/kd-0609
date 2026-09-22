@@ -506,13 +506,17 @@ function shoot(){ // спалах + бліп
   $('flick').classList.remove('go'); void $('flick').offsetWidth; $('flick').classList.add('go');
 }
 async function saveKadr(data){
-  $('status').textContent='проявляю кадр…';
+  // Після весілля камери закриті: галерею видно, нові кадри не приймаємо (вересень 2026)
+  $('status').textContent='плівка закінчилась 🎞 камери працювали на весіллі, 6 вересня. Кадри нижче — усе, що вони зняли.';
+  return;
+  /* eslint-disable no-unreachable */
   try{
     const body={fields:{ kind:{stringValue:'kadr'}, task:{stringValue:T}, image:{stringValue:data}, at:{integerValue:String(Date.now())} }};
     const r=await fetch(FS+'voice-tracks?key='+FB.apiKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(r.ok){ await loadAll(); refreshCounter(); renderRoll(); $('status').textContent='📸 клац! кадр знято — унизу він уже видно негативом, проявимо 7 вересня 🤍'; }
     else $('status').textContent='не вдалося — спробуй ще раз';
   }catch(err){ $('status').textContent='немає звʼязку — спробуй пізніше'; }
+  /* eslint-enable no-unreachable */
 }
 async function takeShot(){
   if(taskCount(T)>=CAP){ $('status').textContent='катушку вже відзнято 🎞'; return; }
