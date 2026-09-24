@@ -794,7 +794,7 @@
   </div>
 
   <div id="party-screen" class="overlay hidden" style="background:#14121c;gap:12px">
-    <div class="s-head">ТІНДЕР <span>гортай гостей весілля · метч = привітатися 6 вересня 🥂</span></div>
+    <div class="s-head">ТІНДЕР <span>гортай гостей весілля · взаємний лайк = метч 🥂</span></div>
     <div id="party-stack"></div>
     <div id="party-empty" class="hidden"></div>
     <div id="party-actions" style="display:flex;gap:26px;justify-content:center;align-items:center">
@@ -6805,7 +6805,7 @@ function setPhase(p){
   game.phase = p; game.phaseT = 0;
   // 📸 кнопка «додай фото» — лише в епізоді тіндера, лише впізнаним, лише в живій грі
   try{ const sb=document.getElementById('game-selfie-btn');
-    if(sb) sb.classList.toggle('hidden', !(['tinder','swipe','match'].includes(p) && !game.watch && isAuthed())); }catch(_){}
+    if(sb) sb.classList.toggle('hidden', !(['tinder','swipe','match'].includes(p) && !game.watch && isAuthed() && !guestDataOff())); }catch(_){}
   input.actionEdge = false; game._tapPos = null;        // залишковий тап не перегортає нову сцену
   if(p==='set') game.shoot = null;   // свіжий старт мінігри-оператора
   if(p!=='kitana' && typeof stopMic==='function') stopMic();   // мікрофон живе лише в сцені Кітани
@@ -6934,6 +6934,7 @@ function finishGame(){
     rsvpAutoShown = true; setTimeout(openRsvp, 500);
   };
   const stepEmail = async ()=>{
+    if(guestDataOff()) return;                            // пошту гостей більше не збираємо
     if(coupleMode) return;                                // молодятам не шлемо лист і не питаємо пошту
     const es=document.getElementById('email-screen');
     if(!localStorage.getItem('wed-email') && !localStorage.getItem('wed-invite-mailed')){
@@ -7354,6 +7355,9 @@ function niceName(s){
 const HELLO_NEUTRAL = 'Шановний пане чи пані';
 /* відкритий сайт після весілля: без запрошення, анкети й пошти */
 function afterWedding(){ try{ return !!PUBLIC_MODE && !DEV_MODE; }catch(_){ return false; } }
+/* Збір даних гостей завершено назавжди: анкета, пошта й фото вимкнені
+   навіть у DEV, щоб їх не було видно й за персональним посиланням Каті. */
+function guestDataOff(){ try{ return !!PUBLIC_MODE; }catch(_){ return false; } }
 function inviteName(){
   if(GUEST && GUEST.name) return niceName(GUEST.name);
   if(afterWedding()) return '';                    // відкритий сайт — без імен
@@ -7381,6 +7385,8 @@ function openViber(fromTitle){
   document.getElementById('end-screen').classList.add('hidden');
   elTitle.classList.add('hidden');
   document.getElementById('viber-invite').classList.remove('hidden');
+  { const vr=document.getElementById('viber-rsvp');
+    if(vr) vr.style.display = guestDataOff() ? 'none' : ''; }   // анкети більше нема
   document.getElementById('viber-emojis').innerHTML = '';
   for(let i=0;i<16;i++) setTimeout(viberSpawn, i*90);       // одразу рясно
   clearInterval(viberTimer); viberTimer = setInterval(viberSpawn, 170);
@@ -7676,8 +7682,8 @@ function applyLang(){
     'rsvp-close':    ['✕','✕'],
   };
   Object.keys(bmap2).forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent = bmap2[id][E?1:0]; });
-  setHead('#party-screen .s-head', 'ТІНДЕР <span>гортай гостей весілля · метч = привітатися 6 вересня 🥂</span>',
-    'TINDER <span>swipe the wedding guests · a match = say hi on Sept 6 🥂</span>');
+  setHead('#party-screen .s-head', 'ТІНДЕР <span>гортай гостей весілля · взаємний лайк = метч 🥂</span>',
+    'TINDER <span>swipe the wedding guests · a mutual like is a match 🥂</span>');
   const ssub=document.getElementById('s-substep');
   if(ssub && !document.getElementById('sampler-screen').classList.contains('voice'))
     ssub.textContent = E ? 'step 1 · tap the grid — make a melody' : 'крок 1 · накидай мелодію в сітці';
@@ -7796,6 +7802,7 @@ function nameSubmit(){
 /* пропозиція фото — один раз, одразу після вибору імені (перед стартом гри) */
 let selfieOfferGo = null;
 function offerSelfieThen(go){
+  if(guestDataOff()){ go(); return; }                       // після весілля фото не пропонуємо
   if(!isAuthed()){ go(); return; }                          // без пароля фото не пропонуємо
   if(localStorage.getItem('wed-selfie-offered') || localStorage.getItem('wed-selfie-sent')){ go(); return; }
   localStorage.setItem('wed-selfie-offered','1');
@@ -9405,6 +9412,7 @@ function selfieKidsFor(name){
   return null;
 }
 async function openSelfie(){
+  if(guestDataOff()) return;                               // фото гостей більше не збираємо
   if(!isAuthed()){ gateLockedMsg(); return; }              // фото в гру — лише з паролем візитівки
   document.getElementById('end-screen').classList.add('hidden');
   elTitle.classList.add('hidden');
@@ -9652,12 +9660,13 @@ function buildPartyDeck(){
       && g.name.toLowerCase().trim()!==meNameLow)
     .map(g=>({kind:'guest', name:g.name, disp:niceName(g.name), tag:'гість весілля · ще без фото', src:placeholderAvatar(niceName(g.name))}));
   for(let i=noPhoto.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=noPhoto[i]; noPhoto[i]=noPhoto[j]; noPhoto[j]=t; }
-  const guests = withPhoto.filter(g=>g.name.toLowerCase().trim()!==meNameLow).concat(noPhoto);
+  const guests = withPhoto.filter(g=>g.name.toLowerCase().trim()!==meNameLow)
+    .concat(guestDataOff() ? [] : noPhoto);   // «додай своє — і будеш тут» більше не пропонуємо
   for(let i=guests.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=guests[i]; guests[i]=guests[j]; guests[j]=t; }
   const deck = guests.slice(0, 14);
   // Катю й Діму НЕ свайпаємо — тіндер серед гостей весілля
   // ТВОЯ власна картка — навіть без фото (з плейсхолдером), зверху колоди
-  const meName = (localStorage.getItem('wed-player-name')||'').trim();
+  const meName = guestDataOff() ? '' : (localStorage.getItem('wed-player-name')||'').trim();
   if(meName){
     const mine = GUEST_FACES.find(f => (f.name||'').toLowerCase().trim() === meName.toLowerCase());
     const realMine = mine && mine.img && mine.img.src && mine.img.src.startsWith('data:') ? mine.img.src : null;
@@ -9712,13 +9721,15 @@ function openParty(){
       '<div style="font-size:26px;letter-spacing:2px;color:#e88aa0;font-weight:bold">'+photosNow+' / '+PARTY_MIN_PHOTOS+'</div>'+
       '<div style="font-size:12.5px;color:#bcb7a8">'+
         (LANG==='en'?'Add your photo — and get the party started 😏':'Додай своє фото — і підженеш вечірку 😏\nЩо більше облич, то цікавіше гортати')+'</div>'+
-      '<button class="btn" id="party-empty-selfie" style="background:var(--rose);font-weight:bold;padding:11px 18px">📸 '+
-        (LANG==='en'?'Add my photo':'Додати своє фото')+'</button>'+
+      (guestDataOff() ? '' :
+        '<button class="btn" id="party-empty-selfie" style="background:var(--rose);font-weight:bold;padding:11px 18px">📸 '+
+        (LANG==='en'?'Add my photo':'Додати своє фото')+'</button>')+
       '<button class="btn" id="party-empty-back" style="background:#55515f">'+(LANG==='en'?'Back':'Назад')+'</button>';
-    document.getElementById('party-empty-selfie').addEventListener('click', ()=>{
-      ps.classList.add('hidden'); box.classList.add('hidden');
-      try{ openSelfie(); }catch(_){}
-    });
+    { const es = document.getElementById('party-empty-selfie');
+      if(es) es.addEventListener('click', ()=>{
+        ps.classList.add('hidden'); box.classList.add('hidden');
+        try{ openSelfie(); }catch(_){}
+      }); }
     document.getElementById('party-empty-back').addEventListener('click', ()=>{
       ps.classList.add('hidden'); box.classList.add('hidden');
     });
@@ -9726,7 +9737,10 @@ function openParty(){
   }
   document.getElementById('party-stack').style.display='';
   document.getElementById('party-actions').style.display='';
-  { const br=document.getElementById('party-add'); if(br && br.parentElement) br.parentElement.style.display='flex'; }
+  { const br=document.getElementById('party-add');
+    if(br && br.parentElement) br.parentElement.style.display='flex';
+    if(br) br.style.display = guestDataOff() ? 'none' : '';   // фото більше не приймаємо
+  }
   document.getElementById('party-empty').classList.add('hidden');
   partyDeck = buildPartyDeck(); partyIdx = 0; partyBusy = false; sessionMatches = [];
   refreshPartyPlayed().then(()=>{ if(partyIdx===0 && !partyBusy){ partyDeck = buildPartyDeck(); renderPartyTop(); } });
@@ -9739,7 +9753,7 @@ function openParty(){
   // хто лайкнув тебе раніше — показуємо в шапці
   loadMyMatches().then(names=>{
     const h=document.querySelector('#party-screen .s-head span');
-    if(h && names.length) h.textContent = T('💘 тебе лайкнули: ') + names.slice(0,4).join(', ') + (names.length>4?' +'+(names.length-4):'') + T(' · лайкни у відповідь — буде метч!');
+    if(h && names.length) h.textContent = T('💘 тебе лайкнули: ') + names.slice(0,4).map(niceName).join(', ') + (names.length>4?' +'+(names.length-4):'') + T(' · лайкни у відповідь — буде метч!');
   });
   document.getElementById('party-match').classList.add('hidden');
   document.getElementById('party-screen').classList.remove('hidden');
@@ -9754,9 +9768,14 @@ function renderPartyTop(){
   if(partyIdx >= partyDeck.length){
     stack.style.display = 'none'; acts.style.display = 'none';
     empty.classList.remove('hidden');
-    empty.textContent = sessionMatches.length
-      ? '💘 Твої метчі: ' + sessionMatches.join(', ') + '. На весіллі знайди їх і привітайся! А додаси фото — свайпатимуть і тебе.'
-      : 'Колода скінчилась без метчів — буває) Додай своє фото — і зіграймо ще.';
+    const mm = sessionMatches.map(niceName).join(', ');
+    empty.textContent = afterWedding()
+      ? (sessionMatches.length
+          ? '💘 Твої метчі: ' + mm + '. Взаємно 🥂'
+          : 'Колода скінчилась без метчів — буває)')
+      : (sessionMatches.length
+          ? '💘 Твої метчі: ' + mm + '. На весіллі знайди їх і привітайся! А додаси фото — свайпатимуть і тебе.'
+          : 'Колода скінчилась без метчів — буває) Додай своє фото — і зіграймо ще.');
     return;
   }
   stack.style.display = ''; acts.style.display = 'flex'; empty.classList.add('hidden');
@@ -11286,7 +11305,7 @@ function rsvpFinish(){
   });
 }
 function openRsvp(){
-  if(afterWedding()) return;                     // анкета гостей завершена разом із весіллям
+  if(guestDataOff()) return;                     // анкета гостей завершена разом із весіллям
   rsvp.idx = 0; rsvp.answers = []; rsvp.sent = false;
   rsvp.pickedGuest = myGuest || AUTH_GUEST || null;   // пароль = ідентичність, «хто ти» не питаємо
   rsvp.plusOne = null; rsvp.plusMode = null; rsvp._plusHost = null; rsvp.pending = null;
